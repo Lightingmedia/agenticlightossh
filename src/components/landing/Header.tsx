@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -12,10 +12,10 @@ const Header = () => {
       {/* Announcement Bar */}
       <div className="bg-secondary/80 backdrop-blur-sm border-b border-border py-2 px-4">
         <div className="container mx-auto flex items-center justify-center gap-2 text-sm">
-          <span className="text-primary">🚀</span>
-          <span className="font-mono text-muted-foreground">LIGHTOS v1.0.0 is live!</span>
+          <span className="text-primary">⚡</span>
+          <span className="font-mono text-muted-foreground">LIGHTOS Beta is now available!</span>
           <a href="#" className="text-primary hover:underline font-mono">
-            Try for free →
+            Request access →
           </a>
         </div>
       </div>
@@ -25,9 +25,11 @@ const Header = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2 font-mono text-lg font-bold">
-              <span className="text-primary">{`{ }`}</span>
-              <span className="text-foreground">LIGHTOS</span>
+            <a href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                <Layers className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className="text-foreground tracking-tight">LightOS</span>
             </a>
 
             {/* Desktop Navigation */}
@@ -38,7 +40,7 @@ const Header = () => {
                   onMouseEnter={() => setProductsOpen(true)}
                   onMouseLeave={() => setProductsOpen(false)}
                 >
-                  Products
+                  Platform
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <AnimatePresence>
@@ -47,36 +49,34 @@ const Header = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-xl py-2"
+                      className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-xl py-2"
                       onMouseEnter={() => setProductsOpen(true)}
                       onMouseLeave={() => setProductsOpen(false)}
                     >
-                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">CLI</a>
+                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</a>
+                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</a>
                       <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                        VS Code <span className="text-primary text-xs">SOON</span>
-                      </a>
-                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                        Sandbox <span className="text-primary text-xs">SOON</span>
+                        Model Registry <span className="text-primary text-xs">BETA</span>
                       </a>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-              <a href="#enterprise" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Enterprise
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Docs
               </a>
-              <a href="#news" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                News
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Pricing
               </a>
             </div>
 
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="outline" size="sm" className="font-mono border-border hover:border-primary hover:text-primary">
-                Discord
+              <Button variant="ghost" size="sm" className="font-mono text-muted-foreground hover:text-foreground">
+                Sign In
               </Button>
-              <Button size="sm" className="font-mono bg-foreground text-background hover:bg-foreground/90">
-                Login
+              <Button size="sm" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90">
+                Get Started
               </Button>
             </div>
 
@@ -100,12 +100,12 @@ const Header = () => {
               className="md:hidden border-t border-border bg-background"
             >
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Products</a>
-                <a href="#enterprise" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Enterprise</a>
-                <a href="#news" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">News</a>
+                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Platform</a>
+                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Docs</a>
+                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Pricing</a>
                 <div className="flex gap-3 pt-4 border-t border-border">
-                  <Button variant="outline" size="sm" className="font-mono flex-1">Discord</Button>
-                  <Button size="sm" className="font-mono flex-1 bg-foreground text-background">Login</Button>
+                  <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
+                  <Button size="sm" className="font-mono flex-1 bg-primary text-primary-foreground">Get Started</Button>
                 </div>
               </div>
             </motion.div>
