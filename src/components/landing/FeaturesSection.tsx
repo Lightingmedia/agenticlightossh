@@ -1,5 +1,7 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Server, Bot, Activity, Lock, Coins, Workflow } from "lucide-react";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/parallax-section";
 
 const features = [
   {
@@ -47,19 +49,25 @@ const features = [
 ];
 
 const FeaturesSection = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 grid-pattern opacity-15" />
+    <section ref={containerRef} className="py-24 relative overflow-hidden">
+      {/* Parallax Background */}
+      <motion.div 
+        className="absolute inset-0 grid-pattern opacity-15" 
+        style={{ y: backgroundY }}
+      />
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <ScrollReveal className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -74,36 +82,35 @@ const FeaturesSection = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             From local development to global deployment, LightOS handles the complexity so you can focus on building.
           </p>
-        </motion.div>
+        </ScrollReveal>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.08 }}
-              className="group p-6 rounded-xl border border-border bg-card/30 hover:border-primary/40 hover:bg-card/60 transition-all duration-300"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="w-5 h-5" />
+        {/* Features Grid with Stagger */}
+        <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" staggerDelay={0.1}>
+          {features.map((feature) => (
+            <StaggerItem key={feature.title}>
+              <motion.div
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="group h-full p-6 rounded-xl border border-border bg-card/30 hover:border-primary/40 hover:bg-card/60 transition-all duration-300"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <feature.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-mono text-primary/70 uppercase tracking-wider">
+                    {feature.tag}
+                  </span>
                 </div>
-                <span className="text-xs font-mono text-primary/70 uppercase tracking-wider">
-                  {feature.tag}
-                </span>
-              </div>
-              <h3 className="font-mono font-bold text-lg mb-2 text-foreground">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
+                <h3 className="font-mono font-bold text-lg mb-2 text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   );

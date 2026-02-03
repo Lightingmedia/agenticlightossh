@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { ScrollReveal } from "@/components/ui/parallax-section";
 
 const tools = [
   {
@@ -21,17 +22,20 @@ const tools = [
 
 const ToolingSection = () => {
   const [activeTool, setActiveTool] = useState("dashboard");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [5, 0, -5]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.95, 1, 0.95]);
 
   return (
-    <section className="py-24 border-t border-border">
+    <section ref={containerRef} className="py-24 border-t border-border">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <ScrollReveal className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
@@ -45,17 +49,21 @@ const ToolingSection = () => {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Whether you prefer a visual interface or live in the terminal, LightOS meets you where you work.
           </p>
-        </motion.div>
+        </ScrollReveal>
 
-        {/* Tool Preview */}
+        {/* Tool Preview with 3D Transform */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          style={{ rotateX, scale, perspective: 1000 }}
           className="relative"
         >
           {/* Terminal Window */}
-          <div className="terminal-window overflow-hidden max-w-5xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="terminal-window overflow-hidden max-w-5xl mx-auto shadow-2xl shadow-primary/5"
+          >
             {/* Window Controls */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
               <div className="flex gap-1.5">
@@ -74,9 +82,10 @@ const ToolingSection = () => {
                 {activeTool === "dashboard" && (
                   <motion.div
                     key="dashboard"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
                     {/* Stats Row */}
@@ -86,9 +95,12 @@ const ToolingSection = () => {
                         { label: "Requests/sec", value: "2,341", change: "↑ 15%" },
                         { label: "P95 Latency", value: "34ms", change: "↓ 12ms" },
                         { label: "Active Models", value: "7", change: "" },
-                      ].map((stat) => (
-                        <div
+                      ].map((stat, i) => (
+                        <motion.div
                           key={stat.label}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
                           className="p-4 rounded-lg border border-border bg-card/40"
                         >
                           <div className="text-xs text-muted-foreground font-mono mb-1">
@@ -100,7 +112,7 @@ const ToolingSection = () => {
                           {stat.change && (
                             <div className="text-xs text-primary mt-1">{stat.change}</div>
                           )}
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
 
@@ -116,7 +128,13 @@ const ToolingSection = () => {
                           { time: "15s ago", event: "Model mistral-7b deployed to cluster", type: "success" },
                           { time: "1m ago", event: "Auto-scaling triggered for high load", type: "warning" },
                         ].map((log, i) => (
-                          <div key={i} className="flex items-center gap-3">
+                          <motion.div 
+                            key={i} 
+                            className="flex items-center gap-3"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                          >
                             <span className="text-muted-foreground text-xs w-16">{log.time}</span>
                             <span
                               className={`w-2 h-2 rounded-full flex-shrink-0 ${
@@ -128,7 +146,7 @@ const ToolingSection = () => {
                               }`}
                             />
                             <span className="text-foreground/80 truncate">{log.event}</span>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </div>
@@ -138,9 +156,10 @@ const ToolingSection = () => {
                 {activeTool === "terminal" && (
                   <motion.div
                     key="terminal"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                     className="font-mono text-sm space-y-2"
                   >
                     <div><span className="text-muted-foreground">$</span> <span className="text-foreground">lightos nodes ls</span></div>
@@ -162,9 +181,10 @@ const ToolingSection = () => {
                 {activeTool === "api" && (
                   <motion.div
                     key="api"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
                     className="font-mono text-sm"
                   >
                     <pre className="text-foreground overflow-x-auto">
@@ -193,14 +213,16 @@ for await (const chunk of response) {
                 )}
               </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
 
           {/* Tool Selector */}
           <div className="flex justify-center gap-3 mt-6">
             {tools.map((tool) => (
-              <button
+              <motion.button
                 key={tool.id}
                 onClick={() => setActiveTool(tool.id)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className={`px-5 py-2.5 rounded-lg font-mono text-sm transition-all ${
                   activeTool === tool.id
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
@@ -208,7 +230,7 @@ for await (const chunk of response) {
                 }`}
               >
                 {tool.name}
-              </button>
+              </motion.button>
             ))}
           </div>
         </motion.div>
