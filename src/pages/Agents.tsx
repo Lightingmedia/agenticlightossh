@@ -1,26 +1,33 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, RefreshCw } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import AgentCard from "@/components/dashboard/AgentCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-// Mock agent data
-const agents = [
-  { id: "agent-001-xyz", name: "node-gpu-7", type: "GPU Worker (A100)", status: "online" as const, cpu: 45, memory: 78, tasks: 142, uptime: "7d 12h" },
-  { id: "agent-002-abc", name: "node-gpu-12", type: "GPU Worker (H100)", status: "busy" as const, cpu: 92, memory: 85, tasks: 89, uptime: "3d 8h" },
-  { id: "agent-003-def", name: "node-cpu-3", type: "CPU Worker", status: "online" as const, cpu: 34, memory: 45, tasks: 234, uptime: "14d 2h" },
-  { id: "agent-004-ghi", name: "edge-laptop-1", type: "Edge Device (RTX 4090)", status: "idle" as const, cpu: 5, memory: 23, tasks: 12, uptime: "1d 4h" },
-  { id: "agent-005-jkl", name: "node-gpu-15", type: "GPU Worker (A100)", status: "offline" as const, cpu: 0, memory: 0, tasks: 0, uptime: "—" },
-  { id: "agent-006-mno", name: "worker-east-12", type: "GPU Worker (H100)", status: "online" as const, cpu: 67, memory: 72, tasks: 78, uptime: "2d 18h" },
-  { id: "agent-007-pqr", name: "node-inference-1", type: "Inference Node", status: "busy" as const, cpu: 88, memory: 91, tasks: 456, uptime: "21d 6h" },
-  { id: "agent-008-stu", name: "edge-workstation-2", type: "Edge Device (RTX 3090)", status: "online" as const, cpu: 28, memory: 35, tasks: 45, uptime: "5d 14h" },
-];
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRealtimeAgents } from "@/hooks/use-realtime-telemetry";
+import { registerAgent } from "@/lib/api";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const Agents = () => {
+  const { agents, loading } = useRealtimeAgents();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newAgentName, setNewAgentName] = useState("");
+  const [newAgentType, setNewAgentType] = useState("");
+  const [registering, setRegistering] = useState(false);
 
   const filteredAgents = agents.filter((agent) => {
     const matchesSearch =
@@ -36,6 +43,26 @@ const Agents = () => {
     busy: agents.filter((a) => a.status === "busy").length,
     idle: agents.filter((a) => a.status === "idle").length,
     offline: agents.filter((a) => a.status === "offline").length,
+  };
+
+  const handleRegisterAgent = async () => {
+    if (!newAgentName || !newAgentType) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setRegistering(true);
+    try {
+      await registerAgent(newAgentName, newAgentType);
+      toast.success(`Agent ${newAgentName} registered successfully`);
+      setIsDialogOpen(false);
+      setNewAgentName("");
+      setNewAgentType("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to register agent");
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -63,10 +90,53 @@ const Agents = () => {
               Filter
             </Button>
           </div>
-          <Button className="font-mono bg-primary text-primary-foreground">
-            <Plus className="w-4 h-4 mr-2" />
-            Register Agent
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="font-mono bg-primary text-primary-foreground">
+                <Plus className="w-4 h-4 mr-2" />
+                Register Agent
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="font-mono">Register New Agent</DialogTitle>
+                <DialogDescription>
+                  Add a new compute node or edge device to your cluster.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Agent Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g., node-gpu-new"
+                    value={newAgentName}
+                    onChange={(e) => setNewAgentName(e.target.value)}
+                    className="bg-secondary border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Agent Type</Label>
+                  <Input
+                    id="type"
+                    placeholder="e.g., GPU Worker (A100)"
+                    value={newAgentType}
+                    onChange={(e) => setNewAgentType(e.target.value)}
+                    className="bg-secondary border-border"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleRegisterAgent} disabled={registering}>
+                  {registering && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                  Register
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Status Tabs */}
@@ -86,21 +156,44 @@ const Agents = () => {
           ))}
         </div>
 
-        {/* Agents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredAgents.map((agent, index) => (
-            <motion.div
-              key={agent.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <AgentCard {...agent} />
-            </motion.div>
-          ))}
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span>Real-time updates enabled</span>
         </div>
 
-        {filteredAgents.length === 0 && (
+        {/* Agents Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-48 rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredAgents.map((agent, index) => (
+              <motion.div
+                key={agent.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <AgentCard
+                  id={agent.agent_id}
+                  name={agent.name}
+                  type={agent.type}
+                  status={agent.status}
+                  cpu={Number(agent.cpu)}
+                  memory={Number(agent.memory)}
+                  tasks={agent.tasks}
+                  uptime={agent.uptime}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredAgents.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
