@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Zap, Send, Clock } from "lucide-react";
+import { Plus, Zap, Send, Clock, RefreshCw } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import InferenceQueue from "@/components/dashboard/InferenceQueue";
 import StatCard from "@/components/dashboard/StatCard";
@@ -8,6 +8,10 @@ import TelemetryChart from "@/components/dashboard/TelemetryChart";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRealtimeInferenceTasks } from "@/hooks/use-realtime-telemetry";
+import { submitInferenceTask } from "@/lib/api";
+import { toast } from "sonner";
 
 const models = [
   { id: "llama-3.1-70b", name: "Llama 3.1 70B" },
@@ -15,15 +19,6 @@ const models = [
   { id: "mistral-7b", name: "Mistral 7B" },
   { id: "mixtral-8x7b", name: "Mixtral 8x7B" },
   { id: "codellama-34b", name: "CodeLlama 34B" },
-];
-
-const queueTasks = [
-  { id: "inf-001", model: "llama-3.1-70b", status: "running" as const, progress: 78 },
-  { id: "inf-002", model: "mistral-7b", status: "running" as const, progress: 45 },
-  { id: "inf-003", model: "mixtral-8x7b", status: "queued" as const },
-  { id: "inf-004", model: "llama-3.1-8b", status: "completed" as const, tokens: 1247, duration: "1.2s" },
-  { id: "inf-005", model: "codellama-34b", status: "completed" as const, tokens: 892, duration: "0.8s" },
-  { id: "inf-006", model: "llama-3.1-70b", status: "failed" as const },
 ];
 
 const stats = [
@@ -39,10 +34,32 @@ const latencyData = Array.from({ length: 24 }, (_, i) => ({
 const Inference = () => {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState("llama-3.1-70b");
+  const [submitting, setSubmitting] = useState(false);
+  const { tasks, loading } = useRealtimeInferenceTasks();
 
-  const handleSubmit = () => {
-    console.log("Submitting inference:", { model: selectedModel, prompt });
-    setPrompt("");
+  // Transform tasks for the queue component
+  const queueTasks = tasks.map((task) => ({
+    id: task.task_id,
+    model: task.model,
+    status: task.status,
+    progress: task.progress ?? undefined,
+    tokens: task.tokens ?? undefined,
+    duration: task.duration ?? undefined,
+  }));
+
+  const handleSubmit = async () => {
+    if (!prompt.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await submitInferenceTask(selectedModel);
+      toast.success("Inference task submitted successfully");
+      setPrompt("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit task");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -108,18 +125,42 @@ const Inference = () => {
 
               <Button
                 onClick={handleSubmit}
-                disabled={!prompt.trim()}
+                disabled={!prompt.trim() || submitting}
                 className="w-full font-mono bg-primary text-primary-foreground"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Submit Task
+                {submitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Task
+                  </>
+                )}
               </Button>
             </div>
           </motion.div>
 
           {/* Queue */}
           <div className="lg:col-span-2">
-            <InferenceQueue tasks={queueTasks} />
+            {loading ? (
+              <div className="p-5 rounded-xl border border-border bg-card/50 space-y-3">
+                <Skeleton className="h-6 w-32" />
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full" />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span>Real-time updates enabled</span>
+                </div>
+                <InferenceQueue tasks={queueTasks} />
+              </>
+            )}
           </div>
         </div>
 

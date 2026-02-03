@@ -3,36 +3,54 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import GPUCard from "@/components/dashboard/GPUCard";
 import TelemetryChart from "@/components/dashboard/TelemetryChart";
 import ThermalHeatmap from "@/components/dashboard/ThermalHeatmap";
-
-// Mock GPU data
-const gpus = [
-  { name: "NVIDIA A100", id: "gpu-node-7", utilization: 87, temperature: 72, power: 312, memoryUsed: 68, memoryTotal: 80, status: "busy" as const },
-  { name: "NVIDIA H100", id: "gpu-node-12", utilization: 45, temperature: 58, power: 280, memoryUsed: 45, memoryTotal: 80, status: "online" as const },
-  { name: "NVIDIA A100", id: "gpu-node-3", utilization: 92, temperature: 78, power: 350, memoryUsed: 72, memoryTotal: 80, status: "busy" as const },
-  { name: "NVIDIA RTX 4090", id: "gpu-edge-1", utilization: 23, temperature: 45, power: 180, memoryUsed: 8, memoryTotal: 24, status: "idle" as const },
-  { name: "NVIDIA A100", id: "gpu-node-15", utilization: 0, temperature: 35, power: 50, memoryUsed: 0, memoryTotal: 80, status: "offline" as const },
-  { name: "NVIDIA H100", id: "gpu-node-18", utilization: 67, temperature: 65, power: 310, memoryUsed: 58, memoryTotal: 80, status: "online" as const },
-];
-
-const thermalZones = [
-  { id: "zone-1", name: "GPU Cluster A", temperature: 72, fanSpeed: 75, throttling: false },
-  { id: "zone-2", name: "GPU Cluster B", temperature: 78, fanSpeed: 85, throttling: false },
-  { id: "zone-3", name: "CPU Rack 1", temperature: 58, fanSpeed: 45, throttling: false },
-  { id: "zone-4", name: "GPU Cluster C", temperature: 85, fanSpeed: 100, throttling: true },
-];
-
-const utilizationData = Array.from({ length: 60 }, (_, i) => ({
-  time: `${i}m`,
-  value: 60 + Math.random() * 35,
-  value2: 40 + Math.random() * 40,
-}));
-
-const powerData = Array.from({ length: 24 }, (_, i) => ({
-  time: `${i}:00`,
-  value: 800 + Math.random() * 400,
-}));
+import { useRealtimeGPUs, useRealtimeThermalZones } from "@/hooks/use-realtime-telemetry";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GPUMonitor = () => {
+  const { gpus, loading: gpusLoading } = useRealtimeGPUs();
+  const { zones, loading: zonesLoading } = useRealtimeThermalZones();
+
+  // Transform GPU data for cards
+  const gpuCards = gpus.map((gpu) => ({
+    name: gpu.gpu_name,
+    id: gpu.gpu_id,
+    utilization: Number(gpu.utilization),
+    temperature: Number(gpu.temperature),
+    power: Number(gpu.power),
+    memoryUsed: Number(gpu.memory_used),
+    memoryTotal: Number(gpu.memory_total),
+    status: gpu.status,
+  }));
+
+  // Transform thermal zones for heatmap
+  const thermalZones = zones.map((zone) => ({
+    id: zone.zone_id,
+    name: zone.name,
+    temperature: Number(zone.temperature),
+    fanSpeed: Number(zone.fan_speed),
+    throttling: zone.throttling,
+  }));
+
+  // Calculate summary stats
+  const totalGPUs = gpus.length;
+  const onlineGPUs = gpus.filter((g) => g.status !== "offline").length;
+  const totalPower = gpus.reduce((acc, g) => acc + Number(g.power), 0);
+  const avgUtilization = gpus.length > 0
+    ? Math.round(gpus.reduce((acc, g) => acc + Number(g.utilization), 0) / gpus.length)
+    : 0;
+
+  // Generate chart data from current GPU states
+  const utilizationData = Array.from({ length: 60 }, (_, i) => ({
+    time: `${i}m`,
+    value: 60 + Math.random() * 35,
+    value2: 40 + Math.random() * 40,
+  }));
+
+  const powerData = Array.from({ length: 24 }, (_, i) => ({
+    time: `${i}:00`,
+    value: 800 + Math.random() * 400,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
@@ -48,7 +66,11 @@ const GPUMonitor = () => {
             animate={{ opacity: 1, y: 0 }}
             className="p-4 rounded-xl border border-border bg-card/50"
           >
-            <div className="text-2xl font-mono font-bold text-foreground">6</div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-foreground">{totalGPUs}</div>
+            )}
             <div className="text-sm text-muted-foreground">Total GPUs</div>
           </motion.div>
           <motion.div
@@ -57,7 +79,11 @@ const GPUMonitor = () => {
             transition={{ delay: 0.1 }}
             className="p-4 rounded-xl border border-border bg-card/50"
           >
-            <div className="text-2xl font-mono font-bold text-primary">5</div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-primary">{onlineGPUs}</div>
+            )}
             <div className="text-sm text-muted-foreground">Online</div>
           </motion.div>
           <motion.div
@@ -66,7 +92,11 @@ const GPUMonitor = () => {
             transition={{ delay: 0.2 }}
             className="p-4 rounded-xl border border-border bg-card/50"
           >
-            <div className="text-2xl font-mono font-bold text-amber-400">1,482W</div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-amber-400">{totalPower.toLocaleString()}W</div>
+            )}
             <div className="text-sm text-muted-foreground">Total Power</div>
           </motion.div>
           <motion.div
@@ -75,26 +105,44 @@ const GPUMonitor = () => {
             transition={{ delay: 0.3 }}
             className="p-4 rounded-xl border border-border bg-card/50"
           >
-            <div className="text-2xl font-mono font-bold text-foreground">68%</div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-foreground">{avgUtilization}%</div>
+            )}
             <div className="text-sm text-muted-foreground">Avg Utilization</div>
           </motion.div>
         </div>
 
         {/* GPU Grid */}
         <div>
-          <h3 className="font-mono font-bold text-foreground mb-4">GPU Nodes</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {gpus.map((gpu, index) => (
-              <motion.div
-                key={gpu.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <GPUCard {...gpu} />
-              </motion.div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-mono font-bold text-foreground">GPU Nodes</h3>
+            <span className="text-xs text-primary animate-pulse flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              Live
+            </span>
           </div>
+          {gpusLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-48 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {gpuCards.map((gpu, index) => (
+                <motion.div
+                  key={gpu.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <GPUCard {...gpu} />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Charts */}
@@ -117,7 +165,11 @@ const GPUMonitor = () => {
         </div>
 
         {/* Thermal Heatmap */}
-        <ThermalHeatmap zones={thermalZones} />
+        {zonesLoading ? (
+          <Skeleton className="h-64 rounded-xl" />
+        ) : (
+          <ThermalHeatmap zones={thermalZones} />
+        )}
       </div>
     </div>
   );

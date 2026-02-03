@@ -14,7 +14,201 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agents: {
+        Row: {
+          agent_id: string
+          cpu: number
+          created_at: string
+          id: string
+          memory: number
+          name: string
+          status: string
+          tasks: number
+          type: string
+          updated_at: string
+          uptime: string
+        }
+        Insert: {
+          agent_id: string
+          cpu?: number
+          created_at?: string
+          id?: string
+          memory?: number
+          name: string
+          status?: string
+          tasks?: number
+          type: string
+          updated_at?: string
+          uptime?: string
+        }
+        Update: {
+          agent_id?: string
+          cpu?: number
+          created_at?: string
+          id?: string
+          memory?: number
+          name?: string
+          status?: string
+          tasks?: number
+          type?: string
+          updated_at?: string
+          uptime?: string
+        }
+        Relationships: []
+      }
+      gpu_metrics: {
+        Row: {
+          created_at: string
+          gpu_id: string
+          gpu_name: string
+          id: string
+          memory_total: number
+          memory_used: number
+          power: number
+          status: string
+          temperature: number
+          updated_at: string
+          utilization: number
+        }
+        Insert: {
+          created_at?: string
+          gpu_id: string
+          gpu_name: string
+          id?: string
+          memory_total?: number
+          memory_used?: number
+          power?: number
+          status?: string
+          temperature?: number
+          updated_at?: string
+          utilization?: number
+        }
+        Update: {
+          created_at?: string
+          gpu_id?: string
+          gpu_name?: string
+          id?: string
+          memory_total?: number
+          memory_used?: number
+          power?: number
+          status?: string
+          temperature?: number
+          updated_at?: string
+          utilization?: number
+        }
+        Relationships: []
+      }
+      inference_tasks: {
+        Row: {
+          created_at: string
+          duration: string | null
+          id: string
+          model: string
+          progress: number | null
+          status: string
+          task_id: string
+          tokens: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: string | null
+          id?: string
+          model: string
+          progress?: number | null
+          status?: string
+          task_id: string
+          tokens?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration?: string | null
+          id?: string
+          model?: string
+          progress?: number | null
+          status?: string
+          task_id?: string
+          tokens?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_logs: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          message: string
+          service: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level?: string
+          message: string
+          service: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          service?: string
+        }
+        Relationships: []
+      }
+      telemetry_data: {
+        Row: {
+          id: string
+          metric_type: string
+          timestamp: string
+          value: number
+        }
+        Insert: {
+          id?: string
+          metric_type: string
+          timestamp?: string
+          value: number
+        }
+        Update: {
+          id?: string
+          metric_type?: string
+          timestamp?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      thermal_zones: {
+        Row: {
+          fan_speed: number
+          id: string
+          name: string
+          temperature: number
+          throttling: boolean
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          fan_speed?: number
+          id?: string
+          name: string
+          temperature?: number
+          throttling?: boolean
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          fan_speed?: number
+          id?: string
+          name?: string
+          temperature?: number
+          throttling?: boolean
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

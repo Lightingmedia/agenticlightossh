@@ -2,81 +2,261 @@ import { motion } from "framer-motion";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import ThermalHeatmap from "@/components/dashboard/ThermalHeatmap";
 import TelemetryChart from "@/components/dashboard/TelemetryChart";
-import StatCard from "@/components/dashboard/StatCard";
-import { Thermometer, Fan, Zap, AlertTriangle } from "lucide-react";
-
-const thermalZones = [
-  { id: "zone-1", name: "GPU Cluster A", temperature: 72, fanSpeed: 75, throttling: false },
-  { id: "zone-2", name: "GPU Cluster B", temperature: 78, fanSpeed: 85, throttling: false },
-  { id: "zone-3", name: "CPU Rack 1", temperature: 58, fanSpeed: 45, throttling: false },
-  { id: "zone-4", name: "GPU Cluster C", temperature: 85, fanSpeed: 100, throttling: true },
-  { id: "zone-5", name: "CPU Rack 2", temperature: 52, fanSpeed: 35, throttling: false },
-  { id: "zone-6", name: "Storage Array", temperature: 42, fanSpeed: 25, throttling: false },
-  { id: "zone-7", name: "Network Core", temperature: 48, fanSpeed: 40, throttling: false },
-  { id: "zone-8", name: "GPU Cluster D", temperature: 68, fanSpeed: 65, throttling: false },
-];
-
-const stats = [
-  { title: "Avg Temperature", value: "63°C", change: "Optimal", changeType: "positive" as const, icon: Thermometer },
-  { title: "Avg Fan Speed", value: "59%", change: "Auto", changeType: "neutral" as const, icon: Fan, iconColor: "text-blue-400" },
-  { title: "Power Draw", value: "4.2kW", change: "↓ 8%", changeType: "positive" as const, icon: Zap, iconColor: "text-amber-400" },
-  { title: "Thermal Events", value: "1", change: "Last 24h", changeType: "negative" as const, icon: AlertTriangle, iconColor: "text-red-400" },
-];
-
-const tempHistoryData = Array.from({ length: 24 }, (_, i) => ({
-  time: `${i}:00`,
-  value: 60 + Math.random() * 20,
-  value2: 55 + Math.random() * 15,
-}));
-
-const powerData = Array.from({ length: 24 }, (_, i) => ({
-  time: `${i}:00`,
-  value: 3500 + Math.random() * 1500,
-}));
+import { Thermometer, Cpu, Fan, AlertTriangle, Zap, Gauge } from "lucide-react";
+import { useRealtimeGPUs, useRealtimeThermalZones } from "@/hooks/use-realtime-telemetry";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { adjustThermal } from "@/lib/api";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const ThermalControl = () => {
+  const { gpus, loading: gpusLoading } = useRealtimeGPUs();
+  const { zones, loading: zonesLoading } = useRealtimeThermalZones();
+  const [adjustingZone, setAdjustingZone] = useState<string | null>(null);
+
+  // Transform thermal zones for heatmap
+  const thermalZones = zones.map((zone) => ({
+    id: zone.zone_id,
+    name: zone.name,
+    temperature: Number(zone.temperature),
+    fanSpeed: Number(zone.fan_speed),
+    throttling: zone.throttling,
+  }));
+
+  // Calculate thermal stats
+  const maxTemp = gpus.length > 0 
+    ? Math.max(...gpus.map((g) => Number(g.temperature)))
+    : 0;
+  const avgTemp = gpus.length > 0
+    ? Math.round(gpus.reduce((acc, g) => acc + Number(g.temperature), 0) / gpus.length)
+    : 0;
+  const throttledCount = zones.filter((z) => z.throttling).length;
+  const totalPower = gpus.reduce((acc, g) => acc + Number(g.power), 0);
+
+  // Chart data
+  const tempHistoryData = Array.from({ length: 60 }, (_, i) => ({
+    time: `${i}m`,
+    value: 55 + Math.random() * 30,
+    value2: 50 + Math.random() * 25,
+  }));
+
+  const powerHistoryData = Array.from({ length: 24 }, (_, i) => ({
+    time: `${i}:00`,
+    value: 800 + Math.random() * 600,
+  }));
+
+  const handleFanAdjust = async (zoneId: string, speed: number) => {
+    setAdjustingZone(zoneId);
+    try {
+      await adjustThermal(zoneId, speed);
+      toast.success(`Fan speed adjusted to ${speed}%`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to adjust fan speed");
+    } finally {
+      setAdjustingZone(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
         title="Thermal Control"
-        subtitle="Heat aversion and thermal management with learned profiles"
+        subtitle="Heat aversion through learned thermal profiles"
       />
 
       <div className="p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <StatCard {...stat} />
-            </motion.div>
-          ))}
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl border border-border bg-card/50"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Thermometer className="w-4 h-4 text-red-400" />
+              <span className="text-xs text-muted-foreground">Max Temp</span>
+            </div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className={`text-2xl font-mono font-bold ${maxTemp >= 80 ? 'text-red-400' : maxTemp >= 70 ? 'text-amber-400' : 'text-primary'}`}>
+                {maxTemp}°C
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="p-4 rounded-xl border border-border bg-card/50"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Gauge className="w-4 h-4 text-primary" />
+              <span className="text-xs text-muted-foreground">Avg Temp</span>
+            </div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-foreground">{avgTemp}°C</div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="p-4 rounded-xl border border-border bg-card/50"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span className="text-xs text-muted-foreground">Throttling</span>
+            </div>
+            {zonesLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className={`text-2xl font-mono font-bold ${throttledCount > 0 ? 'text-amber-400' : 'text-primary'}`}>
+                {throttledCount}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="p-4 rounded-xl border border-border bg-card/50"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-amber-400" />
+              <span className="text-xs text-muted-foreground">Total Power</span>
+            </div>
+            {gpusLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-mono font-bold text-foreground">{totalPower.toLocaleString()}W</div>
+            )}
+          </motion.div>
         </div>
 
-        {/* Main Heatmap */}
-        <ThermalHeatmap zones={thermalZones} />
+        {/* Thermal Heatmap */}
+        {zonesLoading ? (
+          <Skeleton className="h-64 rounded-xl" />
+        ) : (
+          <ThermalHeatmap zones={thermalZones} />
+        )}
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TelemetryChart
-            title="Temperature History (24h)"
-            data={tempHistoryData}
-            showSecondary
-            color="hsl(0, 84%, 60%)"
-            secondaryColor="hsl(45, 90%, 50%)"
-            unit="°C"
-          />
-          <TelemetryChart
-            title="Power Consumption (24h)"
-            data={powerData}
-            color="hsl(280, 70%, 60%)"
-            unit="W"
-          />
-        </div>
+        {/* Fan Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-xl border border-border bg-card/50"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-mono font-bold text-foreground flex items-center gap-2">
+              <Fan className="w-5 h-5 text-primary" />
+              Fan Control Profiles
+            </h3>
+            <span className="text-xs text-muted-foreground">Learned thermal optimization active</span>
+          </div>
+
+          {zonesLoading ? (
+            <div className="space-y-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {zones.map((zone) => (
+                <motion.div
+                  key={zone.zone_id}
+                  className="p-4 rounded-lg bg-secondary/50"
+                  whileHover={{ scale: 1.01 }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-mono text-sm text-foreground">{zone.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {Number(zone.temperature)}°C • {zone.throttling && <span className="text-amber-400">Throttling</span>}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono text-lg text-primary">{Number(zone.fan_speed)}%</div>
+                      <div className="text-xs text-muted-foreground">Fan Speed</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      defaultValue={[Number(zone.fan_speed)]}
+                      max={100}
+                      step={5}
+                      className="flex-1"
+                      onValueCommit={(value) => handleFanAdjust(zone.zone_id, value[0])}
+                      disabled={adjustingZone === zone.zone_id}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="font-mono text-xs"
+                      onClick={() => handleFanAdjust(zone.zone_id, 100)}
+                      disabled={adjustingZone === zone.zone_id}
+                    >
+                      Max
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        {/* GPU Temperature per Node */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-xl border border-border bg-card/50"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-mono font-bold text-foreground flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-primary" />
+              GPU Temperature per Node
+            </h3>
+            <span className="text-xs text-primary animate-pulse flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              Live
+            </span>
+          </div>
+
+          {gpusLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {gpus.map((gpu) => {
+                const temp = Number(gpu.temperature);
+                const colorClass = temp >= 80 ? 'text-red-400' : temp >= 70 ? 'text-amber-400' : 'text-primary';
+                const bgClass = temp >= 80 ? 'bg-red-500/10' : temp >= 70 ? 'bg-amber-500/10' : 'bg-primary/10';
+
+                return (
+                  <motion.div
+                    key={gpu.gpu_id}
+                    className={`p-3 rounded-lg ${bgClass} text-center`}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className={`text-2xl font-mono font-bold ${colorClass}`}>{temp}°C</div>
+                    <div className="text-xs text-muted-foreground truncate">{gpu.gpu_id}</div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
 
         {/* Heat Aversion Info */}
         <motion.div
@@ -106,6 +286,25 @@ const ThermalControl = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TelemetryChart
+            title="Temperature History (Last Hour)"
+            data={tempHistoryData}
+            showSecondary
+            color="hsl(0, 84%, 60%)"
+            secondaryColor="hsl(45, 90%, 50%)"
+            unit="°C"
+          />
+          <TelemetryChart
+            title="Power Consumption (24h)"
+            data={powerHistoryData}
+            color="hsl(45, 90%, 50%)"
+            unit="W"
+            type="area"
+          />
+        </div>
       </div>
     </div>
   );

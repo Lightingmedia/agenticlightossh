@@ -3,8 +3,18 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import TelemetryChart from "@/components/dashboard/TelemetryChart";
 import StatCard from "@/components/dashboard/StatCard";
 import { Activity, Wifi, Clock, AlertTriangle, Server, Gauge } from "lucide-react";
+import { useRealtimeSystemLogs } from "@/hooks/use-realtime-telemetry";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
-// Mock telemetry data
+const stats = [
+  { title: "Avg Latency", value: "34ms", change: "P95: 89ms", changeType: "neutral" as const, icon: Clock },
+  { title: "Throughput", value: "2,341/s", change: "↑ 15%", changeType: "positive" as const, icon: Gauge, iconColor: "text-primary" },
+  { title: "Error Rate", value: "0.12%", change: "↓ 0.05%", changeType: "positive" as const, icon: AlertTriangle, iconColor: "text-amber-400" },
+  { title: "Active Connections", value: "1,247", change: "+89 today", changeType: "positive" as const, icon: Wifi, iconColor: "text-blue-400" },
+];
+
+// Generate chart data
 const latencyData = Array.from({ length: 60 }, (_, i) => ({
   time: `${i}s`,
   value: 20 + Math.random() * 30,
@@ -27,23 +37,9 @@ const networkData = Array.from({ length: 30 }, (_, i) => ({
   value2: 50 + Math.random() * 150,
 }));
 
-const stats = [
-  { title: "Avg Latency", value: "34ms", change: "P95: 89ms", changeType: "neutral" as const, icon: Clock },
-  { title: "Throughput", value: "2,341/s", change: "↑ 15%", changeType: "positive" as const, icon: Gauge, iconColor: "text-primary" },
-  { title: "Error Rate", value: "0.12%", change: "↓ 0.05%", changeType: "positive" as const, icon: AlertTriangle, iconColor: "text-amber-400" },
-  { title: "Active Connections", value: "1,247", change: "+89 today", changeType: "positive" as const, icon: Wifi, iconColor: "text-blue-400" },
-];
-
-const logs = [
-  { time: "12:34:56.789", level: "INFO", service: "inference", message: "Request completed in 34ms" },
-  { time: "12:34:55.123", level: "WARN", service: "scheduler", message: "Queue depth exceeding threshold" },
-  { time: "12:34:54.456", level: "INFO", service: "agent-registry", message: "Agent node-gpu-7 heartbeat received" },
-  { time: "12:34:53.789", level: "ERROR", service: "model-loader", message: "Failed to load model weights, retrying..." },
-  { time: "12:34:52.012", level: "INFO", service: "inference", message: "Batch processed: 24 requests" },
-  { time: "12:34:51.345", level: "DEBUG", service: "thermal", message: "Fan speed adjusted to 75%" },
-];
-
 const Telemetry = () => {
+  const { logs, loading } = useRealtimeSystemLogs();
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
@@ -115,34 +111,44 @@ const Telemetry = () => {
             </div>
           </div>
 
-          <div className="font-mono text-xs space-y-1 max-h-64 overflow-y-auto">
-            {logs.map((log, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="flex gap-3 py-1.5 px-2 rounded hover:bg-secondary/50"
-              >
-                <span className="text-muted-foreground flex-shrink-0">{log.time}</span>
-                <span
-                  className={`flex-shrink-0 ${
-                    log.level === "ERROR"
-                      ? "text-red-400"
-                      : log.level === "WARN"
-                      ? "text-amber-400"
-                      : log.level === "DEBUG"
-                      ? "text-muted-foreground"
-                      : "text-primary"
-                  }`}
+          {loading ? (
+            <div className="space-y-2">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="font-mono text-xs space-y-1 max-h-64 overflow-y-auto">
+              {logs.map((log, index) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.02 }}
+                  className="flex gap-3 py-1.5 px-2 rounded hover:bg-secondary/50"
                 >
-                  [{log.level}]
-                </span>
-                <span className="text-blue-400 flex-shrink-0">[{log.service}]</span>
-                <span className="text-foreground/80 truncate">{log.message}</span>
-              </motion.div>
-            ))}
-          </div>
+                  <span className="text-muted-foreground flex-shrink-0">
+                    {format(new Date(log.created_at), "HH:mm:ss.SSS")}
+                  </span>
+                  <span
+                    className={`flex-shrink-0 ${
+                      log.level === "ERROR"
+                        ? "text-red-400"
+                        : log.level === "WARN"
+                        ? "text-amber-400"
+                        : log.level === "DEBUG"
+                        ? "text-muted-foreground"
+                        : "text-primary"
+                    }`}
+                  >
+                    [{log.level}]
+                  </span>
+                  <span className="text-blue-400 flex-shrink-0">[{log.service}]</span>
+                  <span className="text-foreground/80 truncate">{log.message}</span>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
