@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,9 +15,9 @@ const Header = () => {
         <div className="container mx-auto flex items-center justify-center gap-2 text-sm">
           <span className="text-primary">⚡</span>
           <span className="font-mono text-muted-foreground">LIGHTOS Beta is now available!</span>
-          <a href="#" className="text-primary hover:underline font-mono">
+          <Link to="/dashboard" className="text-primary hover:underline font-mono">
             Request access →
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -25,12 +26,12 @@ const Header = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold">
+            <Link to="/" className="flex items-center gap-2.5 font-mono text-lg font-bold">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
                 <Layers className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="text-foreground tracking-tight">LightOS</span>
-            </a>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
@@ -53,11 +54,11 @@ const Header = () => {
                       onMouseEnter={() => setProductsOpen(true)}
                       onMouseLeave={() => setProductsOpen(false)}
                     >
-                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</a>
-                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</a>
-                      <a href="#" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                      <Link to="/dashboard/agents" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</Link>
+                      <Link to="/dashboard/inference" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</Link>
+                      <Link to="/dashboard/models" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                         Model Registry <span className="text-primary text-xs">BETA</span>
-                      </a>
+                      </Link>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -68,6 +69,9 @@ const Header = () => {
               <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Pricing
               </a>
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Dashboard
+              </Link>
             </div>
 
             {/* Desktop CTA */}
@@ -75,9 +79,11 @@ const Header = () => {
               <Button variant="ghost" size="sm" className="font-mono text-muted-foreground hover:text-foreground">
                 Sign In
               </Button>
-              <Button size="sm" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90">
-                Get Started
-              </Button>
+              <Link to="/dashboard">
+                <Button size="sm" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90">
+                  Get Started
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -103,9 +109,12 @@ const Header = () => {
                 <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Platform</a>
                 <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Docs</a>
                 <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Pricing</a>
+                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Dashboard</Link>
                 <div className="flex gap-3 pt-4 border-t border-border">
                   <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
-                  <Button size="sm" className="font-mono flex-1 bg-primary text-primary-foreground">Get Started</Button>
+                  <Link to="/dashboard" className="flex-1">
+                    <Button size="sm" className="font-mono w-full bg-primary text-primary-foreground">Get Started</Button>
+                  </Link>
                 </div>
               </div>
             </motion.div>
