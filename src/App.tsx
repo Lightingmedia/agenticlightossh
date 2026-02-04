@@ -14,6 +14,14 @@ import Inference from "./pages/Inference";
 import Models from "./pages/Models";
 import Training from "./pages/Training";
 import ThermalControl from "./pages/ThermalControl";
+import AgentTemplates from "./pages/AgentTemplates";
+import DataSources from "./pages/DataSources";
+import RuleBuilder from "./pages/RuleBuilder";
+import ActionOrchestrator from "./pages/ActionOrchestrator";
+import DeployAgent from "./pages/DeployAgent";
+import AgentMonitor from "./pages/AgentMonitor";
+import Docs from "./pages/Docs";
+import Examples from "./pages/Examples";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +33,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/docs" element={<Docs />} />
+          <Route path="/examples" element={<Examples />} />
           
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
@@ -36,6 +46,14 @@ const App = () => (
             <Route path="inference" element={<Inference />} />
             <Route path="models" element={<Models />} />
             <Route path="training" element={<Training />} />
+            {/* Agent Builder Routes */}
+            <Route path="templates" element={<AgentTemplates />} />
+            <Route path="agent/new" element={<AgentTemplates />} />
+            <Route path="data-sources" element={<DataSources />} />
+            <Route path="rules" element={<RuleBuilder />} />
+            <Route path="actions" element={<ActionOrchestrator />} />
+            <Route path="deploy" element={<DeployAgent />} />
+            <Route path="monitor" element={<AgentMonitor />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
