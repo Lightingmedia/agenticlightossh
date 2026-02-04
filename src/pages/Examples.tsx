@@ -6,7 +6,6 @@ import {
   Network, 
   Wrench,
   ExternalLink,
-  Github,
   Play,
   Clock
 } from "lucide-react";
@@ -106,10 +105,6 @@ const Examples = () => {
               Learn from real-world examples and get started quickly
             </p>
             <div className="flex justify-center gap-4">
-              <Button variant="outline" className="font-mono">
-                <Github className="w-4 h-4 mr-2" />
-                View on GitHub
-              </Button>
               <Link to="/dashboard/templates">
                 <Button className="font-mono">
                   Browse Templates
@@ -182,7 +177,6 @@ const Examples = () => {
                 Contribute your agent configurations to help the community
               </p>
               <Button variant="outline" className="font-mono">
-                <Github className="w-4 h-4 mr-2" />
                 Submit an Example
               </Button>
             </CardContent>
