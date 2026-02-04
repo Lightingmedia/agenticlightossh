@@ -21,6 +21,7 @@ import ActionOrchestrator from "./pages/ActionOrchestrator";
 import DeployAgent from "./pages/DeployAgent";
 import AgentMonitor from "./pages/AgentMonitor";
 import PhotonicFabric from "./pages/PhotonicFabric";
+import AgentStudio from "./pages/AgentStudio";
 import Docs from "./pages/Docs";
 import Examples from "./pages/Examples";
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="training" element={<Training />} />
             <Route path="photonic" element={<PhotonicFabric />} />
             {/* Agent Builder Routes */}
+            <Route path="studio" element={<AgentStudio />} />
             <Route path="templates" element={<AgentTemplates />} />
             <Route path="agent/new" element={<AgentTemplates />} />
             <Route path="data-sources" element={<DataSources />} />
