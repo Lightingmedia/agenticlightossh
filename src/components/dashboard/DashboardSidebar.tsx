@@ -14,11 +14,17 @@ import {
   ChevronRight,
   Zap,
   BarChart3,
-  Network,
+  Blocks,
+  Database,
+  GitBranch,
+  PlayCircle,
+  Rocket,
+  Monitor,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const monitoringItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
   { icon: Bot, label: "Agents", path: "/dashboard/agents" },
   { icon: Cpu, label: "GPU Monitor", path: "/dashboard/gpu" },
@@ -27,13 +33,58 @@ const navItems = [
   { icon: Zap, label: "Inference", path: "/dashboard/inference" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },
   { icon: BarChart3, label: "Training", path: "/dashboard/training" },
-  { icon: Network, label: "Network", path: "/dashboard/network" },
-  { icon: Layers, label: "Tasks", path: "/dashboard/tasks" },
+];
+
+const builderItems = [
+  { icon: Blocks, label: "Templates", path: "/dashboard/templates" },
+  { icon: Database, label: "Data Sources", path: "/dashboard/data-sources" },
+  { icon: GitBranch, label: "Rules", path: "/dashboard/rules" },
+  { icon: PlayCircle, label: "Actions", path: "/dashboard/actions" },
+  { icon: Rocket, label: "Deploy", path: "/dashboard/deploy" },
+  { icon: Monitor, label: "Monitor", path: "/dashboard/monitor" },
 ];
 
 const DashboardSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [builderExpanded, setBuilderExpanded] = useState(true);
   const location = useLocation();
+
+  const NavItem = ({ item }: { item: typeof monitoringItems[0] }) => {
+    const isActive = location.pathname === item.path;
+    return (
+      <Link
+        to={item.path}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+          isActive
+            ? "bg-primary/15 text-primary"
+            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+        )}
+      >
+        <item.icon
+          className={cn(
+            "w-5 h-5 flex-shrink-0 transition-colors",
+            isActive ? "text-primary" : "group-hover:text-foreground"
+          )}
+        />
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="font-medium text-sm truncate"
+          >
+            {item.label}
+          </motion.span>
+        )}
+        {isActive && !collapsed && (
+          <motion.div
+            layoutId="activeNav"
+            className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+          />
+        )}
+      </Link>
+    );
+  };
 
   return (
     <motion.aside
@@ -63,46 +114,44 @@ const DashboardSidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
+        {/* Monitoring Section */}
+        {!collapsed && (
+          <div className="px-3 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
+            Monitoring
+          </div>
+        )}
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
-                    isActive
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  )}
-                >
-                  <item.icon
-                    className={cn(
-                      "w-5 h-5 flex-shrink-0 transition-colors",
-                      isActive ? "text-primary" : "group-hover:text-foreground"
-                    )}
-                  />
-                  {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="font-medium text-sm truncate"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                  {isActive && !collapsed && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
-                    />
-                  )}
-                </Link>
-              </li>
-            );
-          })}
+          {monitoringItems.map((item) => (
+            <li key={item.path}>
+              <NavItem item={item} />
+            </li>
+          ))}
         </ul>
+
+        {/* Agent Builder Section */}
+        <div className="mt-6">
+          {!collapsed ? (
+            <button
+              onClick={() => setBuilderExpanded(!builderExpanded)}
+              className="w-full flex items-center justify-between px-3 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+            >
+              <span>Agent Builder</span>
+              <ChevronDown className={cn("w-4 h-4 transition-transform", builderExpanded && "rotate-180")} />
+            </button>
+          ) : (
+            <div className="h-px bg-border mx-3 mb-4" />
+          )}
+          
+          {(builderExpanded || collapsed) && (
+            <ul className="space-y-1">
+              {builderItems.map((item) => (
+                <li key={item.path}>
+                  <NavItem item={item} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </nav>
 
       {/* Settings & Collapse */}

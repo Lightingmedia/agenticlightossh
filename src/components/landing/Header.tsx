@@ -54,6 +54,7 @@ const Header = () => {
                       onMouseEnter={() => setProductsOpen(true)}
                       onMouseLeave={() => setProductsOpen(false)}
                     >
+                      <Link to="/dashboard/templates" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Templates</Link>
                       <Link to="/dashboard/agents" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</Link>
                       <Link to="/dashboard/inference" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</Link>
                       <Link to="/dashboard/models" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
@@ -63,11 +64,14 @@ const Header = () => {
                   )}
                 </AnimatePresence>
               </div>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+              <Link to="/docs" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Docs
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Pricing
+              </Link>
+              <Link to="/examples" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Examples
+              </Link>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                GitHub
               </a>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
@@ -106,13 +110,14 @@ const Header = () => {
               className="md:hidden border-t border-border bg-background"
             >
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
-                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Platform</a>
-                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Docs</a>
-                <a href="#" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Pricing</a>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">Dashboard</Link>
+                <Link to="/dashboard/templates" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Agent Templates</Link>
+                <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
+                <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">GitHub</a>
+                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                 <div className="flex gap-3 pt-4 border-t border-border">
                   <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
-                  <Link to="/dashboard" className="flex-1">
+                  <Link to="/dashboard" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
                     <Button size="sm" className="font-mono w-full bg-primary text-primary-foreground">Get Started</Button>
                   </Link>
                 </div>
