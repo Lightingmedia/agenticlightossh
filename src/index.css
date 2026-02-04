@@ -53,6 +53,10 @@
     --terminal-border: 220 15% 20%;
     --gradient-start: 160 84% 45%;
     --gradient-end: 180 70% 50%;
+
+    /* LightRail Green - Photonic accent */
+    --lightrail: 147 100% 50%;
+    --lightrail-foreground: 220 20% 4%;
   }
 
   .dark {
