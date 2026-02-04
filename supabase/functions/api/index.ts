@@ -13,7 +13,10 @@ serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const path = url.pathname.replace("/api", "");
+  // Extract path after /api from full pathname like /functions/v1/api/fabric/topology
+  const pathname = url.pathname;
+  const apiIndex = pathname.lastIndexOf("/api");
+  const path = apiIndex !== -1 ? pathname.slice(apiIndex + 4) : pathname;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
