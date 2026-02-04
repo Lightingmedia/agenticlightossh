@@ -59,6 +59,10 @@ export default {
           primary: "hsl(var(--glow-primary))",
           secondary: "hsl(var(--glow-secondary))",
         },
+        lightrail: {
+          DEFAULT: "hsl(var(--lightrail))",
+          foreground: "hsl(var(--lightrail-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

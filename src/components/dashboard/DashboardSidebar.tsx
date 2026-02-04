@@ -21,11 +21,13 @@ import {
   Rocket,
   Monitor,
   ChevronDown,
+  Network,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const monitoringItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
+  { icon: Network, label: "Photonic Fabric", path: "/dashboard/photonic" },
   { icon: Bot, label: "Agents", path: "/dashboard/agents" },
   { icon: Cpu, label: "GPU Monitor", path: "/dashboard/gpu" },
   { icon: Activity, label: "Telemetry", path: "/dashboard/telemetry" },
