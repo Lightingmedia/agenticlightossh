@@ -70,9 +70,6 @@ const Header = () => {
               <Link to="/examples" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Examples
               </Link>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                GitHub
-              </a>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
               </Link>
@@ -113,7 +110,6 @@ const Header = () => {
                 <Link to="/dashboard/templates" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Agent Templates</Link>
                 <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
                 <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase">GitHub</a>
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                 <div className="flex gap-3 pt-4 border-t border-border">
                   <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
