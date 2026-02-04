@@ -22,6 +22,7 @@ import {
   Monitor,
   ChevronDown,
   Network,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const monitoringItems = [
 ];
 
 const builderItems = [
+  { icon: Workflow, label: "Agent Studio", path: "/dashboard/studio" },
   { icon: Blocks, label: "Templates", path: "/dashboard/templates" },
   { icon: Database, label: "Data Sources", path: "/dashboard/data-sources" },
   { icon: GitBranch, label: "Rules", path: "/dashboard/rules" },
