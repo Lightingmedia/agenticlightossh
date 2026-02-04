@@ -117,3 +117,87 @@ export async function triggerTelemetryUpdate() {
   if (!response.ok) throw new Error("Failed to trigger telemetry update");
   return response.json();
 }
+
+// Fabric API - Photonic Mesh Topology
+
+export interface TopologyNode {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  status: string;
+  utilization: number;
+  temperature: number;
+}
+
+export interface PhotonicCircuit {
+  id: string;
+  source: string;
+  destination: string;
+  bandwidth_gbps: number;
+  type: string;
+  latency_us: number;
+}
+
+export interface FabricTopology {
+  nodes: TopologyNode[];
+  circuits: PhotonicCircuit[];
+  topology_type: string;
+  reconfiguration_time_us: number;
+}
+
+export interface FabricTelemetry {
+  timestamp: string;
+  cluster_utilization: number;
+  benchmark_utilization: number;
+  lightrail_utilization: number;
+  power_draw_watts: number;
+  thermal_margin_percent: number;
+  bandwidth_density_multiplier: number;
+  active_circuits: number;
+  reconfiguration_count_24h: number;
+  congestion_eliminated: boolean;
+  training_speedup: number;
+}
+
+export async function getFabricTopology(): Promise<FabricTopology> {
+  const headers = await getHeaders();
+  const response = await fetch(`${API_BASE}/fabric/topology`, { headers });
+  if (!response.ok) throw new Error("Failed to fetch fabric topology");
+  return response.json();
+}
+
+export async function getFabricTelemetry(): Promise<FabricTelemetry> {
+  const headers = await getHeaders();
+  const response = await fetch(`${API_BASE}/fabric/telemetry`, { headers });
+  if (!response.ok) throw new Error("Failed to fetch fabric telemetry");
+  return response.json();
+}
+
+export async function provisionCircuit(source: string, destination: string, bandwidth_gbps?: number) {
+  const headers = await getHeaders();
+  const response = await fetch(`${API_BASE}/fabric/circuit`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ source, destination, bandwidth_gbps }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to provision circuit");
+  }
+  return response.json();
+}
+
+export async function reconfigureTopology(pattern: string, workload_type?: string) {
+  const headers = await getHeaders();
+  const response = await fetch(`${API_BASE}/fabric/reconfigure`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ pattern, workload_type }),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to reconfigure topology");
+  }
+  return response.json();
+}
