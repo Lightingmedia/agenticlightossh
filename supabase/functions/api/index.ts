@@ -219,6 +219,162 @@ serve(async (req) => {
       });
     }
 
+    // GET /api/fabric/topology - Get photonic mesh topology
+    if (path === "/fabric/topology" && req.method === "GET") {
+      const { data: gpus } = await supabase.from("gpu_metrics").select("*");
+      
+      // Generate topology with GPU nodes and circuits
+      const nodes = (gpus || []).map((gpu, index) => ({
+        id: gpu.gpu_id,
+        name: gpu.gpu_name,
+        x: 50 + (index % 4) * 100,
+        y: 50 + Math.floor(index / 4) * 100,
+        status: gpu.status,
+        utilization: gpu.utilization,
+        temperature: gpu.temperature,
+      }));
+
+      // Generate mock photonic circuits between nodes
+      const circuits: { id: string; source: string; destination: string; bandwidth_gbps: number; type: string; latency_us: number }[] = [];
+      for (let i = 0; i < nodes.length - 1; i++) {
+        circuits.push({
+          id: `circuit-${i}`,
+          source: nodes[i].id,
+          destination: nodes[i + 1].id,
+          bandwidth_gbps: 400,
+          type: "photonic",
+          latency_us: 0.5 + Math.random() * 2,
+        });
+      }
+
+      // Add some cross-connections for mesh
+      if (nodes.length > 2) {
+        circuits.push({
+          id: `circuit-cross-1`,
+          source: nodes[0].id,
+          destination: nodes[nodes.length - 1].id,
+          bandwidth_gbps: 200,
+          type: "photonic",
+          latency_us: 1.2,
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          nodes,
+          circuits,
+          topology_type: "mesh",
+          reconfiguration_time_us: 3.7,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // POST /api/fabric/circuit - Provision a photonic circuit
+    if (path === "/fabric/circuit" && req.method === "POST") {
+      const body = await req.json();
+      const { source, destination, bandwidth_gbps } = body;
+
+      if (!source || !destination) {
+        return new Response(
+          JSON.stringify({ error: "Missing required fields: source, destination" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+
+      // Log the circuit provisioning
+      await supabase.from("system_logs").insert({
+        level: "INFO",
+        service: "photonic-fabric",
+        message: `Provisioned circuit: ${source} → ${destination} @ ${bandwidth_gbps || 400}Gbps`,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          circuit: {
+            id: `circuit-${Date.now()}`,
+            source,
+            destination,
+            bandwidth_gbps: bandwidth_gbps || 400,
+            type: "photonic",
+            latency_us: 0.8 + Math.random(),
+            established_at: new Date().toISOString(),
+          },
+          message: "Circuit established; bypassing electrical I/O wall",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 201,
+        }
+      );
+    }
+
+    // GET /api/fabric/telemetry - Get real-time fabric telemetry
+    if (path === "/fabric/telemetry" && req.method === "GET") {
+      const { data: gpus } = await supabase.from("gpu_metrics").select("*");
+      
+      const totalPower = (gpus || []).reduce((acc, g) => acc + Number(g.power), 0);
+      const avgUtilization = (gpus || []).length > 0
+        ? (gpus || []).reduce((acc, g) => acc + Number(g.utilization), 0) / (gpus || []).length
+        : 0;
+
+      return new Response(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          cluster_utilization: Math.round(avgUtilization),
+          benchmark_utilization: 35 + Math.random() * 10,
+          lightrail_utilization: 78 + Math.random() * 10,
+          power_draw_watts: totalPower,
+          thermal_margin_percent: 42,
+          bandwidth_density_multiplier: 100,
+          active_circuits: 8,
+          reconfiguration_count_24h: 1247,
+          congestion_eliminated: true,
+          training_speedup: 3.0 + Math.random() * 0.5,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // POST /api/fabric/reconfigure - Reconfigure topology for workload pattern
+    if (path === "/fabric/reconfigure" && req.method === "POST") {
+      const body = await req.json();
+      const { pattern, workload_type } = body;
+
+      const topologyMap: Record<string, string> = {
+        "all-reduce": "ring",
+        "all-to-all": "full-mesh",
+        "reduce-scatter": "sparse-tree",
+        "broadcast": "tree",
+      };
+
+      const topology = topologyMap[pattern] || "mesh";
+
+      await supabase.from("system_logs").insert({
+        level: "INFO",
+        service: "collective-optimizer",
+        message: `Reconfigured topology for ${workload_type || pattern} pattern in 3.7μs`,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          pattern,
+          workload_type,
+          new_topology: topology,
+          reconfiguration_time_us: 3.7,
+          congestion_eliminated: true,
+          speedup: pattern === "all-to-all" ? 3.0 : 2.5,
+          message: `Collective Optimization Engine: Reconfigured topology for ${pattern} primitive`,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // 404 for unknown routes
     return new Response(
       JSON.stringify({ error: "Not found", path }),
