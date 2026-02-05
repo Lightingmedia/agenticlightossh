@@ -20,17 +20,23 @@ import { ReasoningTrace, type LogEntry } from "@/components/agent-studio/Reasoni
 import { DigitalTwinPreview } from "@/components/agent-studio/DigitalTwinPreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Play, 
-  Square, 
-  Rocket, 
-  Save, 
+import {
+  Play,
+  Square,
+  Rocket,
+  Save,
   RotateCcw,
   Loader2,
   CheckCircle2,
-  Cpu
+  CheckCircle2,
+  Cpu,
+  BrainCircuit
 } from "lucide-react";
 import { toast } from "sonner";
+import { AgentRequirementBar } from "@/components/agent-studio/AgentRequirementBar";
+import { generateAgentFromRequirement } from "@/lib/agent-generator";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 // Initial example nodes
 const initialNodes: Node[] = [
@@ -82,7 +88,9 @@ export default function AgentStudio() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isRunning, setIsRunning] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [agentMetadata, setAgentMetadata] = useState({ name: "Untitled Agent", description: "" });
 
   const addLog = useCallback((type: LogEntry["type"], message: string) => {
     setLogs((prev) => [
@@ -170,6 +178,55 @@ export default function AgentStudio() {
     addLog("warning", "Simulation stopped by user");
   }, [addLog]);
 
+  const handleGenerate = useCallback(async (requirement: string) => {
+    setIsGenerating(true);
+    addLog("info", `Analyzing requirement: "${requirement}"...`);
+
+    try {
+      const generated = await generateAgentFromRequirement(requirement);
+
+      setNodes(generated.nodes);
+      setEdges(generated.edges);
+      setAgentMetadata({ name: generated.name, description: generated.description });
+
+      addLog("success", `AI successfully built "${generated.name}" agent.`);
+      addLog("info", generated.description);
+
+      toast.success("Agent Generated!", {
+        description: `Built ${generated.name} from your requirement.`,
+      });
+    } catch (error) {
+      addLog("error", "Failed to generate agent logic.");
+      toast.error("Generation failed");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [setNodes, setEdges, addLog]);
+
+  const saveAgent = useCallback(async () => {
+    if (nodes.length === 0) return;
+
+    addLog("info", "Saving agent to Firebase...");
+    try {
+      await addDoc(collection(db, "agents"), {
+        name: agentMetadata.name,
+        description: agentMetadata.description,
+        nodes,
+        edges,
+        createdAt: serverTimestamp(),
+      });
+      addLog("success", "Agent saved successfully to Firestore");
+      toast.success("Agent Saved", {
+        description: "Your agent configuration is secured in Firebase.",
+      });
+    } catch (error) {
+      console.error("Save error:", error);
+      addLog("error", "Error saving to Firebase: Use mock data for now.");
+      // Fallback for demo if Firebase isn't fully configured
+      toast.info("Demo: Agent saved (Mock)");
+    }
+  }, [nodes, edges, agentMetadata, addLog]);
+
   const deployAgent = useCallback(async () => {
     setIsDeploying(true);
     addLog("info", "Packaging agent flow...");
@@ -202,6 +259,12 @@ export default function AgentStudio() {
 
       {/* Main Canvas Area */}
       <div className="flex-1 flex flex-col">
+        {/* Requirement Bar */}
+        <AgentRequirementBar
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
+        />
+
         {/* Canvas */}
         <div ref={reactFlowWrapper} className="flex-1 relative">
           <ReactFlow
@@ -235,7 +298,7 @@ export default function AgentStudio() {
                 <Cpu className="w-3 h-3" />
                 {nodes.length} nodes
               </Badge>
-              
+
               <Button
                 size="sm"
                 variant="outline"
@@ -246,7 +309,12 @@ export default function AgentStudio() {
                 Reset
               </Button>
 
-              <Button size="sm" variant="outline" disabled={isRunning || isDeploying}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={saveAgent}
+                disabled={isRunning || isDeploying || isGenerating || nodes.length === 0}
+              >
                 <Save className="w-4 h-4 mr-1" />
                 Save
               </Button>
@@ -282,13 +350,12 @@ export default function AgentStudio() {
             <Panel position="top-left" className="flex items-center gap-2">
               <div className="bg-card border border-border rounded-lg px-3 py-1.5 flex items-center gap-2">
                 <div
-                  className={`w-2 h-2 rounded-full ${
-                    isRunning
+                  className={`w-2 h-2 rounded-full ${isRunning
                       ? "bg-amber-400 animate-pulse"
                       : isDeploying
-                      ? "bg-blue-400 animate-pulse"
-                      : "bg-lightrail"
-                  }`}
+                        ? "bg-blue-400 animate-pulse"
+                        : "bg-lightrail"
+                    }`}
                 />
                 <span className="text-sm font-medium">
                   {isRunning ? "Simulating..." : isDeploying ? "Deploying..." : "Ready"}
