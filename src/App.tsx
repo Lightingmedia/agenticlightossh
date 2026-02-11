@@ -24,6 +24,9 @@ import PhotonicFabric from "./pages/PhotonicFabric";
 import AgentStudio from "./pages/AgentStudio";
 import Docs from "./pages/Docs";
 import Examples from "./pages/Examples";
+import Clusters from "./pages/Clusters";
+import Runs from "./pages/Runs";
+import EnergyLab from "./pages/EnergyLab";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +40,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
-          
+
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
@@ -49,6 +52,10 @@ const App = () => (
             <Route path="models" element={<Models />} />
             <Route path="training" element={<Training />} />
             <Route path="photonic" element={<PhotonicFabric />} />
+            {/* LightOS/Fabric OS Routes */}
+            <Route path="clusters" element={<Clusters />} />
+            <Route path="runs" element={<Runs />} />
+            <Route path="runs/:runId" element={<EnergyLab />} />
             {/* Agent Builder Routes */}
             <Route path="studio" element={<AgentStudio />} />
             <Route path="templates" element={<AgentTemplates />} />

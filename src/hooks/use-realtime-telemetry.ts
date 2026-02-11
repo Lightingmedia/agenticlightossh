@@ -1,6 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
+import {
+  collection,
+  query,
+  onSnapshot,
+  orderBy,
+  limit as firestoreLimit,
+  where,
+  QuerySnapshot,
+  DocumentData
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export interface GPUMetric {
   id: string;
@@ -64,6 +73,11 @@ export interface TelemetryDataPoint {
   timestamp: string;
 }
 
+// Helper function to convert Firestore snapshot to typed array
+function snapshotToArray<T>(snapshot: QuerySnapshot<DocumentData>): T[] {
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+}
+
 // Hook for real-time GPU metrics
 export function useRealtimeGPUs() {
   const [gpus, setGpus] = useState<GPUMetric[]>([]);
@@ -71,55 +85,26 @@ export function useRealtimeGPUs() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(collection(db, "gpu_metrics"), orderBy("gpu_id"));
 
-    const fetchGPUs = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("gpu_metrics")
-          .select("*")
-          .order("gpu_id");
-
-        if (fetchError) throw fetchError;
-        setGpus(data as GPUMetric[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch GPUs");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGPUs();
-
-    // Subscribe to real-time updates
-    channel = supabase
-      .channel("gpu_metrics_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "gpu_metrics" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setGpus((prev) => [...prev, payload.new as GPUMetric]);
-          } else if (payload.eventType === "UPDATE") {
-            setGpus((prev) =>
-              prev.map((gpu) =>
-                gpu.id === (payload.new as GPUMetric).id
-                  ? (payload.new as GPUMetric)
-                  : gpu
-              )
-            );
-          } else if (payload.eventType === "DELETE") {
-            setGpus((prev) =>
-              prev.filter((gpu) => gpu.id !== (payload.old as GPUMetric).id)
-            );
-          }
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          setGpus(snapshotToArray<GPUMetric>(snapshot));
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message || "Failed to fetch GPUs");
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
+      return () => unsubscribe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to setup GPU listener");
+      setLoading(false);
+    }
   }, []);
 
   return { gpus, loading, error };
@@ -132,54 +117,26 @@ export function useRealtimeAgents() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(collection(db, "agents"), orderBy("name"));
 
-    const fetchAgents = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("agents")
-          .select("*")
-          .order("name");
-
-        if (fetchError) throw fetchError;
-        setAgents(data as Agent[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch agents");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAgents();
-
-    channel = supabase
-      .channel("agents_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "agents" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setAgents((prev) => [...prev, payload.new as Agent]);
-          } else if (payload.eventType === "UPDATE") {
-            setAgents((prev) =>
-              prev.map((agent) =>
-                agent.id === (payload.new as Agent).id
-                  ? (payload.new as Agent)
-                  : agent
-              )
-            );
-          } else if (payload.eventType === "DELETE") {
-            setAgents((prev) =>
-              prev.filter((agent) => agent.id !== (payload.old as Agent).id)
-            );
-          }
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          setAgents(snapshotToArray<Agent>(snapshot));
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message || "Failed to fetch agents");
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
+      return () => unsubscribe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to setup agents listener");
+      setLoading(false);
+    }
   }, []);
 
   return { agents, loading, error };
@@ -192,54 +149,26 @@ export function useRealtimeThermalZones() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(collection(db, "thermal_zones"), orderBy("zone_id"));
 
-    const fetchZones = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("thermal_zones")
-          .select("*")
-          .order("zone_id");
-
-        if (fetchError) throw fetchError;
-        setZones(data as ThermalZone[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch thermal zones");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchZones();
-
-    channel = supabase
-      .channel("thermal_zones_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "thermal_zones" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setZones((prev) => [...prev, payload.new as ThermalZone]);
-          } else if (payload.eventType === "UPDATE") {
-            setZones((prev) =>
-              prev.map((zone) =>
-                zone.id === (payload.new as ThermalZone).id
-                  ? (payload.new as ThermalZone)
-                  : zone
-              )
-            );
-          } else if (payload.eventType === "DELETE") {
-            setZones((prev) =>
-              prev.filter((zone) => zone.id !== (payload.old as ThermalZone).id)
-            );
-          }
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          setZones(snapshotToArray<ThermalZone>(snapshot));
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message || "Failed to fetch thermal zones");
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
+      return () => unsubscribe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to setup thermal zones listener");
+      setLoading(false);
+    }
   }, []);
 
   return { zones, loading, error };
@@ -252,55 +181,30 @@ export function useRealtimeInferenceTasks() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(
+        collection(db, "inference_tasks"),
+        orderBy("created_at", "desc"),
+        firestoreLimit(20)
+      );
 
-    const fetchTasks = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("inference_tasks")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(20);
-
-        if (fetchError) throw fetchError;
-        setTasks(data as InferenceTask[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch tasks");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-
-    channel = supabase
-      .channel("inference_tasks_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "inference_tasks" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setTasks((prev) => [payload.new as InferenceTask, ...prev].slice(0, 20));
-          } else if (payload.eventType === "UPDATE") {
-            setTasks((prev) =>
-              prev.map((task) =>
-                task.id === (payload.new as InferenceTask).id
-                  ? (payload.new as InferenceTask)
-                  : task
-              )
-            );
-          } else if (payload.eventType === "DELETE") {
-            setTasks((prev) =>
-              prev.filter((task) => task.id !== (payload.old as InferenceTask).id)
-            );
-          }
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          setTasks(snapshotToArray<InferenceTask>(snapshot));
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message || "Failed to fetch tasks");
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
+      return () => unsubscribe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to setup tasks listener");
+      setLoading(false);
+    }
   }, []);
 
   return { tasks, loading, error };
@@ -313,94 +217,69 @@ export function useRealtimeSystemLogs() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(
+        collection(db, "system_logs"),
+        orderBy("created_at", "desc"),
+        firestoreLimit(50)
+      );
 
-    const fetchLogs = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("system_logs")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        if (fetchError) throw fetchError;
-        setLogs(data as SystemLog[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch logs");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLogs();
-
-    channel = supabase
-      .channel("system_logs_changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "system_logs" },
-        (payload) => {
-          setLogs((prev) => [payload.new as SystemLog, ...prev].slice(0, 50));
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          setLogs(snapshotToArray<SystemLog>(snapshot));
+          setLoading(false);
+        },
+        (err) => {
+          setError(err.message || "Failed to fetch logs");
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
+      return () => unsubscribe();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to setup logs listener");
+      setLoading(false);
+    }
   }, []);
 
   return { logs, loading, error };
 }
 
 // Hook for telemetry data points
-export function useTelemetryData(metricType: string, limit = 60) {
+export function useTelemetryData(metricType: string, limitCount = 60) {
   const [data, setData] = useState<TelemetryDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let channel: RealtimeChannel;
+    try {
+      const q = query(
+        collection(db, "telemetry_data"),
+        where("metric_type", "==", metricType),
+        orderBy("timestamp", "desc"),
+        firestoreLimit(limitCount)
+      );
 
-    const fetchData = async () => {
-      try {
-        const { data: fetchedData, error } = await supabase
-          .from("telemetry_data")
-          .select("*")
-          .eq("metric_type", metricType)
-          .order("timestamp", { ascending: false })
-          .limit(limit);
-
-        if (error) throw error;
-        setData((fetchedData as TelemetryDataPoint[]).reverse());
-      } catch {
-        console.error("Failed to fetch telemetry data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    channel = supabase
-      .channel(`telemetry_${metricType}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "telemetry_data",
-          filter: `metric_type=eq.${metricType}`,
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          // Reverse to get chronological order
+          const dataPoints = snapshotToArray<TelemetryDataPoint>(snapshot).reverse();
+          setData(dataPoints);
+          setLoading(false);
         },
-        (payload) => {
-          setData((prev) => [...prev, payload.new as TelemetryDataPoint].slice(-limit));
+        (err) => {
+          console.error("Failed to fetch telemetry data:", err);
+          setLoading(false);
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      channel?.unsubscribe();
-    };
-  }, [metricType, limit]);
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Failed to setup telemetry listener:", err);
+      setLoading(false);
+    }
+  }, [metricType, limitCount]);
 
   return { data, loading };
 }

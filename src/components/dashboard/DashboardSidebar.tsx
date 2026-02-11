@@ -23,6 +23,8 @@ import {
   ChevronDown,
   Network,
   Workflow,
+  Server,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,11 @@ const monitoringItems = [
   { icon: Zap, label: "Inference", path: "/dashboard/inference" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },
   { icon: BarChart3, label: "Training", path: "/dashboard/training" },
+];
+
+const lightosItems = [
+  { icon: Server, label: "Clusters", path: "/dashboard/clusters" },
+  { icon: FileText, label: "Runs", path: "/dashboard/runs" },
 ];
 
 const builderItems = [
@@ -132,6 +139,20 @@ const DashboardSidebar = () => {
           ))}
         </ul>
 
+        {/* LightOS Section */}
+        {!collapsed && (
+          <div className="px-3 mt-6 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
+            LightOS Alpha
+          </div>
+        )}
+        <ul className="space-y-1">
+          {lightosItems.map((item) => (
+            <li key={item.path}>
+              <NavItem item={item} />
+            </li>
+          ))}
+        </ul>
+
         {/* Agent Builder Section */}
         <div className="mt-6">
           {!collapsed ? (
@@ -145,7 +166,7 @@ const DashboardSidebar = () => {
           ) : (
             <div className="h-px bg-border mx-3 mb-4" />
           )}
-          
+
           {(builderExpanded || collapsed) && (
             <ul className="space-y-1">
               {builderItems.map((item) => (

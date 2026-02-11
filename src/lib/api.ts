@@ -1,15 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
-
-const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api`;
-
-async function getHeaders() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  };
-}
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+  Timestamp
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export interface SystemStats {
   gpus: {
@@ -35,87 +34,154 @@ export interface SystemStats {
 }
 
 export async function getHealthStatus() {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/health`, { headers });
-  if (!response.ok) throw new Error("API health check failed");
-  return response.json();
+  // Simple health check - verify Firebase connection
+  try {
+    const testQuery = query(collection(db, "system_logs"));
+    await getDocs(testQuery);
+    return { status: "healthy", timestamp: new Date().toISOString() };
+  } catch (error) {
+    throw new Error("Firebase connection failed");
+  }
 }
 
 export async function getSystemStats(): Promise<SystemStats> {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/stats`, { headers });
-  if (!response.ok) throw new Error("Failed to fetch system stats");
-  return response.json();
+  try {
+    // Fetch GPU metrics
+    const gpuSnapshot = await getDocs(collection(db, "gpu_metrics"));
+    const gpus = gpuSnapshot.docs.map(doc => doc.data());
+
+    const gpuStats = {
+      total: gpus.length,
+      online: gpus.filter(g => g.status === "online" || g.status === "busy").length,
+      avgUtilization: gpus.length > 0
+        ? gpus.reduce((sum, g) => sum + (g.utilization || 0), 0) / gpus.length
+        : 0,
+      totalPower: gpus.reduce((sum, g) => sum + (g.power || 0), 0),
+    };
+
+    // Fetch agents
+    const agentSnapshot = await getDocs(collection(db, "agents"));
+    const agents = agentSnapshot.docs.map(doc => doc.data());
+
+    const agentStats = {
+      total: agents.length,
+      online: agents.filter(a => a.status === "online").length,
+      busy: agents.filter(a => a.status === "busy").length,
+      idle: agents.filter(a => a.status === "idle").length,
+      offline: agents.filter(a => a.status === "offline").length,
+    };
+
+    // Fetch inference tasks
+    const taskSnapshot = await getDocs(collection(db, "inference_tasks"));
+    const tasks = taskSnapshot.docs.map(doc => doc.data());
+
+    const inferenceStats = {
+      total: tasks.length,
+      running: tasks.filter(t => t.status === "running").length,
+      queued: tasks.filter(t => t.status === "queued").length,
+      completed: tasks.filter(t => t.status === "completed").length,
+      failed: tasks.filter(t => t.status === "failed").length,
+    };
+
+    return {
+      gpus: gpuStats,
+      agents: agentStats,
+      inference: inferenceStats,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch system stats");
+  }
 }
 
 export async function registerAgent(name: string, type: string) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/agents`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ name, type }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to register agent");
+  try {
+    const agentData = {
+      agent_id: `agent-${Date.now()}`,
+      name,
+      type,
+      status: "online" as const,
+      cpu: 0,
+      memory: 0,
+      tasks: 0,
+      uptime: "0s",
+      updated_at: new Date().toISOString(),
+    };
+
+    const docRef = await addDoc(collection(db, "agents"), agentData);
+    return { id: docRef.id, ...agentData };
+  } catch (error) {
+    throw new Error("Failed to register agent");
   }
-  return response.json();
 }
 
 export async function updateAgentStatus(agentId: string, updates: Record<string, unknown>) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/agents/${agentId}`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify(updates),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to update agent");
+  try {
+    const agentRef = doc(db, "agents", agentId);
+    await updateDoc(agentRef, {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
+    return { success: true };
+  } catch (error) {
+    throw new Error("Failed to update agent");
   }
-  return response.json();
 }
 
 export async function submitInferenceTask(model: string) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/tasks`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ model }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to submit task");
+  try {
+    const taskData = {
+      task_id: `task-${Date.now()}`,
+      model,
+      status: "queued" as const,
+      progress: null,
+      tokens: null,
+      duration: null,
+      created_at: new Date().toISOString(),
+    };
+
+    const docRef = await addDoc(collection(db, "inference_tasks"), taskData);
+    return { id: docRef.id, ...taskData };
+  } catch (error) {
+    throw new Error("Failed to submit task");
   }
-  return response.json();
 }
 
 export async function adjustThermal(zoneId: string, fanSpeed: number) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/thermal/adjust`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ zone_id: zoneId, fan_speed: fanSpeed }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to adjust thermal settings");
+  try {
+    // Find the thermal zone by zone_id
+    const q = query(collection(db, "thermal_zones"), where("zone_id", "==", zoneId));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      throw new Error("Thermal zone not found");
+    }
+
+    const zoneDoc = snapshot.docs[0];
+    await updateDoc(doc(db, "thermal_zones", zoneDoc.id), {
+      fan_speed: fanSpeed,
+      updated_at: new Date().toISOString(),
+    });
+
+    return { success: true, zone_id: zoneId, fan_speed: fanSpeed };
+  } catch (error) {
+    throw new Error("Failed to adjust thermal settings");
   }
-  return response.json();
 }
 
 // Trigger telemetry simulation (for demo purposes)
 export async function triggerTelemetryUpdate() {
-  const headers = await getHeaders();
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telemetry-simulator`,
-    {
-      method: "POST",
-      headers,
-    }
-  );
-  if (!response.ok) throw new Error("Failed to trigger telemetry update");
-  return response.json();
+  try {
+    // Add a system log entry to indicate telemetry update
+    await addDoc(collection(db, "system_logs"), {
+      level: "INFO",
+      service: "telemetry-simulator",
+      message: "Telemetry update triggered",
+      created_at: new Date().toISOString(),
+    });
+    return { success: true, message: "Telemetry update triggered" };
+  } catch (error) {
+    throw new Error("Failed to trigger telemetry update");
+  }
 }
 
 // Fabric API - Photonic Mesh Topology
@@ -161,43 +227,86 @@ export interface FabricTelemetry {
 }
 
 export async function getFabricTopology(): Promise<FabricTopology> {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/fabric/topology`, { headers });
-  if (!response.ok) throw new Error("Failed to fetch fabric topology");
-  return response.json();
+  try {
+    const nodesSnapshot = await getDocs(collection(db, "fabric_nodes"));
+    const circuitsSnapshot = await getDocs(collection(db, "fabric_circuits"));
+
+    const nodes = nodesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TopologyNode));
+    const circuits = circuitsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PhotonicCircuit));
+
+    return {
+      nodes,
+      circuits,
+      topology_type: "photonic-mesh",
+      reconfiguration_time_us: 100,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch fabric topology");
+  }
 }
 
 export async function getFabricTelemetry(): Promise<FabricTelemetry> {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/fabric/telemetry`, { headers });
-  if (!response.ok) throw new Error("Failed to fetch fabric telemetry");
-  return response.json();
+  try {
+    const telemetrySnapshot = await getDocs(collection(db, "fabric_telemetry"));
+
+    if (telemetrySnapshot.empty) {
+      // Return default values if no telemetry data exists
+      return {
+        timestamp: new Date().toISOString(),
+        cluster_utilization: 0,
+        benchmark_utilization: 0,
+        lightrail_utilization: 0,
+        power_draw_watts: 0,
+        thermal_margin_percent: 100,
+        bandwidth_density_multiplier: 1,
+        active_circuits: 0,
+        reconfiguration_count_24h: 0,
+        congestion_eliminated: false,
+        training_speedup: 1,
+      };
+    }
+
+    const latestDoc = telemetrySnapshot.docs[0];
+    return latestDoc.data() as FabricTelemetry;
+  } catch (error) {
+    throw new Error("Failed to fetch fabric telemetry");
+  }
 }
 
 export async function provisionCircuit(source: string, destination: string, bandwidth_gbps?: number) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/fabric/circuit`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ source, destination, bandwidth_gbps }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to provision circuit");
+  try {
+    const circuitData = {
+      source,
+      destination,
+      bandwidth_gbps: bandwidth_gbps || 400,
+      type: "photonic",
+      latency_us: Math.random() * 10 + 5,
+    };
+
+    const docRef = await addDoc(collection(db, "fabric_circuits"), circuitData);
+    return { id: docRef.id, ...circuitData };
+  } catch (error) {
+    throw new Error("Failed to provision circuit");
   }
-  return response.json();
 }
 
 export async function reconfigureTopology(pattern: string, workload_type?: string) {
-  const headers = await getHeaders();
-  const response = await fetch(`${API_BASE}/fabric/reconfigure`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ pattern, workload_type }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to reconfigure topology");
+  try {
+    // Log the reconfiguration request
+    await addDoc(collection(db, "system_logs"), {
+      level: "INFO",
+      service: "fabric-controller",
+      message: `Topology reconfigured to ${pattern} for ${workload_type || 'general'} workload`,
+      created_at: new Date().toISOString(),
+    });
+
+    return {
+      success: true,
+      pattern,
+      workload_type,
+      reconfiguration_time_us: 100
+    };
+  } catch (error) {
+    throw new Error("Failed to reconfigure topology");
   }
-  return response.json();
 }
