@@ -28,7 +28,6 @@ import {
   RotateCcw,
   Loader2,
   CheckCircle2,
-  CheckCircle2,
   Cpu,
   BrainCircuit
 } from "lucide-react";
