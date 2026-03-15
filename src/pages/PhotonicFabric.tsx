@@ -181,7 +181,7 @@ const PhotonicFabric = () => {
       
       try {
         const result = await provisionCircuit(newSelection[0], newSelection[1], 400);
-        addLog(`Circuit established. Latency: ${result.circuit.latency_us.toFixed(2)}μs`, "success");
+        addLog(`Circuit established. Latency: ${result.latency_us.toFixed(2)}μs`, "success");
         addLog("Electrical I/O wall bypassed. Thermal headroom +42%", "success");
         
         toast.success("Photonic circuit provisioned", {
