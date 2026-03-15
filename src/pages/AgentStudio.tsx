@@ -220,7 +220,7 @@ export default function AgentStudio() {
       });
     } catch (error) {
       console.error("Save error:", error);
-      addLog("error", "Error saving to Firebase: Use mock data for now.");
+      addLog("warning", "Error saving to Firebase: Use mock data for now.");
       // Fallback for demo if Firebase isn't fully configured
       toast.info("Demo: Agent saved (Mock)");
     }

@@ -68,10 +68,13 @@ export async function fetchRuns(clusterId?: string): Promise<RunSummary[]> {
         }
 
         const runsSnapshot = await getDocs(q);
-        return runsSnapshot.docs.map(doc => ({
-            runId: doc.id,
-            ...doc.data()
-        } as RunSummary));
+        return runsSnapshot.docs.map(d => {
+            const data = d.data() as Record<string, unknown>;
+            return {
+                runId: d.id,
+                ...data
+            } as RunSummary;
+        });
     } catch (error) {
         console.error("Failed to fetch runs:", error);
         throw new Error("Failed to fetch runs");
