@@ -185,7 +185,7 @@ export default function AgentStudio() {
       const generated = await generateAgentFromRequirement(requirement);
 
       setNodes(generated.nodes);
-      setEdges(generated.edges);
+      setEdges(generated.edges as any);
       setAgentMetadata({ name: generated.name, description: generated.description });
 
       addLog("success", `AI successfully built "${generated.name}" agent.`);
