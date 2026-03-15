@@ -149,10 +149,10 @@ const PhotonicFabric = () => {
       const result = await reconfigureTopology(patternId, pattern.workload);
       
       addLog(`Collective Optimization Engine: Reconfigured topology for ${pattern.name} primitive in ${result.reconfiguration_time_us}μs`, "success");
-      addLog(`Congestion eliminated. ${result.speedup}x speedup achieved.`, "success");
+      addLog(`Congestion eliminated. Optimization achieved.`, "success");
       
       toast.success(`Topology reconfigured for ${pattern.name}`, {
-        description: `${pattern.topology} topology active. ${result.speedup}x speedup.`,
+        description: `${pattern.topology} topology active. Optimization complete.`,
       });
       
       await fetchData();
@@ -181,7 +181,7 @@ const PhotonicFabric = () => {
       
       try {
         const result = await provisionCircuit(newSelection[0], newSelection[1], 400);
-        addLog(`Circuit established. Latency: ${result.circuit.latency_us.toFixed(2)}μs`, "success");
+        addLog(`Circuit established. Latency: ${result.latency_us.toFixed(2)}μs`, "success");
         addLog("Electrical I/O wall bypassed. Thermal headroom +42%", "success");
         
         toast.success("Photonic circuit provisioned", {
@@ -348,9 +348,9 @@ const PhotonicFabric = () => {
           <div className="lg:col-span-1">
             <Card className="bg-card/50 border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                  <Layers className="w-5 h-5 text-lightrail" />
-                  10-Layer Stack
+                <CardTitle className="flex items-center gap-2 text-lg font-mono leading-tight">
+                  <Layers className="w-5 h-5 text-lightrail shrink-0" />
+                  <span>Silicon Photonic<br />Stack</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
