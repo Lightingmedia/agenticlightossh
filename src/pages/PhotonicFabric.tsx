@@ -348,9 +348,9 @@ const PhotonicFabric = () => {
           <div className="lg:col-span-1">
             <Card className="bg-card/50 border-border">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                  <Layers className="w-5 h-5 text-lightrail" />
-                  10-Layer Stack
+                <CardTitle className="flex items-center gap-2 text-lg font-mono leading-tight">
+                  <Layers className="w-5 h-5 text-lightrail shrink-0" />
+                  <span>Silicon Photonic<br />Stack</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
