@@ -254,7 +254,7 @@ const PhotonicFabric = () => {
     <div className="min-h-screen bg-background">
       <DashboardHeader
         title="Photonic Fabric OS"
-        subtitle="10-Layer Stack for Software-Defined Photonic Computing"
+        subtitle="Photonic Computing Infrastructure"
       />
 
       <div className="p-6 space-y-6">
