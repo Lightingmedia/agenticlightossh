@@ -59,7 +59,7 @@ const App = () => (
             {/* Agent Builder Routes */}
             <Route path="studio" element={<AgentStudio />} />
             <Route path="templates" element={<AgentTemplates />} />
-            <Route path="agent/new" element={<AgentTemplates />} />
+            <Route path="agent/new" element={<AgentStudio />} />
             <Route path="data-sources" element={<DataSources />} />
             <Route path="rules" element={<RuleBuilder />} />
             <Route path="actions" element={<ActionOrchestrator />} />
