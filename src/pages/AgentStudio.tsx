@@ -28,7 +28,6 @@ import {
   RotateCcw,
   Loader2,
   CheckCircle2,
-  CheckCircle2,
   Cpu,
   BrainCircuit
 } from "lucide-react";
@@ -186,7 +185,7 @@ export default function AgentStudio() {
       const generated = await generateAgentFromRequirement(requirement);
 
       setNodes(generated.nodes);
-      setEdges(generated.edges);
+      setEdges(generated.edges as any);
       setAgentMetadata({ name: generated.name, description: generated.description });
 
       addLog("success", `AI successfully built "${generated.name}" agent.`);
@@ -196,7 +195,7 @@ export default function AgentStudio() {
         description: `Built ${generated.name} from your requirement.`,
       });
     } catch (error) {
-      addLog("error", "Failed to generate agent logic.");
+      addLog("warning", "Failed to generate agent logic.");
       toast.error("Generation failed");
     } finally {
       setIsGenerating(false);
@@ -221,7 +220,7 @@ export default function AgentStudio() {
       });
     } catch (error) {
       console.error("Save error:", error);
-      addLog("error", "Error saving to Firebase: Use mock data for now.");
+      addLog("warning", "Error saving to Firebase: Use mock data for now.");
       // Fallback for demo if Firebase isn't fully configured
       toast.info("Demo: Agent saved (Mock)");
     }
