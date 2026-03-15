@@ -195,7 +195,7 @@ export default function AgentStudio() {
         description: `Built ${generated.name} from your requirement.`,
       });
     } catch (error) {
-      addLog("error", "Failed to generate agent logic.");
+      addLog("warning", "Failed to generate agent logic.");
       toast.error("Generation failed");
     } finally {
       setIsGenerating(false);
