@@ -149,10 +149,10 @@ const PhotonicFabric = () => {
       const result = await reconfigureTopology(patternId, pattern.workload);
       
       addLog(`Collective Optimization Engine: Reconfigured topology for ${pattern.name} primitive in ${result.reconfiguration_time_us}μs`, "success");
-      addLog(`Congestion eliminated. ${result.speedup}x speedup achieved.`, "success");
+      addLog(`Congestion eliminated. Optimization achieved.`, "success");
       
       toast.success(`Topology reconfigured for ${pattern.name}`, {
-        description: `${pattern.topology} topology active. ${result.speedup}x speedup.`,
+        description: `${pattern.topology} topology active. Optimization complete.`,
       });
       
       await fetchData();
