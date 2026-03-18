@@ -73,7 +73,7 @@ const Header = () => {
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
               </Link>
-              <Link to="/dashboard/studio" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+              <Link to="/lightcompiler" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 LightCompiler
               </Link>
             </div>
@@ -114,7 +114,7 @@ const Header = () => {
                 <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
                 <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                <Link to="/dashboard/studio" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>LightCompiler</Link>
+                <Link to="/lightcompiler" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>LightCompiler</Link>
                 <div className="flex gap-3 pt-4 border-t border-border">
                   <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
                   <Link to="/dashboard" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
