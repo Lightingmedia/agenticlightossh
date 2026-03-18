@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Layers,
@@ -14,6 +14,7 @@ import {
   GitBranch,
   Terminal,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -196,99 +197,266 @@ const FEATURES = [
   },
 ];
 
-// ─── Compiler output terminal ─────────────────────────────────────────────────
-const COMPILE_OUTPUT = [
-  { type: "cmd",    text: "@lightrail.jit — compiling attention_kernel…" },
-  { type: "step",   text: "[1/6] AST Parsing & IR" },
-  { type: "ok",     text: "  ✓  6 instructions, 3 basic blocks, 4 SSA values" },
-  { type: "step",   text: "[2/6] Type Inference & Lowering" },
-  { type: "ok",     text: "  ✓  FP32[1024,64] propagated · DCE: 0 removed" },
-  { type: "step",   text: "[3/6] Photonic Optimisation" },
-  { type: "ok",     text: "  ✓  FMA fusion: 1 FMUL+FADD → FMA" },
-  { type: "ok",     text: "  ✓  Loop split: PREFETCH distance=2" },
-  { type: "step",   text: "[4/6] WDM & Wavelength Mapping  [TAR + MathSched]" },
-  { type: "ok",     text: "  ✓  Fingerprint: a3f8c91d…e72b0045" },
-  { type: "ok",     text: "  ✓  Dijkstra solved — 1 280 nodes" },
-  { type: "ok",     text: "  ✓  Hungarian n=6 → channels [0,1,2,3,4,5]" },
-  { type: "step",   text: "[5/6] Tile Bytecode & Fat Binary" },
-  { type: "ok",     text: "  ✓  Partitioned: 6 ops → 1 tile" },
-  { type: "ok",     text: "  ✓  .lrbs: 64 B  |  .lrfat: 1 section" },
-  { type: "step",   text: "[6/6] Fabric OS Handoff" },
-  { type: "ok",     text: "  ✓  KernelDescriptor dispatched (<100 ns)" },
-  { type: "banner", text: "" },
-  { type: "banner", text: "  compile time : 1.84 ms  |  cache: MISS → stored" },
-  { type: "banner", text: "  wdm_channels : 64  |  mathematically_optimal: True" },
-  { type: "banner", text: "  topology_fingerprint: a3f8c91d4b2e7f05…e72b0045" },
+// ─── Fabric presets (mirrored from backend for instant UI — fetched on mount) ──
+const DEFAULT_FABRICS = [
+  { name: "photonic-mesh-20x64", display: "Photonic Mesh 20×64 (default)", wdm_channels: 64 },
+  { name: "photonic-mesh-40x32", display: "Photonic Mesh 40×32",           wdm_channels: 32 },
+  { name: "ring-topology-16x128",display: "Ring 16×128",                   wdm_channels: 128 },
+  { name: "butterfly-8x256",     display: "Butterfly 8×256",               wdm_channels: 256 },
+  { name: "fat-tree-32x64",      display: "Fat-Tree 32×64",                wdm_channels: 64 },
 ];
 
-function CompilerTerminal() {
-  const [running, setRunning] = useState(false);
-  const [lines, setLines] = useState<typeof COMPILE_OUTPUT>([]);
-  const [done, setDone] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+const KERNEL_SUGGESTIONS = [
+  "attention_kernel",
+  "conv_layer",
+  "linear_layer",
+  "gpt_block",
+  "transformer_encoder",
+  "softmax",
+  "matmul",
+];
 
-  const run = () => {
+type LogLine = { type: string; text: string; stage?: number | null };
+
+type CompileMeta = {
+  compile_ms: number;
+  cached: boolean;
+  wdm_channels: number;
+  dispatch_ns: number;
+  fingerprint: string;
+  fabric: string;
+};
+
+// ─── Compiler output terminal ─────────────────────────────────────────────────
+function CompilerTerminal() {
+  const [running, setRunning]         = useState(false);
+  const [lines, setLines]             = useState<LogLine[]>([]);
+  const [done, setDone]               = useState(false);
+  const [meta, setMeta]               = useState<CompileMeta | null>(null);
+  const [error, setError]             = useState<string | null>(null);
+  const [fabric, setFabric]           = useState("photonic-mesh-20x64");
+  const [customFabric, setCustomFabric] = useState("");
+  const [fnName, setFnName]           = useState("attention_kernel");
+  const [cached, setCached]           = useState(false);
+  const [fabrics, setFabrics]         = useState(DEFAULT_FABRICS);
+  const [backendUp, setBackendUp]     = useState<boolean | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Fetch fabric list + ping backend on mount
+  useEffect(() => {
+    fetch("/api/compile/ping")
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .then(() => setBackendUp(true))
+      .catch(() => setBackendUp(false));
+
+    fetch("/api/fabrics")
+      .then((r) => r.json())
+      .then((data: typeof DEFAULT_FABRICS) => setFabrics(data))
+      .catch(() => {/* keep defaults */});
+  }, []);
+
+  const effectiveFabric = fabric === "__custom__" ? customFabric.trim() || "photonic-mesh-20x64" : fabric;
+
+  const run = async () => {
     if (running) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     setRunning(true);
     setDone(false);
+    setError(null);
+    setMeta(null);
     setLines([]);
-    COMPILE_OUTPUT.forEach((line, i) => {
-      setTimeout(() => {
-        setLines((p) => [...p, line]);
-        if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
-        if (i === COMPILE_OUTPUT.length - 1) {
-          setRunning(false);
-          setDone(true);
+
+    try {
+      const res = await fetch("/api/compile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fabric: effectiveFabric, function_name: fnName, cached }),
+        signal: ctrl.signal,
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { value, done: rdDone } = await reader.read();
+        if (rdDone) break;
+        buf += decoder.decode(value, { stream: true });
+        const parts = buf.split("\n\n");
+        buf = parts.pop() ?? "";
+        for (const part of parts) {
+          const dataLine = part.trim().replace(/^data: /, "");
+          if (dataLine === "[DONE]") { setDone(true); continue; }
+          if (!dataLine) continue;
+          try {
+            const obj = JSON.parse(dataLine) as LogLine & { meta?: CompileMeta };
+            if (obj.type === "done") {
+              if (obj.meta) setMeta(obj.meta);
+              setDone(true);
+            } else {
+              setLines((p) => [...p, obj]);
+              if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+            }
+          } catch { /* skip malformed */ }
         }
-      }, i * 180);
-    });
+      }
+    } catch (e: unknown) {
+      if ((e as { name?: string }).name !== "AbortError") {
+        setError("Backend unreachable — is `uvicorn main:app --port 8000` running?");
+      }
+    } finally {
+      setRunning(false);
+    }
   };
 
   const colourCls: Record<string, string> = {
-    cmd: "text-cyan-300", info: "text-muted-foreground",
-    ok: "text-green-400", step: "text-primary font-semibold",
+    cmd:    "text-cyan-300",
+    info:   "text-muted-foreground",
+    ok:     "text-green-400",
+    step:   "text-primary font-semibold",
     banner: "text-yellow-300",
+    done:   "text-green-400",
   };
 
   return (
-    <div className="terminal-window overflow-hidden shadow-2xl shadow-primary/10">
+    <div className="terminal-window overflow-hidden shadow-2xl shadow-primary/10 flex flex-col">
+      {/* Title bar */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-red-500/70" />
           <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
           <div className="w-3 h-3 rounded-full bg-green-500/70" />
         </div>
-        <span className="ml-4 font-mono text-xs text-muted-foreground">
-          lightos — LightRail compiler output
-        </span>
-        <div className="ml-auto">
+        <span className="ml-3 font-mono text-xs text-muted-foreground">lightos — LightRail compiler</span>
+        <div className="ml-auto flex items-center gap-2">
+          {backendUp === true  && <span className="font-mono text-[10px] text-green-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />backend online</span>}
+          {backendUp === false && <span className="font-mono text-[10px] text-yellow-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />backend offline</span>}
           {running && <span className="font-mono text-xs text-primary animate-pulse">compiling…</span>}
-          {done && <span className="font-mono text-xs text-green-400">✓ compiled</span>}
+          {done    && <span className="font-mono text-xs text-green-400">✓ compiled</span>}
         </div>
       </div>
-      <div ref={ref}
-        className="p-4 min-h-[340px] max-h-[380px] overflow-y-auto bg-gradient-to-br from-background via-card/40 to-background space-y-1">
+
+      {/* Controls bar */}
+      <div className="px-4 py-3 border-b border-border bg-card/30 flex flex-wrap gap-3 items-end">
+        {/* Fabric selector */}
+        <div className="flex flex-col gap-1">
+          <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Fabric</label>
+          <div className="relative">
+            <select
+              value={fabric}
+              onChange={(e) => setFabric(e.target.value)}
+              disabled={running}
+              className="font-mono text-xs bg-card border border-border rounded px-2 py-1.5 pr-6 text-foreground appearance-none focus:outline-none focus:border-primary/60 disabled:opacity-50"
+            >
+              {fabrics.map((f) => (
+                <option key={f.name} value={f.name}>{f.display}</option>
+              ))}
+              <option value="__custom__">Custom…</option>
+            </select>
+            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Custom fabric input */}
+        {fabric === "__custom__" && (
+          <div className="flex flex-col gap-1">
+            <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Fabric name / NxM</label>
+            <input
+              value={customFabric}
+              onChange={(e) => setCustomFabric(e.target.value)}
+              placeholder="e.g. photonic-mesh-12x96"
+              disabled={running}
+              className="font-mono text-xs bg-card border border-border rounded px-2 py-1.5 text-foreground w-48 focus:outline-none focus:border-primary/60 disabled:opacity-50"
+            />
+          </div>
+        )}
+
+        {/* Function name */}
+        <div className="flex flex-col gap-1">
+          <label className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Function / kernel</label>
+          <div className="relative">
+            <input
+              value={fnName}
+              onChange={(e) => setFnName(e.target.value)}
+              list="kernel-suggestions"
+              placeholder="function_name"
+              disabled={running}
+              className="font-mono text-xs bg-card border border-border rounded px-2 py-1.5 text-foreground w-44 focus:outline-none focus:border-primary/60 disabled:opacity-50"
+            />
+            <datalist id="kernel-suggestions">
+              {KERNEL_SUGGESTIONS.map((k) => <option key={k} value={k} />)}
+            </datalist>
+          </div>
+        </div>
+
+        {/* Cache toggle */}
+        <label className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground cursor-pointer select-none pb-1.5">
+          <input type="checkbox" checked={cached} onChange={(e) => setCached(e.target.checked)} disabled={running} className="accent-primary" />
+          cache hit
+        </label>
+      </div>
+
+      {/* Output scroll area */}
+      <div
+        ref={ref}
+        className="p-4 flex-1 min-h-[300px] max-h-[360px] overflow-y-auto bg-gradient-to-br from-background via-card/40 to-background space-y-0.5"
+      >
         <AnimatePresence initial={false}>
           {lines.map((l, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.12 }}
-              className={`font-mono text-xs leading-relaxed ${colourCls[l.type] ?? "text-foreground"}`}>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.1 }}
+              className={`font-mono text-xs leading-relaxed ${colourCls[l.type] ?? "text-foreground"}`}
+            >
               {l.text}
             </motion.div>
           ))}
         </AnimatePresence>
-        {!running && !done && (
+        {error && <div className="font-mono text-xs text-red-400 mt-2">{error}</div>}
+        {!running && !done && !error && (
           <div className="font-mono text-xs text-muted-foreground flex items-center gap-1">
             <span>~</span>
             <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }}>▌</motion.span>
           </div>
         )}
       </div>
+
+      {/* Meta summary (after compile) */}
+      {meta && (
+        <div className="px-4 py-2 border-t border-border bg-card/20 flex flex-wrap gap-4">
+          {[
+            { label: "compile", value: `${meta.compile_ms} ms` },
+            { label: "cache",   value: meta.cached ? "HIT" : "MISS" },
+            { label: "WDM",     value: `${meta.wdm_channels} ch` },
+            { label: "dispatch",value: `<${meta.dispatch_ns} ns` },
+          ].map((s) => (
+            <div key={s.label} className="flex flex-col">
+              <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">{s.label}</span>
+              <span className="font-mono text-xs font-bold text-primary">{s.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
       <div className="px-4 py-3 border-t border-border bg-card/30 flex justify-between items-center">
         <span className="font-mono text-xs text-muted-foreground">LightRail v0.2 · 6-stage photonic compiler</span>
-        <button onClick={run} disabled={running}
-          className={`px-3 py-1.5 rounded font-mono text-xs transition-all ${running ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}>
-          {done ? "▶ Recompile" : running ? "Compiling…" : "▶ Compile"}
+        <button
+          onClick={run}
+          disabled={running}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-mono text-xs transition-all ${running ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+        >
+          {running ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+          {done ? "Recompile" : running ? "Compiling…" : "▶ Compile"}
         </button>
       </div>
     </div>
