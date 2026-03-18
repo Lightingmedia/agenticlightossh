@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import WorkflowAnimation from "@/components/landing/WorkflowAnimation";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/parallax-section";
 
 // ─── Pipeline stages ──────────────────────────────────────────────────────────
@@ -398,6 +399,9 @@ const LightCompiler = () => {
             </div>
           </div>
         </section>
+
+        {/* Workflow animation */}
+        <WorkflowAnimation />
 
         {/* Live compiler demo */}
         <section className="py-20 border-t border-border bg-card/20">
