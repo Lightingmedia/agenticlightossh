@@ -73,7 +73,7 @@ const Header = () => {
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
               </Link>
-              <Link to="/dashboard/studio" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+              <Link to="/lightcompiler" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 LightCompiler
               </Link>
             </div>
