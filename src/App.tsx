@@ -39,6 +39,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/lightcompiler" element={<LightCompiler />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
 
