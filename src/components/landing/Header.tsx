@@ -14,9 +14,9 @@ const Header = () => {
       <div className="bg-secondary/80 backdrop-blur-sm border-b border-border py-2 px-4">
         <div className="container mx-auto flex items-center justify-center gap-2 text-sm">
           <span className="text-primary">⚡</span>
-          <span className="font-mono text-muted-foreground">LIGHTOS Beta is now available!</span>
-          <Link to="/dashboard" className="text-primary hover:underline font-mono">
-            Request access →
+          <span className="font-mono text-muted-foreground">LightOS v0.2 — Photonic-native AI is live.</span>
+          <Link to="/onboard" className="text-primary hover:underline font-mono">
+            Run lightos onboard →
           </Link>
         </div>
       </div>
@@ -54,6 +54,11 @@ const Header = () => {
                       onMouseEnter={() => setProductsOpen(true)}
                       onMouseLeave={() => setProductsOpen(false)}
                     >
+                      <Link to="/light-compiler" className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        LightCompiler
+                        <span className="text-primary text-xs ml-2 bg-primary/10 px-1.5 py-0.5 rounded">NEW</span>
+                      </Link>
+                      <div className="border-t border-border my-1" />
                       <Link to="/dashboard/templates" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Templates</Link>
                       <Link to="/dashboard/agents" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</Link>
                       <Link to="/dashboard/inference" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</Link>
@@ -72,6 +77,10 @@ const Header = () => {
               </Link>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
+              </Link>
+              <Link to="/onboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Onboard
               </Link>
             </div>
 
@@ -111,6 +120,10 @@ const Header = () => {
                 <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
                 <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                <Link to="/onboard" className="flex items-center gap-2 text-primary font-mono text-sm" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  Onboard
+                </Link>
                 <div className="flex gap-3 pt-4 border-t border-border">
                   <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
                   <Link to="/dashboard" className="flex-1" onClick={() => setMobileMenuOpen(false)}>

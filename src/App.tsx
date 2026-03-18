@@ -27,6 +27,8 @@ import Examples from "./pages/Examples";
 import Clusters from "./pages/Clusters";
 import Runs from "./pages/Runs";
 import EnergyLab from "./pages/EnergyLab";
+import Onboard from "./pages/Onboard";
+import LightCompiler from "./pages/LightCompiler";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/onboard" element={<Onboard />} />
+          <Route path="/light-compiler" element={<LightCompiler />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
 

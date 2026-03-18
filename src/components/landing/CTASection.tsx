@@ -48,12 +48,12 @@ const CTASection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/dashboard">
+              <Link to="/onboard">
                 <Button
                   size="lg"
                   className="font-mono bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 group"
                 >
-                  Create Free Account
+                  Run lightos onboard
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

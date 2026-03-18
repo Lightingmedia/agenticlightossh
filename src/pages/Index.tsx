@@ -2,6 +2,7 @@ import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import LogosSection from "@/components/landing/LogosSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import OnboardSection from "@/components/landing/OnboardSection";
 import ToolingSection from "@/components/landing/ToolingSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
@@ -14,6 +15,7 @@ const Index = () => {
         <Hero />
         <LogosSection />
         <FeaturesSection />
+        <OnboardSection />
         <ToolingSection />
         <CTASection />
       </main>
