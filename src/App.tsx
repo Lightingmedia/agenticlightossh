@@ -29,6 +29,7 @@ import Runs from "./pages/Runs";
 import EnergyLab from "./pages/EnergyLab";
 import Onboard from "./pages/Onboard";
 import LightCompiler from "./pages/LightCompiler";
+import TransformerExplainer from "./pages/TransformerExplainer";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/onboard" element={<Onboard />} />
           <Route path="/light-compiler" element={<LightCompiler />} />
+          <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
 

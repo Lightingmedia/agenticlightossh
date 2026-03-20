@@ -58,6 +58,10 @@ const Header = () => {
                         LightCompiler
                         <span className="text-primary text-xs ml-2 bg-primary/10 px-1.5 py-0.5 rounded">NEW</span>
                       </Link>
+                      <Link to="/transformer-explainer" className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                        Transformer Explainer
+                        <span className="text-purple-400 text-xs ml-2 bg-purple-500/10 px-1.5 py-0.5 rounded">VIZ</span>
+                      </Link>
                       <div className="border-t border-border my-1" />
                       <Link to="/dashboard/templates" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Templates</Link>
                       <Link to="/dashboard/agents" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</Link>
