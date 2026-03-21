@@ -31,7 +31,15 @@ const Header = () => {
                 <Layers className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="text-foreground tracking-tight">LightOS</span>
-            </Link>
+              </Link>
+              <Link to="/aurora-llm" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 text-accent-foreground hover:bg-accent/20 transition-colors font-mono text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                Aurora LLM
+                </Link>
+                <Link to="/aurora-llm" className="flex items-center gap-2 text-accent-foreground font-mono text-sm" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                  Aurora LLM
+                </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
@@ -85,6 +93,10 @@ const Header = () => {
               <Link to="/onboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Onboard
+              </Link>
+              <Link to="/aurora-llm" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Aurora LLM
               </Link>
             </div>
 
