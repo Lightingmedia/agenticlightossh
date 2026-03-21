@@ -275,6 +275,9 @@ const AuroraLLM = () => {
         </div>
       </section>
 
+      {/* Playground */}
+      <AuroraPlayground />
+
       {/* Models */}
       <section className="py-20 px-4 border-t border-border">
         <div className="container mx-auto max-w-4xl">
