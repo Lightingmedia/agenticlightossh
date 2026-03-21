@@ -256,7 +256,7 @@ const AuroraLLM = () => {
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-destructive/60" />
                 <div className="w-3 h-3 rounded-full bg-accent/60" />
-                <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                <div className="w-3 h-3 rounded-full bg-primary/60" />
                 <span className="ml-3 text-xs font-mono text-muted-foreground">aurora_example.py</span>
               </div>
               <button
