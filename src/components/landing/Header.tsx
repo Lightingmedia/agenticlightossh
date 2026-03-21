@@ -94,6 +94,10 @@ const Header = () => {
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Onboard
               </Link>
+              <Link to="/aurora-llm" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Aurora LLM
+              </Link>
             </div>
 
             {/* Desktop CTA */}
