@@ -47,6 +47,7 @@ const App = () => (
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
+          <Route path="/aurora-llm" element={<AuroraLLM />} />
 
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
