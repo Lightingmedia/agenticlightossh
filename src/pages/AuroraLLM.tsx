@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/landing/Header";
-import { Footer } from "@/components/landing/Footer";
+import Footer from "@/components/landing/Footer";
 import {
   Brain,
   Zap,

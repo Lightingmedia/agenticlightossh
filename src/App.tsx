@@ -30,6 +30,7 @@ import EnergyLab from "./pages/EnergyLab";
 import Onboard from "./pages/Onboard";
 import LightCompiler from "./pages/LightCompiler";
 import TransformerExplainer from "./pages/TransformerExplainer";
+import AuroraLLM from "./pages/AuroraLLM";
 
 const queryClient = new QueryClient();
 
