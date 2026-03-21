@@ -21,6 +21,7 @@ import {
   Check,
 } from "lucide-react";
 import { useState } from "react";
+import AuroraPlayground from "@/components/aurora/AuroraPlayground";
 
 const benchmarks = [
   { name: "MMLU", aurora: "92.4%", gpt4: "86.4%", gemini: "90.0%" },
