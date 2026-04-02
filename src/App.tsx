@@ -30,7 +30,6 @@ import EnergyLab from "./pages/EnergyLab";
 import Onboard from "./pages/Onboard";
 import LightCompiler from "./pages/LightCompiler";
 import TransformerExplainer from "./pages/TransformerExplainer";
-import AuroraLLM from "./pages/AuroraLLM";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +46,6 @@ const App = () => (
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
-          <Route path="/aurora-llm" element={<AuroraLLM />} />
 
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>

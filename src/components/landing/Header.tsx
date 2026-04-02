@@ -31,15 +31,7 @@ const Header = () => {
                 <Layers className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="text-foreground tracking-tight">LightOS</span>
-              </Link>
-              
-
-
-            
-                <Link to="/aurora-llm" className="flex items-center gap-2 text-accent-foreground font-mono text-sm" onClick={() => setMobileMenuOpen(false)}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                  Aurora LLM
-                </Link>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
@@ -47,21 +39,21 @@ const Header = () => {
                 <button
                   className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide"
                   onMouseEnter={() => setProductsOpen(true)}
-                  onMouseLeave={() => setProductsOpen(false)}>
-                  
+                  onMouseLeave={() => setProductsOpen(false)}
+                >
                   Platform
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <AnimatePresence>
-                  {productsOpen &&
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-xl py-2"
-                    onMouseEnter={() => setProductsOpen(true)}
-                    onMouseLeave={() => setProductsOpen(false)}>
-                    
+                  {productsOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-xl py-2"
+                      onMouseEnter={() => setProductsOpen(true)}
+                      onMouseLeave={() => setProductsOpen(false)}
+                    >
                       <Link to="/light-compiler" className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                         LightCompiler
                         <span className="text-primary text-xs ml-2 bg-primary/10 px-1.5 py-0.5 rounded">NEW</span>
@@ -78,7 +70,7 @@ const Header = () => {
                         Model Registry <span className="text-primary text-xs">BETA</span>
                       </Link>
                     </motion.div>
-                  }
+                  )}
                 </AnimatePresence>
               </div>
               <Link to="/docs" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
@@ -93,10 +85,6 @@ const Header = () => {
               <Link to="/onboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Onboard
-              </Link>
-              <Link to="/aurora-llm" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Aurora LLM
               </Link>
             </div>
 
@@ -115,8 +103,8 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               className="md:hidden text-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -124,13 +112,13 @@ const Header = () => {
 
         {/* Mobile Menu */}
         <AnimatePresence>
-          {mobileMenuOpen &&
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border bg-background">
-            
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-border bg-background"
+            >
               <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
                 <Link to="/dashboard/templates" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Agent Templates</Link>
                 <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
@@ -148,11 +136,11 @@ const Header = () => {
                 </div>
               </div>
             </motion.div>
-          }
+          )}
         </AnimatePresence>
       </nav>
-    </header>);
-
+    </header>
+  );
 };
 
 export default Header;
