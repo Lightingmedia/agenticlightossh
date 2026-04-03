@@ -36,6 +36,7 @@ const monitoringItems = [
   { icon: Activity, label: "Telemetry", path: "/dashboard/telemetry" },
   { icon: Thermometer, label: "Thermal Control", path: "/dashboard/thermal" },
   { icon: Zap, label: "Inference", path: "/dashboard/inference" },
+  { icon: Server, label: "LLM Serving", path: "/dashboard/llm-serving" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },
   { icon: BarChart3, label: "Training", path: "/dashboard/training" },
 ];
