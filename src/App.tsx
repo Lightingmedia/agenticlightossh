@@ -11,6 +11,7 @@ import Agents from "./pages/Agents";
 import GPUMonitor from "./pages/GPUMonitor";
 import Telemetry from "./pages/Telemetry";
 import Inference from "./pages/Inference";
+import LLMServing from "./pages/LLMServing";
 import Models from "./pages/Models";
 import Training from "./pages/Training";
 import ThermalControl from "./pages/ThermalControl";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="thermal" element={<ThermalControl />} />
             <Route path="inference" element={<Inference />} />
+            <Route path="llm-serving" element={<LLMServing />} />
             <Route path="models" element={<Models />} />
             <Route path="training" element={<Training />} />
             <Route path="photonic" element={<PhotonicFabric />} />
