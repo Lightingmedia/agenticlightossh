@@ -11,6 +11,7 @@ import Agents from "./pages/Agents";
 import GPUMonitor from "./pages/GPUMonitor";
 import Telemetry from "./pages/Telemetry";
 import Inference from "./pages/Inference";
+import LLMServing from "./pages/LLMServing";
 import Models from "./pages/Models";
 import Training from "./pages/Training";
 import ThermalControl from "./pages/ThermalControl";
