@@ -56,6 +56,7 @@ const App = () => (
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="thermal" element={<ThermalControl />} />
             <Route path="inference" element={<Inference />} />
+            <Route path="llm-serving" element={<LLMServing />} />
             <Route path="models" element={<Models />} />
             <Route path="training" element={<Training />} />
             <Route path="photonic" element={<PhotonicFabric />} />
