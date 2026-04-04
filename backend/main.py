@@ -1,12 +1,20 @@
 """
-LightRail Compiler Demo — FastAPI backend
-=========================================
+LightOS — FastAPI backend
+=========================
 
 Endpoints
 ---------
-GET  /api/fabrics                    — list all fabric presets
-POST /api/compile                    — SSE stream of compilation log lines
-GET  /api/compile/ping               — health-check
+GET  /api/fabrics                        — list all fabric presets
+POST /api/compile                        — SSE stream of compilation log lines
+GET  /api/compile/ping                   — health-check
+
+GET  /inference/llm-serving              — list LLM deployments
+POST /inference/llm-serving/deploy       — create a new deployment
+POST /inference/llm-serving/scale        — scale replicas
+POST /inference/llm-serving/restart      — restart a deployment
+POST /inference/llm-serving/rollback     — rollback to previous config
+GET  /inference/llm-serving/logs         — fetch deployment logs
+GET  /inference/llm-serving/metrics      — fetch serving metrics
 
 Run locally:
     pip install -r requirements.txt
@@ -22,8 +30,9 @@ from pydantic import BaseModel, Field
 
 from compiler_sim import stream_compilation
 from fabrics import FABRIC_PRESETS, get_fabric
+from llm_serving import router as llm_serving_router
 
-app = FastAPI(title="LightRail Compiler API", version="0.2.0")
+app = FastAPI(title="LightOS API", version="0.3.0")
 
 # Allow any origin in dev (the Vite proxy handles this in prod)
 app.add_middleware(
@@ -33,12 +42,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── Routers ──────────────────────────────────────────────────────────────────
+
+app.include_router(llm_serving_router)
 
 # ─── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/api/compile/ping")
 async def ping():
-    return {"status": "ok", "service": "lightrail-compiler", "version": "0.2.0"}
+    return {"status": "ok", "service": "lightrail-compiler", "version": "0.3.0"}
 
 
 # ─── Fabrics ──────────────────────────────────────────────────────────────────
