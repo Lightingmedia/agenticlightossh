@@ -179,6 +179,72 @@ export type Database = {
         }
         Relationships: []
       }
+      testers: {
+        Row: {
+          active_title: string | null
+          company_hq_address: string | null
+          company_hq_country: string | null
+          company_industry: string | null
+          company_linkedin_url: string | null
+          company_name: string | null
+          company_website: string | null
+          connections_count: number | null
+          created_at: string
+          department: string | null
+          external_id: string | null
+          followers_count: number | null
+          full_name: string
+          headline: string | null
+          id: string
+          linkedin_url: string | null
+          location_country: string | null
+          location_full: string | null
+          management_level: string | null
+        }
+        Insert: {
+          active_title?: string | null
+          company_hq_address?: string | null
+          company_hq_country?: string | null
+          company_industry?: string | null
+          company_linkedin_url?: string | null
+          company_name?: string | null
+          company_website?: string | null
+          connections_count?: number | null
+          created_at?: string
+          department?: string | null
+          external_id?: string | null
+          followers_count?: number | null
+          full_name: string
+          headline?: string | null
+          id?: string
+          linkedin_url?: string | null
+          location_country?: string | null
+          location_full?: string | null
+          management_level?: string | null
+        }
+        Update: {
+          active_title?: string | null
+          company_hq_address?: string | null
+          company_hq_country?: string | null
+          company_industry?: string | null
+          company_linkedin_url?: string | null
+          company_name?: string | null
+          company_website?: string | null
+          connections_count?: number | null
+          created_at?: string
+          department?: string | null
+          external_id?: string | null
+          followers_count?: number | null
+          full_name?: string
+          headline?: string | null
+          id?: string
+          linkedin_url?: string | null
+          location_country?: string | null
+          location_full?: string | null
+          management_level?: string | null
+        }
+        Relationships: []
+      }
       thermal_zones: {
         Row: {
           fan_speed: number
