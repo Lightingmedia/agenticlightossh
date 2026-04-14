@@ -32,6 +32,7 @@ import Onboard from "./pages/Onboard";
 import LightCompiler from "./pages/LightCompiler";
 import TransformerExplainer from "./pages/TransformerExplainer";
 import LLMPerfBench from "./pages/LLMPerfBench";
+import Benchmark from "./pages/Benchmark";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/onboard" element={<Onboard />} />
           <Route path="/light-compiler" element={<LightCompiler />} />
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
+          <Route path="/benchmark" element={<Benchmark />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/examples" element={<Examples />} />
 
