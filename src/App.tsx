@@ -4,6 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminTesters from "./pages/AdminTesters";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
@@ -49,6 +55,15 @@ const App = () => (
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/benchmark" element={<Benchmark />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="testers" element={<AdminTesters />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+          </Route>
           <Route path="/examples" element={<Examples />} />
 
           {/* Dashboard Routes */}
