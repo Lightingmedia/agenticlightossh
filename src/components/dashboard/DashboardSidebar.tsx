@@ -39,6 +39,7 @@ const monitoringItems = [
   { icon: Server, label: "LLM Serving", path: "/dashboard/llm-serving" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },
   { icon: BarChart3, label: "Training", path: "/dashboard/training" },
+  { icon: Zap, label: "llmperf-bench", path: "/dashboard/benchmark" },
 ];
 
 const lightosItems = [

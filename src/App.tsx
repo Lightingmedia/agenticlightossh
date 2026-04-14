@@ -31,6 +31,7 @@ import EnergyLab from "./pages/EnergyLab";
 import Onboard from "./pages/Onboard";
 import LightCompiler from "./pages/LightCompiler";
 import TransformerExplainer from "./pages/TransformerExplainer";
+import LLMPerfBench from "./pages/LLMPerfBench";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="llm-serving" element={<LLMServing />} />
             <Route path="models" element={<Models />} />
             <Route path="training" element={<Training />} />
+            <Route path="benchmark" element={<LLMPerfBench />} />
             <Route path="photonic" element={<PhotonicFabric />} />
             {/* LightOS/Fabric OS Routes */}
             <Route path="clusters" element={<Clusters />} />
