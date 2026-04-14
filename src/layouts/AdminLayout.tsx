@@ -34,7 +34,7 @@ function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
           {!collapsed && <span className="font-mono font-bold text-sm">Admin Panel</span>}
         </div>
 
-        <SidebarGroup open={isExpanded} onOpenChange={() => {}}>
+        <SidebarGroup defaultOpen>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
