@@ -39,6 +39,8 @@ import LightCompiler from "./pages/LightCompiler";
 import TransformerExplainer from "./pages/TransformerExplainer";
 import LLMPerfBench from "./pages/LLMPerfBench";
 import Benchmark from "./pages/Benchmark";
+import Pricing from "./pages/Pricing";
+import CheckoutReturn from "./pages/CheckoutReturn";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,8 @@ const App = () => (
           <Route path="/light-compiler" element={<LightCompiler />} />
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/benchmark" element={<Benchmark />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
