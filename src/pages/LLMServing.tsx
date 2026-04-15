@@ -22,6 +22,18 @@ import {
   Shield,
   Layers,
   Zap,
+  GitBranch,
+  Eye,
+  DollarSign,
+  Timer,
+  Radio,
+  Search,
+  ArrowRight,
+  Gauge,
+  ShieldCheck,
+  Users,
+  FlaskConical,
+  Building2,
 } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
