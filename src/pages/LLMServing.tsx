@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Rocket,
   Server,
@@ -131,8 +132,6 @@ interface MetricsResponse {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE = "/inference/llm-serving";
-
 const availableModels = [
   { id: "llama-3.1-405b", name: "Llama 3.1 405B", params: "405B", recommended: true },
   { id: "llama-3.1-70b", name: "Llama 3.1 70B", params: "70B", recommended: false },
@@ -199,24 +198,6 @@ const logLevelColor: Record<string, string> = {
   error: "text-destructive",
 };
 
-// ─── API helper ───────────────────────────────────────────────────────────────
-
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) {
-    const detail = await res.text().catch(() => res.statusText);
-    let msg = detail;
-    try {
-      msg = JSON.parse(detail)?.detail ?? detail;
-    } catch {}
-    throw new Error(msg || `HTTP ${res.status}`);
-  }
-  return res.json() as Promise<T>;
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const LLMServing = () => {
@@ -254,8 +235,39 @@ const LLMServing = () => {
   const fetchDeployments = useCallback(async () => {
     setLoadingDeployments(true);
     try {
-      const data = await apiFetch<{ deployments: Deployment[]; total: number }>("");
-      setDeployments(data.deployments);
+      const { data, error } = await supabase
+        .from("llm_deployments")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Map DB rows to Deployment shape
+      setDeployments(
+        (data ?? []).map((d) => ({
+          id: d.id,
+          name: d.name,
+          status: d.status as DeploymentStatus,
+          config: {
+            model: d.model,
+            serving_mode: d.serving_mode as ServingMode,
+            gpu_count: d.gpu_count,
+            data_parallel_size: d.data_parallel_size,
+            expert_parallelism: d.expert_parallelism,
+            fault_tolerance: d.fault_tolerance,
+            observability: {
+              prometheus_enabled: d.prometheus_enabled,
+              tracing_enabled: d.tracing_enabled,
+              log_level: d.log_level as "debug" | "info" | "warn" | "error",
+            },
+          },
+          replicas: d.replicas,
+          created_at: d.created_at,
+          updated_at: d.updated_at,
+          revision: d.revision,
+          latency_p50_ms: d.latency_p50_ms ? Number(d.latency_p50_ms) : null,
+          latency_p99_ms: d.latency_p99_ms ? Number(d.latency_p99_ms) : null,
+          throughput_tok_s: d.throughput_tok_s ? Number(d.throughput_tok_s) : null,
+        })),
+      );
     } catch (err) {
       toast.error(`Failed to load deployments: ${(err as Error).message}`);
     } finally {
@@ -266,8 +278,26 @@ const LLMServing = () => {
   const fetchMetrics = useCallback(async () => {
     setLoadingMetrics(true);
     try {
-      const data = await apiFetch<MetricsResponse>("/metrics");
-      setMetrics(data.series);
+      // Compute metrics from deployments
+      const { data } = await supabase.from("llm_deployments").select("*").eq("status", "running");
+      const running = data ?? [];
+      const totalThroughput = running.reduce((a, d) => a + Number(d.throughput_tok_s ?? 0), 0);
+      const avgP50 = running.length > 0
+        ? Math.round(running.reduce((a, d) => a + Number(d.latency_p50_ms ?? 0), 0) / running.length)
+        : 0;
+      const avgP99 = running.length > 0
+        ? Math.round(running.reduce((a, d) => a + Number(d.latency_p99_ms ?? 0), 0) / running.length)
+        : 0;
+      const totalGpus = running.reduce((a, d) => a + d.gpu_count * d.replicas, 0);
+      const totalReplicas = running.reduce((a, d) => a + d.replicas, 0);
+
+      setMetrics([
+        { name: "Throughput", value: totalThroughput, unit: "tok/s", bar_pct: Math.min(totalThroughput / 100, 100) },
+        { name: "Latency P50", value: avgP50, unit: "ms", bar_pct: Math.min(avgP50 / 2, 100) },
+        { name: "Latency P99", value: avgP99, unit: "ms", bar_pct: Math.min(avgP99 / 3, 100) },
+        { name: "Active GPUs", value: totalGpus, unit: "x H100", bar_pct: Math.min((totalGpus / 64) * 100, 100) },
+        { name: "Active Replicas", value: totalReplicas, unit: "", bar_pct: Math.min((totalReplicas / 16) * 100, 100) },
+      ]);
     } catch (err) {
       toast.error(`Failed to load metrics: ${(err as Error).message}`);
     } finally {
@@ -278,8 +308,20 @@ const LLMServing = () => {
   const fetchLogs = useCallback(async () => {
     setLoadingLogs(true);
     try {
-      const data = await apiFetch<LogEntry[]>("/logs?limit=50");
-      setLogs(data);
+      const { data, error } = await supabase
+        .from("llm_deployment_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setLogs(
+        (data ?? []).map((l) => ({
+          ts: new Date(l.created_at).toLocaleTimeString(),
+          level: l.level as "debug" | "info" | "warn" | "error",
+          deployment_id: l.deployment_id,
+          msg: l.message,
+        })),
+      );
     } catch (err) {
       toast.error(`Failed to load logs: ${(err as Error).message}`);
     } finally {
@@ -291,6 +333,27 @@ const LLMServing = () => {
     fetchDeployments();
     fetchMetrics();
     fetchLogs();
+
+    // Realtime subscriptions
+    const depChannel = supabase
+      .channel("llm-deployments-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "llm_deployments" }, () => {
+        fetchDeployments();
+        fetchMetrics();
+      })
+      .subscribe();
+
+    const logChannel = supabase
+      .channel("llm-logs-rt")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "llm_deployment_logs" }, () => {
+        fetchLogs();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(depChannel);
+      supabase.removeChannel(logChannel);
+    };
   }, [fetchDeployments, fetchMetrics, fetchLogs]);
 
   // ─── Actions ──────────────────────────────────────────────────────────────
@@ -302,23 +365,20 @@ const LLMServing = () => {
     }
     setDeploying(true);
     try {
-      await apiFetch<Deployment>("/deploy", {
-        method: "POST",
-        body: JSON.stringify({
-          name: deploymentName.trim(),
-          model: selectedModel,
-          serving_mode: servingMode,
-          gpu_count: gpuCount[0],
-          data_parallel_size: dpSize[0],
-          expert_parallelism: expertParallel,
-          fault_tolerance: faultTolerance,
-        }),
+      const { error } = await supabase.from("llm_deployments").insert({
+        name: deploymentName.trim(),
+        model: selectedModel,
+        serving_mode: servingMode,
+        gpu_count: gpuCount[0],
+        data_parallel_size: dpSize[0],
+        expert_parallelism: expertParallel,
+        fault_tolerance: faultTolerance,
+        status: "provisioning",
       });
+      if (error) throw error;
       toast.success("Deployment submitted — provisioning GPUs");
       setCreateDialogOpen(false);
       setDeploymentName("");
-      await fetchDeployments();
-      await fetchLogs();
     } catch (err) {
       toast.error(`Deploy failed: ${(err as Error).message}`);
     } finally {
@@ -330,16 +390,13 @@ const LLMServing = () => {
     if (!selectedDeployment) return;
     setScaling(true);
     try {
-      await apiFetch("/scale", {
-        method: "POST",
-        body: JSON.stringify({
-          deployment_id: selectedDeployment.id,
-          replicas: scaleReplicas[0],
-        }),
-      });
+      const { error } = await supabase
+        .from("llm_deployments")
+        .update({ replicas: scaleReplicas[0] })
+        .eq("id", selectedDeployment.id);
+      if (error) throw error;
       toast.success(`Scaled ${selectedDeployment.name} to ${scaleReplicas[0]} replicas`);
       setScaleDialogOpen(false);
-      await fetchDeployments();
     } catch (err) {
       toast.error(`Scale failed: ${(err as Error).message}`);
     } finally {
@@ -349,13 +406,17 @@ const LLMServing = () => {
 
   const handleRestart = async (dep: Deployment) => {
     try {
-      await apiFetch("/restart", {
-        method: "POST",
-        body: JSON.stringify({ deployment_id: dep.id }),
+      const { error } = await supabase
+        .from("llm_deployments")
+        .update({ status: "provisioning", revision: dep.revision + 1 })
+        .eq("id", dep.id);
+      if (error) throw error;
+      await supabase.from("llm_deployment_logs").insert({
+        deployment_id: dep.id,
+        level: "info",
+        message: `Restart triggered — revision ${dep.revision + 1}`,
       });
       toast.success(`Restart triggered for ${dep.name}`);
-      await fetchDeployments();
-      await fetchLogs();
     } catch (err) {
       toast.error(`Restart failed: ${(err as Error).message}`);
     }
@@ -363,13 +424,17 @@ const LLMServing = () => {
 
   const handleRollback = async (dep: Deployment) => {
     try {
-      await apiFetch("/rollback", {
-        method: "POST",
-        body: JSON.stringify({ deployment_id: dep.id }),
+      const { error } = await supabase
+        .from("llm_deployments")
+        .update({ status: "rolling-back" })
+        .eq("id", dep.id);
+      if (error) throw error;
+      await supabase.from("llm_deployment_logs").insert({
+        deployment_id: dep.id,
+        level: "warn",
+        message: `Rollback initiated from revision ${dep.revision}`,
       });
       toast.success(`Rollback initiated for ${dep.name}`);
-      await fetchDeployments();
-      await fetchLogs();
     } catch (err) {
       toast.error(`Rollback failed: ${(err as Error).message}`);
     }

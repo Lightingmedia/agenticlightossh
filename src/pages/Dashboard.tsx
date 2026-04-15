@@ -42,7 +42,7 @@ const Dashboard = () => {
   const queueTasks = tasks.slice(0, 5).map((task) => ({
     id: task.task_id,
     model: task.model,
-    status: task.status,
+    status: task.status as "queued" | "running" | "completed" | "failed",
     progress: task.progress ?? undefined,
     tokens: task.tokens ?? undefined,
     duration: task.duration ?? undefined,

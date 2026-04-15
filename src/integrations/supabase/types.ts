@@ -134,6 +134,104 @@ export type Database = {
         }
         Relationships: []
       }
+      llm_deployment_logs: {
+        Row: {
+          created_at: string
+          deployment_id: string | null
+          id: string
+          level: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_id?: string | null
+          id?: string
+          level?: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          deployment_id?: string | null
+          id?: string
+          level?: string
+          message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "llm_deployment_logs_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "llm_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      llm_deployments: {
+        Row: {
+          created_at: string
+          data_parallel_size: number
+          expert_parallelism: boolean
+          fault_tolerance: boolean
+          gpu_count: number
+          id: string
+          latency_p50_ms: number | null
+          latency_p99_ms: number | null
+          log_level: string
+          model: string
+          name: string
+          prometheus_enabled: boolean
+          replicas: number
+          revision: number
+          serving_mode: string
+          status: string
+          throughput_tok_s: number | null
+          tracing_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_parallel_size?: number
+          expert_parallelism?: boolean
+          fault_tolerance?: boolean
+          gpu_count?: number
+          id?: string
+          latency_p50_ms?: number | null
+          latency_p99_ms?: number | null
+          log_level?: string
+          model?: string
+          name: string
+          prometheus_enabled?: boolean
+          replicas?: number
+          revision?: number
+          serving_mode?: string
+          status?: string
+          throughput_tok_s?: number | null
+          tracing_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_parallel_size?: number
+          expert_parallelism?: boolean
+          fault_tolerance?: boolean
+          gpu_count?: number
+          id?: string
+          latency_p50_ms?: number | null
+          latency_p99_ms?: number | null
+          log_level?: string
+          model?: string
+          name?: string
+          prometheus_enabled?: boolean
+          replicas?: number
+          revision?: number
+          serving_mode?: string
+          status?: string
+          throughput_tok_s?: number | null
+          tracing_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

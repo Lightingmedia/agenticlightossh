@@ -182,7 +182,7 @@ const Agents = () => {
                   id={agent.agent_id}
                   name={agent.name}
                   type={agent.type}
-                  status={agent.status}
+                  status={agent.status as "online" | "busy" | "idle" | "offline"}
                   cpu={Number(agent.cpu)}
                   memory={Number(agent.memory)}
                   tasks={agent.tasks}
