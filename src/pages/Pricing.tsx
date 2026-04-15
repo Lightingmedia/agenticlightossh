@@ -134,6 +134,12 @@ export default function Pricing() {
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto py-16 px-4">
         {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Button>
+        </div>
+
         <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4 border-primary/40 text-primary">
             Pricing
