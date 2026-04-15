@@ -1127,6 +1127,7 @@ const LLMServing = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
   );
