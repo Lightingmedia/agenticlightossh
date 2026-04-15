@@ -401,16 +401,275 @@ const LLMServing = () => {
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
+  // ─── Landing content ────────────────────────────────────────────────────
+
+  const landingFeatures = [
+    {
+      icon: GitBranch,
+      title: "Intelligent Model Routing",
+      description: "Route requests across models based on cost, latency, and capability. A/B test models in production with traffic splitting.",
+    },
+    {
+      icon: Shield,
+      title: "Automatic Fallback",
+      description: "Define fallback chains so failed requests retry on backup models instantly. Zero downtime, zero dropped requests.",
+    },
+    {
+      icon: Radio,
+      title: "Streaming & Batching",
+      description: "First-class SSE streaming with auto-batching. Maximize throughput without sacrificing time-to-first-token.",
+    },
+    {
+      icon: Search,
+      title: "End-to-End Tracing",
+      description: "Trace every request from ingress to token output. Debug latency spikes and model errors with full observability.",
+    },
+    {
+      icon: DollarSign,
+      title: "Cost Attribution",
+      description: "Track spend per model, team, and endpoint. Set budget alerts and enforce rate limits before costs spiral.",
+    },
+    {
+      icon: Timer,
+      title: "Latency Optimization",
+      description: "P50/P99 latency dashboards with automatic replica scaling. Keep SLAs tight across traffic spikes.",
+    },
+  ];
+
+  const howItWorks = [
+    {
+      step: "01",
+      title: "Connect your models",
+      description: "Point LightOS at your self-hosted models or cloud endpoints. Configure routing rules and fallback chains in YAML or the UI.",
+    },
+    {
+      step: "02",
+      title: "Deploy & observe",
+      description: "Push a deployment with one click. Monitor throughput, latency, and cost in real time from the operator console below.",
+    },
+    {
+      step: "03",
+      title: "Scale & optimize",
+      description: "Auto-scale replicas based on traffic. Run A/B tests, swap models, and roll back — all without downtime.",
+    },
+  ];
+
+  const useCases = [
+    {
+      icon: Building2,
+      title: "Enterprise AI platforms",
+      description: "Centralized LLM gateway for multiple teams with cost controls, access policies, and usage analytics.",
+    },
+    {
+      icon: FlaskConical,
+      title: "ML & research teams",
+      description: "Rapid model iteration with side-by-side evaluation, canary rollouts, and automated regression testing.",
+    },
+    {
+      icon: Users,
+      title: "Product engineering",
+      description: "Ship AI features with confidence. Streaming responses, circuit breakers, and SLA-grade reliability built in.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Compliance-sensitive orgs",
+      description: "On-prem deployment with full request logging, data residency controls, and zero third-party data sharing.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader
-        title="LLM Serving"
-        subtitle="Deploy and manage Ray Serve inference workloads"
-      />
+      {/* ─── Hero Section ─────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="absolute inset-0 grid-pattern opacity-10" />
+        <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-3xl mx-auto text-center"
+          >
+            <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-border bg-card/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+                Inference · Ray Serve
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold font-mono mb-6 text-foreground leading-tight">
+              LLM Serving for{" "}
+              <span className="text-gradient">production AI teams</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+              Route, observe, evaluate, and optimize LLM traffic from one unified control plane.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" className="font-mono gap-2" onClick={() => {
+                document.getElementById("llm-console")?.scrollIntoView({ behavior: "smooth" });
+              }}>
+                <Rocket className="w-4 h-4" />
+                Get Started
+              </Button>
+              <Button size="lg" variant="outline" className="font-mono gap-2" onClick={() => {
+                document.getElementById("llm-features")?.scrollIntoView({ behavior: "smooth" });
+              }}>
+                Learn More
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-      <div className="p-6 space-y-6">
-        {/* Action Bar */}
-        <div className="flex flex-wrap items-center gap-3">
+      {/* ─── Features Section ─────────────────────────────────────────────── */}
+      <section id="llm-features" className="py-20 border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+                Capabilities
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-mono mb-3 text-foreground">
+              Production-grade serving infrastructure
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Everything you need to run LLMs reliably at scale — routing, fallback, tracing, and cost control in one platform.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {landingFeatures.map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="group p-6 rounded-xl border border-border bg-card/30 hover:border-primary/40 hover:bg-card/60 transition-all duration-300"
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <f.icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-mono font-bold text-foreground">{f.title}</h3>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── How It Works ─────────────────────────────────────────────────── */}
+      <section className="py-20 border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+                How It Works
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-mono mb-3 text-foreground">
+              From zero to serving in three steps
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {howItWorks.map((step, i) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="text-center"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-primary/40 bg-primary/10 text-primary font-mono font-bold text-lg mb-5">
+                  {step.step}
+                </div>
+                <h3 className="font-mono font-bold text-lg mb-2 text-foreground">{step.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Use Cases ────────────────────────────────────────────────────── */}
+      <section className="py-20 border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+                Use Cases
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-mono mb-3 text-foreground">
+              Built for production teams
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Whether you're shipping a chatbot or running an enterprise AI platform, LightOS LLM Serving fits your workflow.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+            {useCases.map((uc, i) => (
+              <motion.div
+                key={uc.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex gap-4 p-6 rounded-xl border border-border bg-card/30 hover:border-primary/40 transition-all duration-300"
+              >
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary h-fit">
+                  <uc.icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-mono font-bold text-foreground mb-1">{uc.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{uc.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Final CTA ────────────────────────────────────────────────────── */}
+      <section className="py-20 border-b border-border">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4 text-foreground">
+              Ready to serve LLMs at scale?
+            </h2>
+            <p className="text-muted-foreground mb-8">
+              Deploy your first model in under 5 minutes. No infrastructure to manage — just connect, configure, and ship.
+            </p>
+            <Button size="lg" className="font-mono gap-2" onClick={() => {
+              document.getElementById("llm-console")?.scrollIntoView({ behavior: "smooth" });
+            }}>
+              <Rocket className="w-4 h-4" />
+              Get Started Now
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Operator Console ─────────────────────────────────────────────── */}
+      <div id="llm-console">
+        <DashboardHeader
+          title="LLM Serving"
+          subtitle="Deploy and manage Ray Serve inference workloads"
+        />
+
+        <div className="p-6 space-y-6">
+          {/* Action Bar */}
+          <div className="flex flex-wrap items-center gap-3">
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="font-mono gap-2">
