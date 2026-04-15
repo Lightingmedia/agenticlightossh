@@ -19,7 +19,7 @@ const GPUMonitor = () => {
     power: Number(gpu.power),
     memoryUsed: Number(gpu.memory_used),
     memoryTotal: Number(gpu.memory_total),
-    status: gpu.status,
+    status: gpu.status as "online" | "busy" | "idle" | "offline",
   }));
 
   // Transform thermal zones for heatmap
