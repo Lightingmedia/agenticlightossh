@@ -9,9 +9,8 @@ export type InferenceTask = Tables<"inference_tasks">;
 export type SystemLog = Tables<"system_logs">;
 export type TelemetryDataPoint = Tables<"telemetry_data">;
 
-// Generic realtime hook
-function useRealtimeTable<T extends { id: string }>(
-  table: string,
+function useRealtimeTable<T>(
+  table: "gpu_metrics" | "agents" | "thermal_zones" | "inference_tasks" | "system_logs" | "telemetry_data",
   orderCol: string,
   ascending = true,
   limitCount?: number,
@@ -21,7 +20,6 @@ function useRealtimeTable<T extends { id: string }>(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initial fetch
     const fetchData = async () => {
       let q = supabase
         .from(table)
@@ -34,23 +32,19 @@ function useRealtimeTable<T extends { id: string }>(
       if (err) {
         setError(err.message);
       } else {
-        setData((rows ?? []) as T[]);
+        setData((rows ?? []) as unknown as T[]);
       }
       setLoading(false);
     };
 
     fetchData();
 
-    // Realtime subscription
     const channel = supabase
       .channel(`realtime-${table}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table },
-        () => {
-          // Re-fetch on any change for simplicity
-          fetchData();
-        },
+        () => fetchData(),
       )
       .subscribe();
 
