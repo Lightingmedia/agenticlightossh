@@ -34,8 +34,7 @@ import {
 import { toast } from "sonner";
 import { AgentRequirementBar } from "@/components/agent-studio/AgentRequirementBar";
 import { generateAgentFromRequirement } from "@/lib/agent-generator";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { supabase } from "@/integrations/supabase/client";
 
 // Initial example nodes
 const initialNodes: Node[] = [
