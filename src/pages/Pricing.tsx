@@ -114,7 +114,6 @@ export default function Pricing() {
   if (checkoutPriceId) {
     return (
       <div className="min-h-screen bg-background">
-        <PaymentTestModeBanner />
         <div className="max-w-2xl mx-auto py-12 px-4">
           <Button variant="ghost" onClick={() => setCheckoutPriceId(null)} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to plans
@@ -133,7 +132,6 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PaymentTestModeBanner />
       <div className="max-w-6xl mx-auto py-16 px-4">
         {/* Header */}
         <div className="text-center mb-12">
