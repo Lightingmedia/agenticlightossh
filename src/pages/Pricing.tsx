@@ -78,7 +78,7 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const { tier, isActive } = useSubscription();
+  const { tier, isActive, isCanceled } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -86,15 +86,27 @@ export default function Pricing() {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
   }, []);
 
-  const handleSubscribe = (plan: typeof plans[0]) => {
+  const handleSubscribe = async (plan: typeof plans[0]) => {
     if (!user) {
       toast({ title: "Sign in required", description: "Please sign in to subscribe.", variant: "destructive" });
       navigate("/auth");
       return;
     }
-    if (isActive && tier === plan.id) {
+    if (isActive && tier === plan.id && !isCanceled) {
       toast({ title: "Already subscribed", description: `You're already on the ${plan.name} plan.` });
       return;
+    }
+    // If already subscribed to a different plan, open portal for upgrade/downgrade
+    if (isActive && tier !== plan.id && tier !== "free") {
+      try {
+        const { data, error } = await supabase.functions.invoke("create-portal-session", {
+          body: { returnUrl: window.location.href, environment: getStripeEnvironment() },
+        });
+        if (data?.url) {
+          window.open(data.url, "_blank");
+          return;
+        }
+      } catch {}
     }
     const priceId = annual && plan.yearlyPriceId ? plan.yearlyPriceId : plan.monthlyPriceId;
     setCheckoutPriceId(priceId);
