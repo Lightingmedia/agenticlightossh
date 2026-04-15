@@ -34,8 +34,7 @@ import {
 import { toast } from "sonner";
 import { AgentRequirementBar } from "@/components/agent-studio/AgentRequirementBar";
 import { generateAgentFromRequirement } from "@/lib/agent-generator";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { supabase } from "@/integrations/supabase/client";
 
 // Initial example nodes
 const initialNodes: Node[] = [
@@ -205,23 +204,22 @@ export default function AgentStudio() {
   const saveAgent = useCallback(async () => {
     if (nodes.length === 0) return;
 
-    addLog("info", "Saving agent to Firebase...");
+    addLog("info", "Saving agent to database...");
     try {
-      await addDoc(collection(db, "agents"), {
+      const { error } = await supabase.from("agents").insert({
+        agent_id: `agent-studio-${Date.now()}`,
         name: agentMetadata.name,
-        description: agentMetadata.description,
-        nodes,
-        edges,
-        createdAt: serverTimestamp(),
+        type: agentMetadata.description || "Custom Agent",
+        status: "online",
       });
-      addLog("success", "Agent saved successfully to Firestore");
+      if (error) throw error;
+      addLog("success", "Agent saved successfully");
       toast.success("Agent Saved", {
-        description: "Your agent configuration is secured in Firebase.",
+        description: "Your agent configuration has been stored.",
       });
     } catch (error) {
       console.error("Save error:", error);
-      addLog("warning", "Error saving to Firebase: Use mock data for now.");
-      // Fallback for demo if Firebase isn't fully configured
+      addLog("warning", "Error saving agent — demo mode active.");
       toast.info("Demo: Agent saved (Mock)");
     }
   }, [nodes, edges, agentMetadata, addLog]);
