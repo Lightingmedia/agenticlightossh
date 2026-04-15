@@ -41,6 +41,7 @@ import LLMPerfBench from "./pages/LLMPerfBench";
 import Benchmark from "./pages/Benchmark";
 import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
+import Billing from "./pages/Billing";
 
 const queryClient = new QueryClient();
 
