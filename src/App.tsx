@@ -97,6 +97,7 @@ const App = () => (
             <Route path="actions" element={<ActionOrchestrator />} />
             <Route path="deploy" element={<DeployAgent />} />
             <Route path="monitor" element={<AgentMonitor />} />
+            <Route path="billing" element={<Billing />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
