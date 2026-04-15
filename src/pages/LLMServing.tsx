@@ -130,6 +130,74 @@ interface MetricsResponse {
   series: MetricSeries[];
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const availableModels = [
+  { id: "llama-3.1-405b", name: "Llama 3.1 405B", params: "405B", recommended: true },
+  { id: "llama-3.1-70b", name: "Llama 3.1 70B", params: "70B", recommended: false },
+  { id: "mixtral-8x22b", name: "Mixtral 8x22B", params: "176B", recommended: false },
+  { id: "deepseek-v2", name: "DeepSeek V2", params: "236B", recommended: false },
+  { id: "qwen-72b", name: "Qwen 72B", params: "72B", recommended: false },
+];
+
+const statusConfig: Record<
+  DeploymentStatus,
+  { color: string; icon: React.ElementType; label: string }
+> = {
+  pending: { color: "bg-muted text-muted-foreground", icon: Clock, label: "Pending" },
+  provisioning: {
+    color: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    icon: Loader2,
+    label: "Provisioning",
+  },
+  running: {
+    color: "bg-primary/15 text-primary border-primary/30",
+    icon: CheckCircle2,
+    label: "Running",
+  },
+  degraded: {
+    color: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+    icon: AlertTriangle,
+    label: "Degraded",
+  },
+  failed: {
+    color: "bg-destructive/15 text-destructive border-destructive/30",
+    icon: XCircle,
+    label: "Failed",
+  },
+  "rolling-back": {
+    color: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+    icon: RotateCcw,
+    label: "Rolling Back",
+  },
+  terminated: { color: "bg-muted text-muted-foreground", icon: XCircle, label: "Terminated" },
+};
+
+const servingModes: { id: ServingMode; label: string; description: string }[] = [
+  {
+    id: "wide-ep",
+    label: "Wide-EP",
+    description: "Expert parallelism across all GPUs for MoE models",
+  },
+  {
+    id: "disaggregated",
+    label: "Disaggregated Prefill/Decode",
+    description: "Separate prefill and decode stages for optimal throughput",
+  },
+  {
+    id: "standard",
+    label: "Standard Serving",
+    description: "Traditional tensor-parallel serving with auto-batching",
+  },
+];
+
+const logLevelColor: Record<string, string> = {
+  debug: "text-muted-foreground",
+  info: "text-primary",
+  warn: "text-yellow-400",
+  error: "text-destructive",
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const LLMServing = () => {
