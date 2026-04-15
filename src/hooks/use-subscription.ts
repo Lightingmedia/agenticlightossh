@@ -15,13 +15,20 @@ interface Subscription {
   cancel_at_period_end: boolean;
 }
 
-// Map Stripe product IDs to tiers — these are human-readable price IDs
 const PRICE_TO_TIER: Record<string, SubscriptionTier> = {
   starter_monthly: "starter",
   starter_yearly: "starter",
   pro_monthly: "pro",
   pro_yearly: "pro",
   enterprise_monthly: "enterprise",
+};
+
+// Tier hierarchy for comparison
+const TIER_LEVEL: Record<SubscriptionTier, number> = {
+  free: 0,
+  starter: 1,
+  pro: 2,
+  enterprise: 3,
 };
 
 export function useSubscription() {
@@ -32,26 +39,33 @@ export function useSubscription() {
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function fetch() {
+    async function fetchSub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
       }
 
+      // Fetch active/trialing OR canceled-with-remaining-access
       const { data } = await supabase
         .from("subscriptions")
         .select("*")
         .eq("user_id", user.id)
         .eq("environment", environment)
-        .in("status", ["active", "trialing"])
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(5);
 
-      if (data) {
-        setSubscription(data as Subscription);
-        setTier(PRICE_TO_TIER[data.price_id] || "pro");
+      // Find the best active subscription
+      const now = new Date();
+      const activeSub = (data || []).find((s) => {
+        if (["active", "trialing"].includes(s.status)) return true;
+        if (s.status === "canceled" && s.current_period_end && new Date(s.current_period_end) > now) return true;
+        return false;
+      });
+
+      if (activeSub) {
+        setSubscription(activeSub as Subscription);
+        setTier(PRICE_TO_TIER[activeSub.price_id] || "pro");
       } else {
         setSubscription(null);
         setTier("free");
@@ -64,18 +78,26 @@ export function useSubscription() {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${user.id}` },
-          () => fetch()
+          () => fetchSub()
         )
         .subscribe();
     }
 
-    fetch();
+    fetchSub();
     return () => { channel?.unsubscribe(); };
   }, []);
 
-  const isActive = subscription && ["active", "trialing"].includes(subscription.status);
+  const isActive = !!subscription && (
+    ["active", "trialing"].includes(subscription.status) ||
+    (subscription.status === "canceled" && subscription.current_period_end && new Date(subscription.current_period_end) > new Date())
+  );
   const isTrial = subscription?.status === "trialing";
+  const isCanceled = subscription?.status === "canceled" || !!subscription?.cancel_at_period_end;
   const expiresAt = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
 
-  return { subscription, tier, isActive, isTrial, expiresAt, loading };
+  function hasAccess(requiredTier: SubscriptionTier): boolean {
+    return TIER_LEVEL[tier] >= TIER_LEVEL[requiredTier];
+  }
+
+  return { subscription, tier, isActive, isTrial, isCanceled, expiresAt, loading, hasAccess };
 }

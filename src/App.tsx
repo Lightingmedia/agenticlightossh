@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { FeatureGate } from "./components/FeatureGate";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -41,6 +42,7 @@ import LLMPerfBench from "./pages/LLMPerfBench";
 import Benchmark from "./pages/Benchmark";
 import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
+import Billing from "./pages/Billing";
 
 const queryClient = new QueryClient();
 
@@ -78,17 +80,17 @@ const App = () => (
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="thermal" element={<ThermalControl />} />
             <Route path="inference" element={<Inference />} />
-            <Route path="llm-serving" element={<LLMServing />} />
+            <Route path="llm-serving" element={<FeatureGate requiredTier="pro" featureName="LLM Serving"><LLMServing /></FeatureGate>} />
             <Route path="models" element={<Models />} />
-            <Route path="training" element={<Training />} />
+            <Route path="training" element={<FeatureGate requiredTier="pro" featureName="Training"><Training /></FeatureGate>} />
             <Route path="benchmark" element={<LLMPerfBench />} />
-            <Route path="photonic" element={<PhotonicFabric />} />
+            <Route path="photonic" element={<FeatureGate requiredTier="pro" featureName="Photonic Fabric"><PhotonicFabric /></FeatureGate>} />
             {/* LightOS/Fabric OS Routes */}
-            <Route path="clusters" element={<Clusters />} />
+            <Route path="clusters" element={<FeatureGate requiredTier="pro" featureName="Clusters"><Clusters /></FeatureGate>} />
             <Route path="runs" element={<Runs />} />
             <Route path="runs/:runId" element={<EnergyLab />} />
             {/* Agent Builder Routes */}
-            <Route path="studio" element={<AgentStudio />} />
+            <Route path="studio" element={<FeatureGate requiredTier="pro" featureName="Agent Studio"><AgentStudio /></FeatureGate>} />
             <Route path="templates" element={<AgentTemplates />} />
             <Route path="agent/new" element={<AgentStudio />} />
             <Route path="data-sources" element={<DataSources />} />
@@ -96,6 +98,7 @@ const App = () => (
             <Route path="actions" element={<ActionOrchestrator />} />
             <Route path="deploy" element={<DeployAgent />} />
             <Route path="monitor" element={<AgentMonitor />} />
+            <Route path="billing" element={<Billing />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

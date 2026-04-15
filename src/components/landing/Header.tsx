@@ -82,6 +82,9 @@ const Header = () => {
               <Link to="/benchmark" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Benchmark
               </Link>
+              <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Pricing
+              </Link>
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
               </Link>
@@ -93,10 +96,12 @@ const Header = () => {
 
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="font-mono text-muted-foreground hover:text-foreground">
-                Sign In
-              </Button>
-              <Link to="/dashboard">
+              <Link to="/auth">
+                <Button variant="ghost" size="sm" className="font-mono text-muted-foreground hover:text-foreground">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/pricing">
                 <Button size="sm" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90">
                   Get Started
                 </Button>

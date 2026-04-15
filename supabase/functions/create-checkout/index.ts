@@ -29,18 +29,29 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: any = {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
       return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
-      ...(customerEmail && { customer_email: customerEmail }),
-      ...(userId && {
-        metadata: { userId },
-        ...(isRecurring && { subscription_data: { metadata: { userId } } }),
-      }),
-      ...(isRecurring && { subscription_data: { trial_period_days: 7, ...( userId ? { metadata: { userId } } : {}) } }),
-    });
+    };
+
+    if (customerEmail) {
+      sessionParams.customer_email = customerEmail;
+    }
+
+    if (userId) {
+      sessionParams.metadata = { userId };
+    }
+
+    if (isRecurring) {
+      sessionParams.subscription_data = {
+        trial_period_days: 7,
+        ...(userId ? { metadata: { userId } } : {}),
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
