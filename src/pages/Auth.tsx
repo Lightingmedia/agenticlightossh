@@ -60,9 +60,9 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/admin` }
+    const { lovable } = await import("@/integrations/lovable");
+    await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/dashboard`,
     });
   };
 
