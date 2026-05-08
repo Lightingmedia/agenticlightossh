@@ -1,9 +1,15 @@
 import { createContext, useCallback, useContext, useState, ReactNode } from "react";
 import type { AppId, WindowState } from "./types";
 
+interface OpenRouteOpts {
+  width?: number;
+  height?: number;
+}
+
 interface Ctx {
   windows: WindowState[];
   openApp: (appId: AppId) => void;
+  openRoute: (url: string, title?: string, opts?: OpenRouteOpts) => void;
   closeWindow: (id: string) => void;
   focusWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -17,10 +23,11 @@ const WindowCtx = createContext<Ctx | null>(null);
 const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   settings: { title: "Settings", w: 880, h: 580 },
   files: { title: "Files", w: 820, h: 540 },
-  terminal: { title: "Terminal — root@lightos-main", w: 760, h: 460 },
-  control: { title: "LightRail Control Center", w: 1120, h: 700 },
+  terminal: { title: "Terminal — root@lightos-main", w: 820, h: 480 },
+  control: { title: "LightRail Control Center", w: 1180, h: 720 },
   browser: { title: "LightRail Browser", w: 1080, h: 680 },
   about: { title: "About LightOS", w: 520, h: 420 },
+  route: { title: "Application", w: 1180, h: 720 },
 };
 
 let zCounter = 10;
@@ -40,7 +47,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   const openApp = useCallback((appId: AppId) => {
     setWindows((ws) => {
       const existing = ws.find((w) => w.appId === appId);
-      if (existing) {
+      if (existing && appId !== "route") {
         zCounter += 1;
         setActiveId(existing.id);
         return ws.map((w) =>
@@ -48,7 +55,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         );
       }
       const meta = APP_META[appId];
-      const id = `${appId}-${Date.now()}`;
+      const id = `${appId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       zCounter += 1;
       const offset = ws.length * 28;
       const newWin: WindowState = {
@@ -67,6 +74,33 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
       return [...ws, newWin];
     });
   }, []);
+
+  const openRoute = useCallback(
+    (url: string, title?: string, opts?: OpenRouteOpts) => {
+      setWindows((ws) => {
+        const meta = APP_META.route;
+        const id = `route-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        zCounter += 1;
+        const offset = ws.length * 28;
+        const newWin: WindowState = {
+          id,
+          appId: "route",
+          title: title || url,
+          x: 100 + offset,
+          y: 70 + offset,
+          width: opts?.width ?? meta.w,
+          height: opts?.height ?? meta.h,
+          zIndex: zCounter,
+          minimized: false,
+          maximized: false,
+          payload: { url },
+        };
+        setActiveId(id);
+        return [...ws, newWin];
+      });
+    },
+    [],
+  );
 
   const closeWindow = useCallback((id: string) => {
     setWindows((ws) => ws.filter((w) => w.id !== id));
@@ -101,6 +135,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
       value={{
         windows,
         openApp,
+        openRoute,
         closeWindow,
         focusWindow,
         minimizeWindow,

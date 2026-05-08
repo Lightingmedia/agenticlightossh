@@ -6,29 +6,37 @@ import { TerminalApp } from "./apps/TerminalApp";
 import { ControlCenterApp } from "./apps/ControlCenterApp";
 import { BrowserApp } from "./apps/BrowserApp";
 import { AboutApp } from "./apps/AboutApp";
-import type { AppId } from "./types";
-
-const REGISTRY: Record<AppId, React.ComponentType> = {
-  settings: SettingsApp,
-  files: FilesApp,
-  terminal: TerminalApp,
-  control: ControlCenterApp,
-  browser: BrowserApp,
-  about: AboutApp,
-};
+import { RouteApp } from "./apps/RouteApp";
+import type { WindowState } from "./types";
 
 export function WindowSurface() {
   const { windows } = useWindowManager();
   return (
     <>
-      {windows.map((w) => {
-        const Comp = REGISTRY[w.appId];
-        return (
-          <Window key={w.id} win={w}>
-            <Comp />
-          </Window>
-        );
-      })}
+      {windows.map((w) => (
+        <Window key={w.id} win={w}>
+          {renderApp(w)}
+        </Window>
+      ))}
     </>
   );
+}
+
+function renderApp(w: WindowState) {
+  switch (w.appId) {
+    case "settings":
+      return <SettingsApp />;
+    case "files":
+      return <FilesApp />;
+    case "terminal":
+      return <TerminalApp />;
+    case "control":
+      return <ControlCenterApp />;
+    case "browser":
+      return <BrowserApp />;
+    case "about":
+      return <AboutApp />;
+    case "route":
+      return <RouteApp win={w} />;
+  }
 }

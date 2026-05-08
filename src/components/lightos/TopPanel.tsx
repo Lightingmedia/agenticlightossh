@@ -1,15 +1,74 @@
-import { useEffect, useState } from "react";
-import { Wifi, Volume2, Power, Activity } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Wifi, Volume2, Power, Activity, AppWindow } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
+
+interface RouteEntry {
+  label: string;
+  url: string;
+}
+
+const ROUTE_GROUPS: { name: string; routes: RouteEntry[] }[] = [
+  {
+    name: "Dashboard",
+    routes: [
+      { label: "Overview", url: "/dashboard" },
+      { label: "Agents", url: "/dashboard/agents" },
+      { label: "GPU Monitor", url: "/dashboard/gpu" },
+      { label: "Telemetry", url: "/dashboard/telemetry" },
+      { label: "Thermal", url: "/dashboard/thermal" },
+      { label: "Inference", url: "/dashboard/inference" },
+      { label: "Models", url: "/dashboard/models" },
+      { label: "Photonic Fabric", url: "/dashboard/photonic" },
+      { label: "Clusters", url: "/dashboard/clusters" },
+      { label: "Runs", url: "/dashboard/runs" },
+      { label: "Billing", url: "/dashboard/billing" },
+    ],
+  },
+  {
+    name: "Agent Studio",
+    routes: [
+      { label: "Studio", url: "/dashboard/studio" },
+      { label: "Templates", url: "/dashboard/templates" },
+      { label: "Data Sources", url: "/dashboard/data-sources" },
+      { label: "Rules", url: "/dashboard/rules" },
+      { label: "Actions", url: "/dashboard/actions" },
+      { label: "Deploy", url: "/dashboard/deploy" },
+      { label: "Monitor", url: "/dashboard/monitor" },
+    ],
+  },
+  {
+    name: "Platform",
+    routes: [
+      { label: "LightCompiler", url: "/light-compiler" },
+      { label: "Transformer Explainer", url: "/transformer-explainer" },
+      { label: "Benchmark", url: "/benchmark" },
+      { label: "Docs", url: "/docs" },
+      { label: "Examples", url: "/examples" },
+      { label: "Pricing", url: "/pricing" },
+      { label: "Landing", url: "/" },
+    ],
+  },
+];
 
 export function TopPanel() {
   const [time, setTime] = useState(new Date());
-  const { openApp } = useWindowManager();
+  const [open, setOpen] = useState(false);
+  const { openApp, openRoute } = useWindowManager();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   const fmt = time.toLocaleString("en-US", {
     weekday: "short",
@@ -22,13 +81,48 @@ export function TopPanel() {
 
   return (
     <div className="absolute top-0 left-0 right-0 h-8 bg-background/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-3 text-xs font-mono z-[100]">
-      <button
-        onClick={() => openApp("control")}
-        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-foreground/10 text-foreground/90"
-      >
-        <Activity className="w-3.5 h-3.5 text-primary" />
-        Activities
-      </button>
+      <div className="flex items-center gap-1" ref={menuRef}>
+        <button
+          onClick={() => openApp("control")}
+          className="flex items-center gap-2 px-2 py-1 rounded hover:bg-foreground/10 text-foreground/90"
+        >
+          <Activity className="w-3.5 h-3.5 text-primary" />
+          Activities
+        </button>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 px-2 py-1 rounded hover:bg-foreground/10 text-foreground/90"
+        >
+          <AppWindow className="w-3.5 h-3.5 text-primary" />
+          Apps
+        </button>
+        {open && (
+          <div className="absolute top-9 left-2 w-[640px] max-h-[70vh] overflow-auto rounded-lg border border-border/60 bg-card/95 backdrop-blur-md shadow-2xl p-3 grid grid-cols-3 gap-3">
+            {ROUTE_GROUPS.map((g) => (
+              <div key={g.name}>
+                <div className="text-[10px] uppercase tracking-wider text-primary mb-1.5">
+                  {g.name}
+                </div>
+                <div className="flex flex-col">
+                  {g.routes.map((r) => (
+                    <button
+                      key={r.url}
+                      onClick={() => {
+                        openRoute(r.url, r.label);
+                        setOpen(false);
+                      }}
+                      className="text-left px-2 py-1 rounded text-xs text-foreground/80 hover:bg-foreground/10 hover:text-primary truncate"
+                      title={r.url}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="text-foreground/80">{fmt}</div>
       <div className="flex items-center gap-3 text-muted-foreground">
         <Wifi className="w-3.5 h-3.5" />
