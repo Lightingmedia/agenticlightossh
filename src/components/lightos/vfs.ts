@@ -1,16 +1,16 @@
 // Tiny in-memory virtual filesystem shared by Files & Terminal.
-type Node =
-  | { type: "file"; content: string }
-  | { type: "dir"; children: Record<string, Node> };
+type FileNode = { type: "file"; content: string };
+type DirNode = { type: "dir"; children: Record<string, Node> };
+type Node = FileNode | DirNode;
 
-function dir(children: Record<string, Node> = {}): Node {
+function dir(children: Record<string, Node> = {}): DirNode {
   return { type: "dir", children };
 }
-function file(content: string): Node {
+function file(content: string): FileNode {
   return { type: "file", content };
 }
 
-export const VFS: Node = dir({
+export const VFS: DirNode = dir({
   root: dir({
     "README.md": file(
       "# LightOS\n\nLightRail Photonic AI Infrastructure.\nWelcome to your appliance.\n",
@@ -51,6 +51,7 @@ export const VFS: Node = dir({
       lightcompile: file("#!/bin/sh\n# Photonic kernel compiler\n"),
     }),
   }),
+  tmp: dir({}),
 });
 
 export function resolvePath(cwd: string, input: string): string {
@@ -94,4 +95,40 @@ export function readFile(path: string): string | null {
 export function isDir(path: string): boolean {
   const n = getNode(path);
   return !!n && n.type === "dir";
+}
+
+export function exists(path: string): boolean {
+  return getNode(path) !== null;
+}
+
+/** Write a file (creates parent if it exists). Returns true on success. */
+export function writeFile(path: string, content: string, append = false): boolean {
+  const parts = path.split("/").filter(Boolean);
+  if (parts.length === 0) return false;
+  const name = parts.pop() as string;
+  let cur: Node = VFS;
+  for (const p of parts) {
+    if (cur.type !== "dir") return false;
+    const next = cur.children[p];
+    if (!next) return false;
+    cur = next;
+  }
+  if (cur.type !== "dir") return false;
+  const existing = cur.children[name];
+  if (existing && existing.type === "dir") return false;
+  const prev = append && existing && existing.type === "file" ? existing.content : "";
+  cur.children[name] = { type: "file", content: prev + content };
+  return true;
+}
+
+/** Tab-completion candidates for a path prefix. */
+export function completePath(cwd: string, input: string): string[] {
+  const lastSlash = input.lastIndexOf("/");
+  const dirPart = lastSlash === -1 ? "" : input.slice(0, lastSlash + 1);
+  const basePart = lastSlash === -1 ? input : input.slice(lastSlash + 1);
+  const baseDir = resolvePath(cwd, dirPart || ".");
+  const entries = listDir(baseDir);
+  return entries
+    .filter((e) => e.name.startsWith(basePart))
+    .map((e) => `${dirPart}${e.name}${e.type === "dir" ? "/" : ""}`);
 }
