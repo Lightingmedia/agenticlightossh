@@ -124,10 +124,76 @@ const builtins: Record<string, Builtin> = {
       ? { stdout: "", code: 0 }
       : { stdout: "", stderr: `touch: cannot touch '${a[0]}': No such directory\n`, code: 1 };
   },
-  mkdir: () => ({ stdout: "", stderr: "mkdir: not supported in VFS\n", code: 1 }),
-  rm: () => ({ stdout: "", stderr: "rm: not supported in VFS\n", code: 1 }),
-  cp: () => ({ stdout: "", stderr: "cp: not supported in VFS\n", code: 1 }),
-  mv: () => ({ stdout: "", stderr: "mv: not supported in VFS\n", code: 1 }),
+  mkdir: (a, _, ctx) => {
+    const recursive = a.includes("-p");
+    const targets = a.filter((x) => !x.startsWith("-"));
+    if (targets.length === 0) return { stdout: "", stderr: "mkdir: missing operand\n", code: 1 };
+    let stderr = "";
+    let code = 0;
+    for (const t of targets) {
+      const r = mkdir(resolvePath(ctx.cwd, t), recursive);
+      if (!r.ok) {
+        stderr += `mkdir: cannot create '${t}': ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  rm: (a, _, ctx) => {
+    const recursive = a.includes("-r") || a.includes("-rf") || a.includes("-R");
+    const force = a.includes("-f") || a.includes("-rf");
+    const targets = a.filter((x) => !x.startsWith("-"));
+    if (targets.length === 0) return { stdout: "", stderr: "rm: missing operand\n", code: 1 };
+    let stderr = "";
+    let code = 0;
+    for (const t of targets) {
+      const r = remove(resolvePath(ctx.cwd, t), recursive);
+      if (!r.ok && !force) {
+        stderr += `rm: cannot remove '${t}': ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  cp: (a, _, ctx) => {
+    const recursive = a.includes("-r") || a.includes("-R");
+    const args = a.filter((x) => !x.startsWith("-"));
+    if (args.length < 2) return { stdout: "", stderr: "cp: missing file operand\n", code: 1 };
+    const dest = resolvePath(ctx.cwd, args[args.length - 1]);
+    const sources = args.slice(0, -1);
+    if (sources.length > 1 && !isDir(dest)) {
+      return { stdout: "", stderr: `cp: target '${args[args.length - 1]}' is not a directory\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const s of sources) {
+      const r = copy(resolvePath(ctx.cwd, s), dest, recursive);
+      if (!r.ok) {
+        stderr += `cp: ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  mv: (a, _, ctx) => {
+    const args = a.filter((x) => !x.startsWith("-"));
+    if (args.length < 2) return { stdout: "", stderr: "mv: missing file operand\n", code: 1 };
+    const dest = resolvePath(ctx.cwd, args[args.length - 1]);
+    const sources = args.slice(0, -1);
+    if (sources.length > 1 && !isDir(dest)) {
+      return { stdout: "", stderr: `mv: target '${args[args.length - 1]}' is not a directory\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const s of sources) {
+      const r = move(resolvePath(ctx.cwd, s), dest);
+      if (!r.ok) {
+        stderr += `mv: ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
   env: (_, __, ctx) => ({
     stdout: Object.entries(ctx.env).map(([k, v]) => `${k}=${v}`).join("\n") + "\n",
     code: 0,
