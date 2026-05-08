@@ -99,6 +99,39 @@ export function Window({ win, children }: Props) {
 
       {/* Content */}
       <div className="flex-1 min-h-0 overflow-hidden bg-background">{children}</div>
+
+      {/* Resize handle (south-east) */}
+      {!win.maximized && (
+        <div
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startW = win.width;
+            const startH = win.height;
+            const target = e.currentTarget as HTMLElement;
+            target.setPointerCapture(e.pointerId);
+            const move = (ev: PointerEvent) => {
+              updateWindow(win.id, {
+                width: Math.max(320, startW + (ev.clientX - startX)),
+                height: Math.max(220, startH + (ev.clientY - startY)),
+              });
+            };
+            const up = (ev: PointerEvent) => {
+              target.releasePointerCapture(ev.pointerId);
+              window.removeEventListener("pointermove", move);
+              window.removeEventListener("pointerup", up);
+            };
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up);
+          }}
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          style={{
+            background:
+              "linear-gradient(135deg, transparent 50%, hsl(var(--primary) / 0.5) 50%)",
+          }}
+        />
+      )}
     </motion.div>
   );
 }
