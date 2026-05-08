@@ -627,32 +627,7 @@ export function TerminalApp() {
       if (back > 0) term.write(`\x1b[${back}D`);
     };
 
-    // Copy / paste keyboard shortcuts (Ctrl+Shift+C / Ctrl+Shift+V)
-    term.attachCustomKeyEventHandler((e) => {
-      if (e.type !== "keydown") return true;
-      if (e.ctrlKey && e.shiftKey && e.key === "C") {
-        const sel = term.getSelection();
-        if (sel) navigator.clipboard.writeText(sel).catch(() => {});
-        return false;
-      }
-      if (e.ctrlKey && e.shiftKey && e.key === "V") {
-        navigator.clipboard.readText().then((t) => {
-          // Insert as if typed
-          for (const ch of t.replace(/\r\n?/g, "\n")) {
-            if (ch === "\n") {
-              // submit current line then continue
-              submitLine();
-            } else if (ch >= " ") {
-              buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
-              cursor++;
-              redrawLine();
-            }
-          }
-        }).catch(() => {});
-        return false;
-      }
-      return true;
-    });
+
 
     const insertText = (text: string) => {
       // Strip control chars except \n, normalize CRLF
