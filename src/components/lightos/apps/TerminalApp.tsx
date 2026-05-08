@@ -5,9 +5,13 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 import {
   completePath,
+  copy,
   isDir,
   listDir,
+  mkdir,
+  move,
   readFile,
+  remove,
   resolvePath,
   writeFile,
 } from "../vfs";
@@ -15,6 +19,7 @@ import {
 const PROMPT_USER = "root";
 const PROMPT_HOST = "lightos-main";
 const HISTORY_KEY = "lightos:terminal:history";
+const CWD_KEY = "lightos:terminal:cwd";
 const HISTORY_MAX = 500;
 
 const C = {
@@ -119,10 +124,76 @@ const builtins: Record<string, Builtin> = {
       ? { stdout: "", code: 0 }
       : { stdout: "", stderr: `touch: cannot touch '${a[0]}': No such directory\n`, code: 1 };
   },
-  mkdir: () => ({ stdout: "", stderr: "mkdir: not supported in VFS\n", code: 1 }),
-  rm: () => ({ stdout: "", stderr: "rm: not supported in VFS\n", code: 1 }),
-  cp: () => ({ stdout: "", stderr: "cp: not supported in VFS\n", code: 1 }),
-  mv: () => ({ stdout: "", stderr: "mv: not supported in VFS\n", code: 1 }),
+  mkdir: (a, _, ctx) => {
+    const recursive = a.includes("-p");
+    const targets = a.filter((x) => !x.startsWith("-"));
+    if (targets.length === 0) return { stdout: "", stderr: "mkdir: missing operand\n", code: 1 };
+    let stderr = "";
+    let code = 0;
+    for (const t of targets) {
+      const r = mkdir(resolvePath(ctx.cwd, t), recursive);
+      if (!r.ok) {
+        stderr += `mkdir: cannot create '${t}': ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  rm: (a, _, ctx) => {
+    const recursive = a.includes("-r") || a.includes("-rf") || a.includes("-R");
+    const force = a.includes("-f") || a.includes("-rf");
+    const targets = a.filter((x) => !x.startsWith("-"));
+    if (targets.length === 0) return { stdout: "", stderr: "rm: missing operand\n", code: 1 };
+    let stderr = "";
+    let code = 0;
+    for (const t of targets) {
+      const r = remove(resolvePath(ctx.cwd, t), recursive);
+      if (!r.ok && !force) {
+        stderr += `rm: cannot remove '${t}': ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  cp: (a, _, ctx) => {
+    const recursive = a.includes("-r") || a.includes("-R");
+    const args = a.filter((x) => !x.startsWith("-"));
+    if (args.length < 2) return { stdout: "", stderr: "cp: missing file operand\n", code: 1 };
+    const dest = resolvePath(ctx.cwd, args[args.length - 1]);
+    const sources = args.slice(0, -1);
+    if (sources.length > 1 && !isDir(dest)) {
+      return { stdout: "", stderr: `cp: target '${args[args.length - 1]}' is not a directory\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const s of sources) {
+      const r = copy(resolvePath(ctx.cwd, s), dest, recursive);
+      if (!r.ok) {
+        stderr += `cp: ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  mv: (a, _, ctx) => {
+    const args = a.filter((x) => !x.startsWith("-"));
+    if (args.length < 2) return { stdout: "", stderr: "mv: missing file operand\n", code: 1 };
+    const dest = resolvePath(ctx.cwd, args[args.length - 1]);
+    const sources = args.slice(0, -1);
+    if (sources.length > 1 && !isDir(dest)) {
+      return { stdout: "", stderr: `mv: target '${args[args.length - 1]}' is not a directory\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const s of sources) {
+      const r = move(resolvePath(ctx.cwd, s), dest);
+      if (!r.ok) {
+        stderr += `mv: ${r.error}\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
   env: (_, __, ctx) => ({
     stdout: Object.entries(ctx.env).map(([k, v]) => `${k}=${v}`).join("\n") + "\n",
     code: 0,
@@ -457,8 +528,18 @@ export function TerminalApp() {
     term.loadAddon(new WebLinksAddon());
     term.open(ref.current);
 
+    const initialCwd = (() => {
+      try {
+        const saved = localStorage.getItem(CWD_KEY);
+        if (saved && isDir(saved)) return saved;
+      } catch {
+        /* ignore */
+      }
+      return "/root";
+    })();
+
     const ctx: ShellCtx = {
-      cwd: "/root",
+      cwd: initialCwd,
       env: {
         USER: "root",
         HOME: "/root",
@@ -469,6 +550,11 @@ export function TerminalApp() {
       lastExit: 0,
       setCwd: (p) => {
         ctx.cwd = p;
+        try {
+          localStorage.setItem(CWD_KEY, p);
+        } catch {
+          /* ignore */
+        }
       },
     };
 
@@ -487,7 +573,7 @@ export function TerminalApp() {
       `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     Ubuntu 24.04 LTS · Kernel 6.8-lightrail`,
       `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     Photonic AI Fabric · NCE-700`,
       "",
-      `${C.gray}Type ${C.reset}help${C.gray} for commands. Tab completes. Ctrl+Shift+C/V for copy/paste.${C.reset}`,
+      `${C.gray}Type ${C.reset}help${C.gray} for commands. Tab completes. Ctrl+Shift+C/V (or Cmd+C/V) for copy/paste.${C.reset}`,
       "",
     ];
     banner.forEach(writeLn);
@@ -541,31 +627,88 @@ export function TerminalApp() {
       if (back > 0) term.write(`\x1b[${back}D`);
     };
 
-    // Copy / paste keyboard shortcuts (Ctrl+Shift+C / Ctrl+Shift+V)
+
+
+    const insertText = (text: string) => {
+      // Strip control chars except \n, normalize CRLF
+      const clean = text.replace(/\r\n?/g, "\n");
+      for (const ch of clean) {
+        if (ch === "\n") {
+          // Defer line submit to event loop (handler may be async)
+          void submitLine();
+        } else if (ch >= " ") {
+          buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
+          cursor++;
+        }
+      }
+      redrawLine();
+    };
+
+    const doCopy = () => {
+      const sel = term.getSelection();
+      if (!sel) return false;
+      navigator.clipboard.writeText(sel).catch(() => {
+        // Fallback for non-secure contexts
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = sel;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        } catch {
+          /* ignore */
+        }
+      });
+      return true;
+    };
+
+    const doPaste = () => {
+      navigator.clipboard
+        .readText()
+        .then((t) => insertText(t))
+        .catch(() => {
+          /* clipboard blocked — user can use Ctrl+Shift+V via browser */
+        });
+    };
+
+    // Copy / paste shortcuts:
+    //   Ctrl+Shift+C / Cmd+C  → copy selection
+    //   Ctrl+Shift+V / Cmd+V  → paste
+    //   Ctrl+Insert / Shift+Insert → copy / paste
+    //   Ctrl+C with selection → copy then clear selection (so a second Ctrl+C aborts)
     term.attachCustomKeyEventHandler((e) => {
       if (e.type !== "keydown") return true;
-      if (e.ctrlKey && e.shiftKey && e.key === "C") {
-        const sel = term.getSelection();
-        if (sel) navigator.clipboard.writeText(sel).catch(() => {});
+      const mac = navigator.platform.toLowerCase().includes("mac");
+      const meta = mac ? e.metaKey : false;
+
+      if ((e.ctrlKey && e.shiftKey && e.key === "C") || (meta && e.key === "c")) {
+        if (doCopy()) return false;
+      }
+      if ((e.ctrlKey && e.shiftKey && e.key === "V") || (meta && e.key === "v")) {
+        doPaste();
         return false;
       }
-      if (e.ctrlKey && e.shiftKey && e.key === "V") {
-        navigator.clipboard.readText().then((t) => {
-          // Insert as if typed
-          for (const ch of t.replace(/\r\n?/g, "\n")) {
-            if (ch === "\n") {
-              // submit current line then continue
-              submitLine();
-            } else if (ch >= " ") {
-              buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
-              cursor++;
-              redrawLine();
-            }
-          }
-        }).catch(() => {});
+      if (e.ctrlKey && e.key === "Insert") {
+        if (doCopy()) return false;
+      }
+      if (e.shiftKey && e.key === "Insert") {
+        doPaste();
+        return false;
+      }
+      // Ctrl+C with active selection → copy; otherwise let it through to abort line
+      if (e.ctrlKey && !e.shiftKey && e.key === "c" && term.hasSelection()) {
+        doCopy();
+        term.clearSelection();
         return false;
       }
       return true;
+    });
+
+    // Right-click paste (mirrors common terminal behavior)
+    ref.current.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      doPaste();
     });
 
     const submitLine = async () => {
