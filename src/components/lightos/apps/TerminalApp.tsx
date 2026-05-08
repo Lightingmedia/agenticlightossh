@@ -5,9 +5,13 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 import {
   completePath,
+  copy,
   isDir,
   listDir,
+  mkdir,
+  move,
   readFile,
+  remove,
   resolvePath,
   writeFile,
 } from "../vfs";
@@ -15,6 +19,7 @@ import {
 const PROMPT_USER = "root";
 const PROMPT_HOST = "lightos-main";
 const HISTORY_KEY = "lightos:terminal:history";
+const CWD_KEY = "lightos:terminal:cwd";
 const HISTORY_MAX = 500;
 
 const C = {
