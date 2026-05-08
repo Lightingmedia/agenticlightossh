@@ -654,6 +654,88 @@ export function TerminalApp() {
       return true;
     });
 
+    const insertText = (text: string) => {
+      // Strip control chars except \n, normalize CRLF
+      const clean = text.replace(/\r\n?/g, "\n");
+      for (const ch of clean) {
+        if (ch === "\n") {
+          // Defer line submit to event loop (handler may be async)
+          void submitLine();
+        } else if (ch >= " ") {
+          buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
+          cursor++;
+        }
+      }
+      redrawLine();
+    };
+
+    const doCopy = () => {
+      const sel = term.getSelection();
+      if (!sel) return false;
+      navigator.clipboard.writeText(sel).catch(() => {
+        // Fallback for non-secure contexts
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = sel;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        } catch {
+          /* ignore */
+        }
+      });
+      return true;
+    };
+
+    const doPaste = () => {
+      navigator.clipboard
+        .readText()
+        .then((t) => insertText(t))
+        .catch(() => {
+          /* clipboard blocked — user can use Ctrl+Shift+V via browser */
+        });
+    };
+
+    // Copy / paste shortcuts:
+    //   Ctrl+Shift+C / Cmd+C  → copy selection
+    //   Ctrl+Shift+V / Cmd+V  → paste
+    //   Ctrl+Insert / Shift+Insert → copy / paste
+    //   Ctrl+C with selection → copy then clear selection (so a second Ctrl+C aborts)
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.type !== "keydown") return true;
+      const mac = navigator.platform.toLowerCase().includes("mac");
+      const meta = mac ? e.metaKey : false;
+
+      if ((e.ctrlKey && e.shiftKey && e.key === "C") || (meta && e.key === "c")) {
+        if (doCopy()) return false;
+      }
+      if ((e.ctrlKey && e.shiftKey && e.key === "V") || (meta && e.key === "v")) {
+        doPaste();
+        return false;
+      }
+      if (e.ctrlKey && e.key === "Insert") {
+        if (doCopy()) return false;
+      }
+      if (e.shiftKey && e.key === "Insert") {
+        doPaste();
+        return false;
+      }
+      // Ctrl+C with active selection → copy; otherwise let it through to abort line
+      if (e.ctrlKey && !e.shiftKey && e.key === "c" && term.hasSelection()) {
+        doCopy();
+        term.clearSelection();
+        return false;
+      }
+      return true;
+    });
+
+    // Right-click paste (mirrors common terminal behavior)
+    ref.current.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      doPaste();
+    });
+
     const submitLine = async () => {
       term.write("\r\n");
       const line = buf;
