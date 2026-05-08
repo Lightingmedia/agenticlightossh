@@ -121,6 +121,104 @@ export function writeFile(path: string, content: string, append = false): boolea
   return true;
 }
 
+function getParent(path: string): { parent: DirNode | null; name: string } {
+  const parts = path.split("/").filter(Boolean);
+  if (parts.length === 0) return { parent: null, name: "" };
+  const name = parts.pop() as string;
+  let cur: Node = VFS;
+  for (const p of parts) {
+    if (cur.type !== "dir") return { parent: null, name };
+    const next = cur.children[p];
+    if (!next) return { parent: null, name };
+    cur = next;
+  }
+  return { parent: cur.type === "dir" ? cur : null, name };
+}
+
+/** Create a directory. With recursive=true, creates parents as needed. */
+export function mkdir(path: string, recursive = false): { ok: boolean; error?: string } {
+  if (path === "/" || path === "") return { ok: false, error: "cannot create '/'" };
+  if (recursive) {
+    const parts = path.split("/").filter(Boolean);
+    let cur: DirNode = VFS;
+    for (const p of parts) {
+      const next = cur.children[p];
+      if (!next) {
+        const nd: DirNode = { type: "dir", children: {} };
+        cur.children[p] = nd;
+        cur = nd;
+      } else if (next.type === "dir") {
+        cur = next;
+      } else {
+        return { ok: false, error: `'${p}' exists and is not a directory` };
+      }
+    }
+    return { ok: true };
+  }
+  const { parent, name } = getParent(path);
+  if (!parent) return { ok: false, error: "no such parent directory" };
+  if (parent.children[name]) return { ok: false, error: "file exists" };
+  parent.children[name] = { type: "dir", children: {} };
+  return { ok: true };
+}
+
+/** Remove a file or directory. */
+export function remove(path: string, recursive = false): { ok: boolean; error?: string } {
+  if (path === "/" || path === "") return { ok: false, error: "refusing to remove '/'" };
+  const { parent, name } = getParent(path);
+  if (!parent || !parent.children[name]) return { ok: false, error: "no such file or directory" };
+  const node = parent.children[name];
+  if (node.type === "dir" && Object.keys(node.children).length > 0 && !recursive) {
+    return { ok: false, error: "directory not empty" };
+  }
+  delete parent.children[name];
+  return { ok: true };
+}
+
+function cloneNode(n: Node): Node {
+  if (n.type === "file") return { type: "file", content: n.content };
+  const children: Record<string, Node> = {};
+  for (const [k, v] of Object.entries(n.children)) children[k] = cloneNode(v);
+  return { type: "dir", children };
+}
+
+/** Copy src → dest. Recursive for directories. */
+export function copy(src: string, dest: string, recursive = false): { ok: boolean; error?: string } {
+  const node = getNode(src);
+  if (!node) return { ok: false, error: `no such file or directory: ${src}` };
+  if (node.type === "dir" && !recursive) return { ok: false, error: "omitting directory (use -r)" };
+  // If dest is an existing directory, copy into it as basename(src)
+  let targetPath = dest;
+  const destNode = getNode(dest);
+  if (destNode && destNode.type === "dir") {
+    const base = src.split("/").filter(Boolean).pop() || "";
+    targetPath = (dest === "/" ? "" : dest) + "/" + base;
+  }
+  const { parent, name } = getParent(targetPath);
+  if (!parent) return { ok: false, error: "no such parent directory" };
+  parent.children[name] = cloneNode(node);
+  return { ok: true };
+}
+
+/** Move/rename src → dest. */
+export function move(src: string, dest: string): { ok: boolean; error?: string } {
+  const node = getNode(src);
+  if (!node) return { ok: false, error: `no such file or directory: ${src}` };
+  let targetPath = dest;
+  const destNode = getNode(dest);
+  if (destNode && destNode.type === "dir") {
+    const base = src.split("/").filter(Boolean).pop() || "";
+    targetPath = (dest === "/" ? "" : dest) + "/" + base;
+  }
+  const { parent: dParent, name: dName } = getParent(targetPath);
+  if (!dParent) return { ok: false, error: "no such parent directory" };
+  const { parent: sParent, name: sName } = getParent(src);
+  if (!sParent) return { ok: false, error: "no such parent directory" };
+  dParent.children[dName] = node;
+  if (!(sParent === dParent && sName === dName)) delete sParent.children[sName];
+  return { ok: true };
+}
+
 /** Tab-completion candidates for a path prefix. */
 export function completePath(cwd: string, input: string): string[] {
   const lastSlash = input.lastIndexOf("/");
