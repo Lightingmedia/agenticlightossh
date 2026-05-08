@@ -43,6 +43,7 @@ import Benchmark from "./pages/Benchmark";
 import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Billing from "./pages/Billing";
+import LightOS from "./pages/LightOS";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/os" element={<LightOS />} />
           <Route path="/onboard" element={<Onboard />} />
           <Route path="/light-compiler" element={<LightCompiler />} />
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
