@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Folder, FileText, ChevronRight, Home } from "lucide-react";
-import { VFS, listDir, readFile } from "../vfs";
+import { listDir, readFile } from "../vfs";
 
 export function FilesApp() {
   const [path, setPath] = useState<string>("/root");
