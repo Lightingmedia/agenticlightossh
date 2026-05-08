@@ -528,8 +528,18 @@ export function TerminalApp() {
     term.loadAddon(new WebLinksAddon());
     term.open(ref.current);
 
+    const initialCwd = (() => {
+      try {
+        const saved = localStorage.getItem(CWD_KEY);
+        if (saved && isDir(saved)) return saved;
+      } catch {
+        /* ignore */
+      }
+      return "/root";
+    })();
+
     const ctx: ShellCtx = {
-      cwd: "/root",
+      cwd: initialCwd,
       env: {
         USER: "root",
         HOME: "/root",
@@ -540,6 +550,11 @@ export function TerminalApp() {
       lastExit: 0,
       setCwd: (p) => {
         ctx.cwd = p;
+        try {
+          localStorage.setItem(CWD_KEY, p);
+        } catch {
+          /* ignore */
+        }
       },
     };
 
