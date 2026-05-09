@@ -12,7 +12,7 @@ import { Activity, ExternalLink, Filter } from "lucide-react";
 export default function Runs() {
     const [runs, setRuns] = useState<RunSummary[]>([]);
     const [clusters, setClusters] = useState<Cluster[]>([]);
-    const [clusterFilter, setClusterFilter] = useState<string>("");
+    const [clusterFilter, setClusterFilter] = useState<string>("all");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +26,7 @@ export default function Runs() {
             .finally(() => setLoading(false));
     }, []);
 
-    const filteredRuns = clusterFilter
+    const filteredRuns = clusterFilter !== "all"
         ? runs.filter((r) => r.clusterId === clusterFilter)
         : runs;
 
@@ -94,7 +94,7 @@ export default function Runs() {
                                     <SelectValue placeholder="All Clusters" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Clusters</SelectItem>
+                                    <SelectItem value="all">All Clusters</SelectItem>
                                     {clusters.map((cluster) => (
                                         <SelectItem key={cluster.id} value={cluster.id}>
                                             {cluster.name}
