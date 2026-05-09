@@ -219,6 +219,33 @@ export function move(src: string, dest: string): { ok: boolean; error?: string }
   return { ok: true };
 }
 
+// --------- file metadata (mode / owner / group) ---------
+type Meta = { mode: string; owner: string; group: string };
+const META = new Map<string, Meta>();
+export function getMeta(path: string): Meta {
+  return META.get(path) ?? { mode: "rwxr-xr-x", owner: "root", group: "root" };
+}
+export function setMode(path: string, mode: string): boolean {
+  if (!exists(path)) return false;
+  const m = getMeta(path);
+  META.set(path, { ...m, mode });
+  return true;
+}
+export function setOwner(path: string, owner: string, group?: string): boolean {
+  if (!exists(path)) return false;
+  const m = getMeta(path);
+  META.set(path, { ...m, owner, group: group ?? m.group });
+  return true;
+}
+
+/** Convert a numeric mode like "755" to "rwxr-xr-x". */
+export function modeFromOctal(s: string): string | null {
+  if (!/^[0-7]{3,4}$/.test(s)) return null;
+  const digits = s.slice(-3);
+  const map = ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"];
+  return digits.split("").map((d) => map[parseInt(d, 8)]).join("");
+}
+
 /** Tab-completion candidates for a path prefix. */
 export function completePath(cwd: string, input: string): string[] {
   const lastSlash = input.lastIndexOf("/");
