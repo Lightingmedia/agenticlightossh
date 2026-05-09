@@ -26,7 +26,7 @@ export default function Runs() {
             .finally(() => setLoading(false));
     }, []);
 
-    const filteredRuns = clusterFilter
+    const filteredRuns = clusterFilter !== "all"
         ? runs.filter((r) => r.clusterId === clusterFilter)
         : runs;
 
