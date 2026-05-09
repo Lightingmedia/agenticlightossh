@@ -57,10 +57,12 @@ type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Pro
 const builtins: Record<string, Builtin> = {
   help: () => ({
     stdout:
-      "Builtins: help clear echo pwd cd ls cat touch mkdir rm cp mv whoami date hostname\n" +
-      "          uname neofetch env export history ps top gpu fabric lightctl fetch curl exit true false\n" +
+      "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
+      "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
+      "          fetch curl exit true false\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
-      "Quoting:   'single' \"double\"   Tab to complete commands and paths.\n",
+      "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
+      "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
     code: 0,
   }),
   true: () => ({ stdout: "", code: 0 }),
