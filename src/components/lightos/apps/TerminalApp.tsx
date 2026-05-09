@@ -741,13 +741,69 @@ export function TerminalApp() {
     banner.forEach(writeLn);
     term.write(promptStr());
 
+    type Mode = "insert" | "normal";
+    let mode: Mode = "insert";
+    let searching = false;
+    let searchQuery = "";
+    let searchIdx = -1; // index into history of current match
+
+    const modeTag = () =>
+      mode === "normal" ? `${C.yellow}${C.bold}[N]${C.reset} ` : "";
+
     const redrawLine = () => {
+      if (searching) {
+        renderSearch();
+        return;
+      }
       // Clear current line + redraw
-      term.write("\x1b[2K\r" + promptStr() + buf);
+      term.write("\x1b[2K\r" + modeTag() + promptStr() + buf);
       // move cursor back to position
       const back = buf.length - cursor;
       if (back > 0) term.write(`\x1b[${back}D`);
     };
+
+    const renderSearch = () => {
+      const match = searchIdx >= 0 ? history[searchIdx] : "";
+      term.write(
+        `\x1b[2K\r${C.gray}(reverse-i-search)\`${C.reset}${searchQuery}${C.gray}': ${C.reset}${match}`,
+      );
+    };
+
+    const findBackward = (from: number, q: string): number => {
+      if (!q) return -1;
+      for (let i = Math.min(from, history.length - 1); i >= 0; i--) {
+        if (history[i].includes(q)) return i;
+      }
+      return -1;
+    };
+
+    const exitSearch = (accept: boolean) => {
+      const matched = searchIdx >= 0 ? history[searchIdx] : "";
+      searching = false;
+      if (accept && matched) {
+        buf = matched;
+        cursor = buf.length;
+      }
+      searchQuery = "";
+      searchIdx = -1;
+      redrawLine();
+    };
+
+    // Vim-normal-mode word boundaries
+    const wordForward = () => {
+      let i = cursor;
+      while (i < buf.length && /\S/.test(buf[i])) i++;
+      while (i < buf.length && /\s/.test(buf[i])) i++;
+      cursor = i;
+    };
+    const wordBack = () => {
+      let i = cursor;
+      if (i > 0) i--;
+      while (i > 0 && /\s/.test(buf[i])) i--;
+      while (i > 0 && /\S/.test(buf[i - 1])) i--;
+      cursor = i;
+    };
+
 
     const doComplete = () => {
       // Find start of last token (handles spaces)
