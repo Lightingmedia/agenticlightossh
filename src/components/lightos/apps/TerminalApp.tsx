@@ -946,24 +946,116 @@ export function TerminalApp() {
     };
 
     let busy = false;
+
+    const histPrev = () => {
+      if (history.length === 0) return;
+      histIdx = Math.max(0, histIdx - 1);
+      buf = history[histIdx] ?? "";
+      cursor = buf.length;
+      redrawLine();
+    };
+    const histNext = () => {
+      histIdx = Math.min(history.length, histIdx + 1);
+      buf = history[histIdx] ?? "";
+      cursor = buf.length;
+      redrawLine();
+    };
+
+    const handleNormalChar = (ch: string) => {
+      switch (ch) {
+        case "h":
+          if (cursor > 0) cursor--;
+          break;
+        case "l":
+          if (cursor < buf.length) cursor++;
+          break;
+        case "k":
+          histPrev();
+          return;
+        case "j":
+          histNext();
+          return;
+        case "0":
+        case "^":
+          cursor = 0;
+          break;
+        case "$":
+          cursor = buf.length;
+          break;
+        case "w":
+          wordForward();
+          break;
+        case "b":
+          wordBack();
+          break;
+        case "x":
+          if (cursor < buf.length) {
+            buf = buf.slice(0, cursor) + buf.slice(cursor + 1);
+            if (cursor > buf.length) cursor = buf.length;
+          }
+          break;
+        case "i":
+          state.mode = "insert";
+          break;
+        case "a":
+          if (cursor < buf.length) cursor++;
+          state.mode = "insert";
+          break;
+        case "I":
+          cursor = 0;
+          state.mode = "insert";
+          break;
+        case "A":
+          cursor = buf.length;
+          state.mode = "insert";
+          break;
+        case "D":
+          buf = buf.slice(0, cursor);
+          break;
+        case "d": // simple "dd" — just clear line
+          buf = "";
+          cursor = 0;
+          break;
+        default:
+          return;
+      }
+      redrawLine();
+    };
+
     term.onData(async (data) => {
       if (busy) return;
-      // Handle escape sequences first
-      if (data === "\x1b[A") {
-        if (history.length === 0) return;
-        histIdx = Math.max(0, histIdx - 1);
-        buf = history[histIdx] ?? "";
-        cursor = buf.length;
-        redrawLine();
+
+      // ---- reverse-i-search mode ----
+      if (searching) {
+        for (const ch of data) {
+          const code = ch.charCodeAt(0);
+          if (ch === "\r") {
+            exitSearch(true);
+          } else if (ch === "\x1b") {
+            exitSearch(false);
+          } else if (code === 127 || code === 8) {
+            searchQuery = searchQuery.slice(0, -1);
+            searchIdx = findBackward(history.length - 1, searchQuery);
+            renderSearch();
+          } else if (code === 18) {
+            // Ctrl+R again → next older match
+            const start = searchIdx > 0 ? searchIdx - 1 : history.length - 1;
+            searchIdx = findBackward(start, searchQuery);
+            renderSearch();
+          } else if (code === 3) {
+            exitSearch(false);
+          } else if (code >= 32) {
+            searchQuery += ch;
+            searchIdx = findBackward(history.length - 1, searchQuery);
+            renderSearch();
+          }
+        }
         return;
       }
-      if (data === "\x1b[B") {
-        histIdx = Math.min(history.length, histIdx + 1);
-        buf = history[histIdx] ?? "";
-        cursor = buf.length;
-        redrawLine();
-        return;
-      }
+
+      // Arrow keys & nav (work in both modes)
+      if (data === "\x1b[A") return histPrev();
+      if (data === "\x1b[B") return histNext();
       if (data === "\x1b[D") {
         if (cursor > 0) {
           cursor--;
@@ -979,24 +1071,62 @@ export function TerminalApp() {
         return;
       }
       if (data === "\x1b[H" || data === "\x01") {
-        term.write(`\x1b[${cursor}D`);
         cursor = 0;
+        redrawLine();
         return;
       }
       if (data === "\x1b[F" || data === "\x05") {
-        const d = buf.length - cursor;
-        if (d > 0) term.write(`\x1b[${d}C`);
         cursor = buf.length;
+        redrawLine();
         return;
       }
-      // Per-char processing for plain input (paste arrives as multiple chars too)
+
+      // Lone Esc → switch to normal mode
+      if (data === "\x1b") {
+        state.mode = "normal";
+        redrawLine();
+        return;
+      }
+
       for (const ch of data) {
         const code = ch.charCodeAt(0);
+
         if (ch === "\r") {
+          state.mode = "insert";
           busy = true;
           await submitLine();
           busy = false;
-        } else if (code === 127 || code === 8) {
+          continue;
+        }
+
+        if (code === 18) {
+          // Ctrl+R → enter reverse search
+          searching = true;
+          searchQuery = "";
+          searchIdx = -1;
+          renderSearch();
+          continue;
+        }
+
+        if (code === 3) {
+          term.write("^C\r\n");
+          buf = "";
+          cursor = 0;
+          state.mode = "insert";
+          ctx.lastExit = 130;
+          term.write(promptStr());
+          continue;
+        }
+
+        if (code === 4) continue; // Ctrl+D ignored
+
+        if (state.mode === "normal") {
+          handleNormalChar(ch);
+          continue;
+        }
+
+        // ---- insert mode ----
+        if (code === 127 || code === 8) {
           if (cursor > 0) {
             buf = buf.slice(0, cursor - 1) + buf.slice(cursor);
             cursor--;
@@ -1006,18 +1136,7 @@ export function TerminalApp() {
           doComplete();
         } else if (code === 12) {
           term.clear();
-          term.write(promptStr() + buf);
-          const back = buf.length - cursor;
-          if (back > 0) term.write(`\x1b[${back}D`);
-        } else if (code === 3) {
-          // Ctrl+C — abort line
-          term.write("^C\r\n");
-          buf = "";
-          cursor = 0;
-          ctx.lastExit = 130;
-          term.write(promptStr());
-        } else if (code === 4) {
-          // Ctrl+D — ignore (would close shell)
+          redrawLine();
         } else if (code >= 32) {
           buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
           cursor++;
