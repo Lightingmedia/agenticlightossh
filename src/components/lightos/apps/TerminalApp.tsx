@@ -735,7 +735,7 @@ export function TerminalApp() {
       `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     Ubuntu 24.04 LTS · Kernel 6.8-lightrail`,
       `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     Photonic AI Fabric · NCE-700`,
       "",
-      `${C.gray}Type ${C.reset}help${C.gray} for commands. Tab completes. Ctrl+Shift+C/V (or Cmd+C/V) for copy/paste.${C.reset}`,
+      `${C.gray}Type ${C.reset}help${C.gray} · Tab completes · Ctrl+R history search · Esc → vi-normal (hjkl, w/b, 0/$, x, i/a/A/I).${C.reset}`,
       "",
     ];
     banner.forEach(writeLn);
