@@ -12,7 +12,7 @@ import { Activity, ExternalLink, Filter } from "lucide-react";
 export default function Runs() {
     const [runs, setRuns] = useState<RunSummary[]>([]);
     const [clusters, setClusters] = useState<Cluster[]>([]);
-    const [clusterFilter, setClusterFilter] = useState<string>("");
+    const [clusterFilter, setClusterFilter] = useState<string>("all");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
