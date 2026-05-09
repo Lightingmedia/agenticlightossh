@@ -748,7 +748,7 @@ export function TerminalApp() {
     let searchIdx = -1; // index into history of current match
 
     const modeTag = () =>
-      mode === "normal" ? `${C.yellow}${C.bold}[N]${C.reset} ` : "";
+      state.mode === "normal" ? `${C.yellow}${C.bold}[N]${C.reset} ` : "";
 
     const redrawLine = () => {
       if (searching) {
