@@ -742,7 +742,7 @@ export function TerminalApp() {
     term.write(promptStr());
 
     type Mode = "insert" | "normal";
-    let mode: Mode = "insert";
+    const state = { mode: "insert" as Mode };
     let searching = false;
     let searchQuery = "";
     let searchIdx = -1; // index into history of current match
