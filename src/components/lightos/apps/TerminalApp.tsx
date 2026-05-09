@@ -6,13 +6,17 @@ import "@xterm/xterm/css/xterm.css";
 import {
   completePath,
   copy,
+  getMeta,
   isDir,
   listDir,
   mkdir,
+  modeFromOctal,
   move,
   readFile,
   remove,
   resolvePath,
+  setMode,
+  setOwner,
   writeFile,
 } from "../vfs";
 
@@ -53,10 +57,12 @@ type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Pro
 const builtins: Record<string, Builtin> = {
   help: () => ({
     stdout:
-      "Builtins: help clear echo pwd cd ls cat touch mkdir rm cp mv whoami date hostname\n" +
-      "          uname neofetch env export history ps top gpu fabric lightctl fetch curl exit true false\n" +
+      "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
+      "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
+      "          fetch curl exit true false\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
-      "Quoting:   'single' \"double\"   Tab to complete commands and paths.\n",
+      "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
+      "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
     code: 0,
   }),
   true: () => ({ stdout: "", code: 0 }),
@@ -91,12 +97,13 @@ const builtins: Record<string, Builtin> = {
     const entries = listDir(target);
     if (!showAll && false) void entries; // placeholder, no hidden entries in VFS
     if (long) {
-      const lines = entries.map(
-        (e) =>
-          `${e.type === "dir" ? "d" : "-"}rwxr-xr-x  1 root root  ${
-            e.type === "file" ? (readFile(`${target}/${e.name}`)?.length ?? 0) : 4096
-          }  ${e.type === "dir" ? `${C.cyan}${e.name}/${C.reset}` : e.name}`,
-      );
+      const lines = entries.map((e) => {
+        const full = `${target === "/" ? "" : target}/${e.name}`;
+        const m = getMeta(full);
+        const size = e.type === "file" ? (readFile(full)?.length ?? 0) : 4096;
+        const name = e.type === "dir" ? `${C.cyan}${e.name}/${C.reset}` : e.name;
+        return `${e.type === "dir" ? "d" : "-"}${m.mode}  1 ${m.owner} ${m.group}  ${String(size).padStart(6)}  ${name}`;
+      });
       return { stdout: lines.join("\n") + "\n", code: 0 };
     }
     return {
@@ -116,6 +123,161 @@ const builtins: Record<string, Builtin> = {
       out += c;
     }
     return { stdout: out, code: 0 };
+  },
+  head: (a, stdin, ctx) => {
+    let n = 10;
+    const args: string[] = [];
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === "-n" && a[i + 1]) {
+        n = parseInt(a[++i], 10) || 10;
+      } else if (/^-\d+$/.test(a[i])) {
+        n = parseInt(a[i].slice(1), 10);
+      } else args.push(a[i]);
+    }
+    const take = (s: string) => s.split("\n").slice(0, n).join("\n");
+    if (args.length === 0) return { stdout: take(stdin) + "\n", code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `head: ${p}: No such file\n`, code: 1 };
+      out += take(c) + "\n";
+    }
+    return { stdout: out, code: 0 };
+  },
+  tail: (a, stdin, ctx) => {
+    let n = 10;
+    const args: string[] = [];
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === "-n" && a[i + 1]) n = parseInt(a[++i], 10) || 10;
+      else if (/^-\d+$/.test(a[i])) n = parseInt(a[i].slice(1), 10);
+      else args.push(a[i]);
+    }
+    const take = (s: string) => {
+      const lines = s.split("\n");
+      return lines.slice(Math.max(0, lines.length - n)).join("\n");
+    };
+    if (args.length === 0) return { stdout: take(stdin) + "\n", code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `tail: ${p}: No such file\n`, code: 1 };
+      out += take(c) + "\n";
+    }
+    return { stdout: out, code: 0 };
+  },
+  wc: (a, stdin, ctx) => {
+    const flags = a.filter((x) => x.startsWith("-"));
+    const args = a.filter((x) => !x.startsWith("-"));
+    const showL = flags.includes("-l") || flags.length === 0;
+    const showW = flags.includes("-w") || flags.length === 0;
+    const showC = flags.includes("-c") || flags.length === 0;
+    const count = (s: string, name = "") => {
+      const lines = s ? s.split("\n").length - (s.endsWith("\n") ? 1 : 0) : 0;
+      const words = s.trim() ? s.trim().split(/\s+/).length : 0;
+      const chars = s.length;
+      const parts: string[] = [];
+      if (showL) parts.push(String(lines).padStart(4));
+      if (showW) parts.push(String(words).padStart(4));
+      if (showC) parts.push(String(chars).padStart(4));
+      return parts.join(" ") + (name ? ` ${name}` : "") + "\n";
+    };
+    if (args.length === 0) return { stdout: count(stdin), code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `wc: ${p}: No such file\n`, code: 1 };
+      out += count(c, p);
+    }
+    return { stdout: out, code: 0 };
+  },
+  grep: (a, stdin, ctx) => {
+    const flags = a.filter((x) => x.startsWith("-") && x !== "-");
+    const args = a.filter((x) => !x.startsWith("-") || x === "-");
+    if (args.length === 0) return { stdout: "", stderr: "grep: missing pattern\n", code: 2 };
+    const ignoreCase = flags.some((f) => f.includes("i"));
+    const invert = flags.some((f) => f.includes("v"));
+    const showNum = flags.some((f) => f.includes("n"));
+    const countOnly = flags.some((f) => f.includes("c"));
+    const pattern = args[0];
+    const sources = args.slice(1);
+    let re: RegExp;
+    try {
+      re = new RegExp(pattern, ignoreCase ? "i" : "");
+    } catch (e) {
+      return { stdout: "", stderr: `grep: invalid pattern: ${(e as Error).message}\n`, code: 2 };
+    }
+    const showName = sources.length > 1;
+    const scan = (text: string, name?: string) => {
+      const lines = text.split("\n");
+      const matches: string[] = [];
+      let cnt = 0;
+      lines.forEach((ln, i) => {
+        const hit = re.test(ln);
+        if (hit !== invert && ln.length > 0) {
+          cnt++;
+          if (!countOnly) {
+            const prefix =
+              (showName && name ? `${C.cyan}${name}${C.reset}:` : "") +
+              (showNum ? `${C.green}${i + 1}${C.reset}:` : "");
+            matches.push(prefix + ln);
+          }
+        }
+      });
+      if (countOnly) return (showName && name ? `${name}:` : "") + cnt + "\n";
+      return matches.length ? matches.join("\n") + "\n" : "";
+    };
+    let out = "";
+    let matched = false;
+    if (sources.length === 0) {
+      out = scan(stdin);
+      matched = out.length > 0;
+    } else {
+      for (const p of sources) {
+        const c = readFile(resolvePath(ctx.cwd, p));
+        if (c === null) {
+          return { stdout: out, stderr: `grep: ${p}: No such file\n`, code: 2 };
+        }
+        const r = scan(c, p);
+        if (r) matched = true;
+        out += r;
+      }
+    }
+    return { stdout: out, code: matched ? 0 : 1 };
+  },
+  chmod: (a, _, ctx) => {
+    if (a.length < 2) return { stdout: "", stderr: "chmod: usage: chmod MODE FILE...\n", code: 1 };
+    const [mode, ...files] = a;
+    let modeStr = mode;
+    if (/^[0-7]+$/.test(mode)) {
+      const m = modeFromOctal(mode);
+      if (!m) return { stdout: "", stderr: `chmod: invalid mode: ${mode}\n`, code: 1 };
+      modeStr = m;
+    } else if (mode.length !== 9 || !/^[rwx-]{9}$/.test(mode)) {
+      return { stdout: "", stderr: `chmod: invalid mode: ${mode}\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const f of files) {
+      if (!setMode(resolvePath(ctx.cwd, f), modeStr)) {
+        stderr += `chmod: cannot access '${f}': No such file\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  chown: (a, _, ctx) => {
+    if (a.length < 2) return { stdout: "", stderr: "chown: usage: chown OWNER[:GROUP] FILE...\n", code: 1 };
+    const [spec, ...files] = a;
+    const [owner, group] = spec.split(":");
+    let stderr = "";
+    let code = 0;
+    for (const f of files) {
+      if (!setOwner(resolvePath(ctx.cwd, f), owner, group)) {
+        stderr += `chown: cannot access '${f}': No such file\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
   },
   touch: (a, _, ctx) => {
     if (!a[0]) return { stdout: "", stderr: "touch: missing operand\n", code: 1 };
@@ -573,19 +735,75 @@ export function TerminalApp() {
       `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     Ubuntu 24.04 LTS · Kernel 6.8-lightrail`,
       `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     Photonic AI Fabric · NCE-700`,
       "",
-      `${C.gray}Type ${C.reset}help${C.gray} for commands. Tab completes. Ctrl+Shift+C/V (or Cmd+C/V) for copy/paste.${C.reset}`,
+      `${C.gray}Type ${C.reset}help${C.gray} · Tab completes · Ctrl+R history search · Esc → vi-normal (hjkl, w/b, 0/$, x, i/a/A/I).${C.reset}`,
       "",
     ];
     banner.forEach(writeLn);
     term.write(promptStr());
 
+    type Mode = "insert" | "normal";
+    const state = { mode: "insert" as Mode };
+    let searching = false;
+    let searchQuery = "";
+    let searchIdx = -1; // index into history of current match
+
+    const modeTag = () =>
+      state.mode === "normal" ? `${C.yellow}${C.bold}[N]${C.reset} ` : "";
+
     const redrawLine = () => {
+      if (searching) {
+        renderSearch();
+        return;
+      }
       // Clear current line + redraw
-      term.write("\x1b[2K\r" + promptStr() + buf);
+      term.write("\x1b[2K\r" + modeTag() + promptStr() + buf);
       // move cursor back to position
       const back = buf.length - cursor;
       if (back > 0) term.write(`\x1b[${back}D`);
     };
+
+    const renderSearch = () => {
+      const match = searchIdx >= 0 ? history[searchIdx] : "";
+      term.write(
+        `\x1b[2K\r${C.gray}(reverse-i-search)\`${C.reset}${searchQuery}${C.gray}': ${C.reset}${match}`,
+      );
+    };
+
+    const findBackward = (from: number, q: string): number => {
+      if (!q) return -1;
+      for (let i = Math.min(from, history.length - 1); i >= 0; i--) {
+        if (history[i].includes(q)) return i;
+      }
+      return -1;
+    };
+
+    const exitSearch = (accept: boolean) => {
+      const matched = searchIdx >= 0 ? history[searchIdx] : "";
+      searching = false;
+      if (accept && matched) {
+        buf = matched;
+        cursor = buf.length;
+      }
+      searchQuery = "";
+      searchIdx = -1;
+      redrawLine();
+    };
+
+    // Vim-normal-mode word boundaries
+    const wordForward = () => {
+      let i = cursor;
+      while (i < buf.length && /\S/.test(buf[i])) i++;
+      while (i < buf.length && /\s/.test(buf[i])) i++;
+      cursor = i;
+    };
+    const wordBack = () => {
+      let i = cursor;
+      if (i > 0) i--;
+      while (i > 0 && /\s/.test(buf[i])) i--;
+      while (i > 0 && /\S/.test(buf[i - 1])) i--;
+      cursor = i;
+    };
+
 
     const doComplete = () => {
       // Find start of last token (handles spaces)
@@ -728,24 +946,116 @@ export function TerminalApp() {
     };
 
     let busy = false;
+
+    const histPrev = () => {
+      if (history.length === 0) return;
+      histIdx = Math.max(0, histIdx - 1);
+      buf = history[histIdx] ?? "";
+      cursor = buf.length;
+      redrawLine();
+    };
+    const histNext = () => {
+      histIdx = Math.min(history.length, histIdx + 1);
+      buf = history[histIdx] ?? "";
+      cursor = buf.length;
+      redrawLine();
+    };
+
+    const handleNormalChar = (ch: string) => {
+      switch (ch) {
+        case "h":
+          if (cursor > 0) cursor--;
+          break;
+        case "l":
+          if (cursor < buf.length) cursor++;
+          break;
+        case "k":
+          histPrev();
+          return;
+        case "j":
+          histNext();
+          return;
+        case "0":
+        case "^":
+          cursor = 0;
+          break;
+        case "$":
+          cursor = buf.length;
+          break;
+        case "w":
+          wordForward();
+          break;
+        case "b":
+          wordBack();
+          break;
+        case "x":
+          if (cursor < buf.length) {
+            buf = buf.slice(0, cursor) + buf.slice(cursor + 1);
+            if (cursor > buf.length) cursor = buf.length;
+          }
+          break;
+        case "i":
+          state.mode = "insert";
+          break;
+        case "a":
+          if (cursor < buf.length) cursor++;
+          state.mode = "insert";
+          break;
+        case "I":
+          cursor = 0;
+          state.mode = "insert";
+          break;
+        case "A":
+          cursor = buf.length;
+          state.mode = "insert";
+          break;
+        case "D":
+          buf = buf.slice(0, cursor);
+          break;
+        case "d": // simple "dd" — just clear line
+          buf = "";
+          cursor = 0;
+          break;
+        default:
+          return;
+      }
+      redrawLine();
+    };
+
     term.onData(async (data) => {
       if (busy) return;
-      // Handle escape sequences first
-      if (data === "\x1b[A") {
-        if (history.length === 0) return;
-        histIdx = Math.max(0, histIdx - 1);
-        buf = history[histIdx] ?? "";
-        cursor = buf.length;
-        redrawLine();
+
+      // ---- reverse-i-search mode ----
+      if (searching) {
+        for (const ch of data) {
+          const code = ch.charCodeAt(0);
+          if (ch === "\r") {
+            exitSearch(true);
+          } else if (ch === "\x1b") {
+            exitSearch(false);
+          } else if (code === 127 || code === 8) {
+            searchQuery = searchQuery.slice(0, -1);
+            searchIdx = findBackward(history.length - 1, searchQuery);
+            renderSearch();
+          } else if (code === 18) {
+            // Ctrl+R again → next older match
+            const start = searchIdx > 0 ? searchIdx - 1 : history.length - 1;
+            searchIdx = findBackward(start, searchQuery);
+            renderSearch();
+          } else if (code === 3) {
+            exitSearch(false);
+          } else if (code >= 32) {
+            searchQuery += ch;
+            searchIdx = findBackward(history.length - 1, searchQuery);
+            renderSearch();
+          }
+        }
         return;
       }
-      if (data === "\x1b[B") {
-        histIdx = Math.min(history.length, histIdx + 1);
-        buf = history[histIdx] ?? "";
-        cursor = buf.length;
-        redrawLine();
-        return;
-      }
+
+      // Arrow keys & nav (work in both modes)
+      if (data === "\x1b[A") return histPrev();
+      if (data === "\x1b[B") return histNext();
       if (data === "\x1b[D") {
         if (cursor > 0) {
           cursor--;
@@ -761,24 +1071,62 @@ export function TerminalApp() {
         return;
       }
       if (data === "\x1b[H" || data === "\x01") {
-        term.write(`\x1b[${cursor}D`);
         cursor = 0;
+        redrawLine();
         return;
       }
       if (data === "\x1b[F" || data === "\x05") {
-        const d = buf.length - cursor;
-        if (d > 0) term.write(`\x1b[${d}C`);
         cursor = buf.length;
+        redrawLine();
         return;
       }
-      // Per-char processing for plain input (paste arrives as multiple chars too)
+
+      // Lone Esc → switch to normal mode
+      if (data === "\x1b") {
+        state.mode = "normal";
+        redrawLine();
+        return;
+      }
+
       for (const ch of data) {
         const code = ch.charCodeAt(0);
+
         if (ch === "\r") {
+          state.mode = "insert";
           busy = true;
           await submitLine();
           busy = false;
-        } else if (code === 127 || code === 8) {
+          continue;
+        }
+
+        if (code === 18) {
+          // Ctrl+R → enter reverse search
+          searching = true;
+          searchQuery = "";
+          searchIdx = -1;
+          renderSearch();
+          continue;
+        }
+
+        if (code === 3) {
+          term.write("^C\r\n");
+          buf = "";
+          cursor = 0;
+          state.mode = "insert";
+          ctx.lastExit = 130;
+          term.write(promptStr());
+          continue;
+        }
+
+        if (code === 4) continue; // Ctrl+D ignored
+
+        if (state.mode === "normal") {
+          handleNormalChar(ch);
+          continue;
+        }
+
+        // ---- insert mode ----
+        if (code === 127 || code === 8) {
           if (cursor > 0) {
             buf = buf.slice(0, cursor - 1) + buf.slice(cursor);
             cursor--;
@@ -788,18 +1136,7 @@ export function TerminalApp() {
           doComplete();
         } else if (code === 12) {
           term.clear();
-          term.write(promptStr() + buf);
-          const back = buf.length - cursor;
-          if (back > 0) term.write(`\x1b[${back}D`);
-        } else if (code === 3) {
-          // Ctrl+C — abort line
-          term.write("^C\r\n");
-          buf = "";
-          cursor = 0;
-          ctx.lastExit = 130;
-          term.write(promptStr());
-        } else if (code === 4) {
-          // Ctrl+D — ignore (would close shell)
+          redrawLine();
         } else if (code >= 32) {
           buf = buf.slice(0, cursor) + ch + buf.slice(cursor);
           cursor++;
