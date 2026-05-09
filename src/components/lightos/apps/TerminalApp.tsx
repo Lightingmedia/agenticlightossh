@@ -124,6 +124,161 @@ const builtins: Record<string, Builtin> = {
     }
     return { stdout: out, code: 0 };
   },
+  head: (a, stdin, ctx) => {
+    let n = 10;
+    const args: string[] = [];
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === "-n" && a[i + 1]) {
+        n = parseInt(a[++i], 10) || 10;
+      } else if (/^-\d+$/.test(a[i])) {
+        n = parseInt(a[i].slice(1), 10);
+      } else args.push(a[i]);
+    }
+    const take = (s: string) => s.split("\n").slice(0, n).join("\n");
+    if (args.length === 0) return { stdout: take(stdin) + "\n", code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `head: ${p}: No such file\n`, code: 1 };
+      out += take(c) + "\n";
+    }
+    return { stdout: out, code: 0 };
+  },
+  tail: (a, stdin, ctx) => {
+    let n = 10;
+    const args: string[] = [];
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === "-n" && a[i + 1]) n = parseInt(a[++i], 10) || 10;
+      else if (/^-\d+$/.test(a[i])) n = parseInt(a[i].slice(1), 10);
+      else args.push(a[i]);
+    }
+    const take = (s: string) => {
+      const lines = s.split("\n");
+      return lines.slice(Math.max(0, lines.length - n)).join("\n");
+    };
+    if (args.length === 0) return { stdout: take(stdin) + "\n", code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `tail: ${p}: No such file\n`, code: 1 };
+      out += take(c) + "\n";
+    }
+    return { stdout: out, code: 0 };
+  },
+  wc: (a, stdin, ctx) => {
+    const flags = a.filter((x) => x.startsWith("-"));
+    const args = a.filter((x) => !x.startsWith("-"));
+    const showL = flags.includes("-l") || flags.length === 0;
+    const showW = flags.includes("-w") || flags.length === 0;
+    const showC = flags.includes("-c") || flags.length === 0;
+    const count = (s: string, name = "") => {
+      const lines = s ? s.split("\n").length - (s.endsWith("\n") ? 1 : 0) : 0;
+      const words = s.trim() ? s.trim().split(/\s+/).length : 0;
+      const chars = s.length;
+      const parts: string[] = [];
+      if (showL) parts.push(String(lines).padStart(4));
+      if (showW) parts.push(String(words).padStart(4));
+      if (showC) parts.push(String(chars).padStart(4));
+      return parts.join(" ") + (name ? ` ${name}` : "") + "\n";
+    };
+    if (args.length === 0) return { stdout: count(stdin), code: 0 };
+    let out = "";
+    for (const p of args) {
+      const c = readFile(resolvePath(ctx.cwd, p));
+      if (c === null) return { stdout: out, stderr: `wc: ${p}: No such file\n`, code: 1 };
+      out += count(c, p);
+    }
+    return { stdout: out, code: 0 };
+  },
+  grep: (a, stdin, ctx) => {
+    const flags = a.filter((x) => x.startsWith("-") && x !== "-");
+    const args = a.filter((x) => !x.startsWith("-") || x === "-");
+    if (args.length === 0) return { stdout: "", stderr: "grep: missing pattern\n", code: 2 };
+    const ignoreCase = flags.some((f) => f.includes("i"));
+    const invert = flags.some((f) => f.includes("v"));
+    const showNum = flags.some((f) => f.includes("n"));
+    const countOnly = flags.some((f) => f.includes("c"));
+    const pattern = args[0];
+    const sources = args.slice(1);
+    let re: RegExp;
+    try {
+      re = new RegExp(pattern, ignoreCase ? "i" : "");
+    } catch (e) {
+      return { stdout: "", stderr: `grep: invalid pattern: ${(e as Error).message}\n`, code: 2 };
+    }
+    const showName = sources.length > 1;
+    const scan = (text: string, name?: string) => {
+      const lines = text.split("\n");
+      const matches: string[] = [];
+      let cnt = 0;
+      lines.forEach((ln, i) => {
+        const hit = re.test(ln);
+        if (hit !== invert && ln.length > 0) {
+          cnt++;
+          if (!countOnly) {
+            const prefix =
+              (showName && name ? `${C.cyan}${name}${C.reset}:` : "") +
+              (showNum ? `${C.green}${i + 1}${C.reset}:` : "");
+            matches.push(prefix + ln);
+          }
+        }
+      });
+      if (countOnly) return (showName && name ? `${name}:` : "") + cnt + "\n";
+      return matches.length ? matches.join("\n") + "\n" : "";
+    };
+    let out = "";
+    let matched = false;
+    if (sources.length === 0) {
+      out = scan(stdin);
+      matched = out.length > 0;
+    } else {
+      for (const p of sources) {
+        const c = readFile(resolvePath(ctx.cwd, p));
+        if (c === null) {
+          return { stdout: out, stderr: `grep: ${p}: No such file\n`, code: 2 };
+        }
+        const r = scan(c, p);
+        if (r) matched = true;
+        out += r;
+      }
+    }
+    return { stdout: out, code: matched ? 0 : 1 };
+  },
+  chmod: (a, _, ctx) => {
+    if (a.length < 2) return { stdout: "", stderr: "chmod: usage: chmod MODE FILE...\n", code: 1 };
+    const [mode, ...files] = a;
+    let modeStr = mode;
+    if (/^[0-7]+$/.test(mode)) {
+      const m = modeFromOctal(mode);
+      if (!m) return { stdout: "", stderr: `chmod: invalid mode: ${mode}\n`, code: 1 };
+      modeStr = m;
+    } else if (mode.length !== 9 || !/^[rwx-]{9}$/.test(mode)) {
+      return { stdout: "", stderr: `chmod: invalid mode: ${mode}\n`, code: 1 };
+    }
+    let stderr = "";
+    let code = 0;
+    for (const f of files) {
+      if (!setMode(resolvePath(ctx.cwd, f), modeStr)) {
+        stderr += `chmod: cannot access '${f}': No such file\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
+  chown: (a, _, ctx) => {
+    if (a.length < 2) return { stdout: "", stderr: "chown: usage: chown OWNER[:GROUP] FILE...\n", code: 1 };
+    const [spec, ...files] = a;
+    const [owner, group] = spec.split(":");
+    let stderr = "";
+    let code = 0;
+    for (const f of files) {
+      if (!setOwner(resolvePath(ctx.cwd, f), owner, group)) {
+        stderr += `chown: cannot access '${f}': No such file\n`;
+        code = 1;
+      }
+    }
+    return { stdout: "", stderr, code };
+  },
   touch: (a, _, ctx) => {
     if (!a[0]) return { stdout: "", stderr: "touch: missing operand\n", code: 1 };
     const ok = writeFile(resolvePath(ctx.cwd, a[0]), "", true);
