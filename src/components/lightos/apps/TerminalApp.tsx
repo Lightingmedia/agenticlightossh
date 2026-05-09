@@ -6,13 +6,17 @@ import "@xterm/xterm/css/xterm.css";
 import {
   completePath,
   copy,
+  getMeta,
   isDir,
   listDir,
   mkdir,
+  modeFromOctal,
   move,
   readFile,
   remove,
   resolvePath,
+  setMode,
+  setOwner,
   writeFile,
 } from "../vfs";
 
