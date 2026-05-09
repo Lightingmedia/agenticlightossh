@@ -94,7 +94,7 @@ export default function Runs() {
                                     <SelectValue placeholder="All Clusters" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Clusters</SelectItem>
+                                    <SelectItem value="all">All Clusters</SelectItem>
                                     {clusters.map((cluster) => (
                                         <SelectItem key={cluster.id} value={cluster.id}>
                                             {cluster.name}
