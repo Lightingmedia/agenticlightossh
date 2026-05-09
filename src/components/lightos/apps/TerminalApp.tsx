@@ -97,12 +97,13 @@ const builtins: Record<string, Builtin> = {
     const entries = listDir(target);
     if (!showAll && false) void entries; // placeholder, no hidden entries in VFS
     if (long) {
-      const lines = entries.map(
-        (e) =>
-          `${e.type === "dir" ? "d" : "-"}rwxr-xr-x  1 root root  ${
-            e.type === "file" ? (readFile(`${target}/${e.name}`)?.length ?? 0) : 4096
-          }  ${e.type === "dir" ? `${C.cyan}${e.name}/${C.reset}` : e.name}`,
-      );
+      const lines = entries.map((e) => {
+        const full = `${target === "/" ? "" : target}/${e.name}`;
+        const m = getMeta(full);
+        const size = e.type === "file" ? (readFile(full)?.length ?? 0) : 4096;
+        const name = e.type === "dir" ? `${C.cyan}${e.name}/${C.reset}` : e.name;
+        return `${e.type === "dir" ? "d" : "-"}${m.mode}  1 ${m.owner} ${m.group}  ${String(size).padStart(6)}  ${name}`;
+      });
       return { stdout: lines.join("\n") + "\n", code: 0 };
     }
     return {
