@@ -7,6 +7,10 @@ Endpoints
 GET  /api/fabrics                        — list all fabric presets
 POST /api/compile                        — SSE stream of compilation log lines
 GET  /api/compile/ping                   — health-check
+GET  /api/health                         — overall API health
+
+/fleet/*                                 — fleet management (enrollment, OTA, certs, telemetry)
+/cluster/*                               — cluster management (k8s, slurm, ray, crds)
 
 GET  /inference/llm-serving              — list LLM deployments
 POST /inference/llm-serving/deploy       — create a new deployment
@@ -31,6 +35,8 @@ from pydantic import BaseModel, Field
 from compiler_sim import stream_compilation
 from fabrics import FABRIC_PRESETS, get_fabric
 from llm_serving import router as llm_serving_router
+from fleet import router as fleet_router
+from cluster import router as cluster_router
 
 app = FastAPI(title="LightOS API", version="0.3.0")
 
@@ -45,8 +51,16 @@ app.add_middleware(
 # ─── Routers ──────────────────────────────────────────────────────────────────
 
 app.include_router(llm_serving_router)
+app.include_router(fleet_router)
+app.include_router(cluster_router)
 
 # ─── Health ───────────────────────────────────────────────────────────────────
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok", "version": "0.3.0", "services": ["compiler", "fleet", "cluster", "llm-serving"]}
+
+
 
 @app.get("/api/compile/ping")
 async def ping():

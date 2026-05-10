@@ -3,6 +3,8 @@ export type AppId =
   | "files"
   | "terminal"
   | "control"
+  | "fleet"
+  | "cluster"
   | "browser"
   | "about"
   | "route";
