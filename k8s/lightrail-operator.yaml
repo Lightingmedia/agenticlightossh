@@ -1,0 +1,212 @@
+---
+# LightRail Operator — Kubernetes manifests
+# Requires: lightrail-crds.yaml applied first
+# Namespace: lightrail-system
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lightrail-system
+  labels:
+    app.kubernetes.io/managed-by: lightrail-operator
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lightrail-operator
+  namespace: lightrail-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lightrail-operator
+rules:
+  - apiGroups: ["lightrail.ai"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["nodes", "pods", "events", "configmaps", "secrets", "services", "endpoints"]
+    verbs: ["get", "list", "watch", "update", "patch", "create"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["*"]
+  - apiGroups: ["kubeflow.org"]
+    resources: ["pytorchjobs"]
+    verbs: ["*"]
+  - apiGroups: ["ray.io"]
+    resources: ["rayclusters", "rayjobs"]
+    verbs: ["*"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lightrail-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lightrail-operator
+subjects:
+  - kind: ServiceAccount
+    name: lightrail-operator
+    namespace: lightrail-system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightrail-operator
+  namespace: lightrail-system
+  labels:
+    app.kubernetes.io/name: lightrail-operator
+    app.kubernetes.io/component: controller
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lightrail-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lightrail-operator
+    spec:
+      serviceAccountName: lightrail-operator
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: operator
+          image: lightrail/operator:1.0.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --leader-elect
+            - --metrics-bind-address=:8080
+            - --health-probe-bind-address=:8081
+            - --fleet-api=$(LIGHTRAIL_FLEET_API)
+            - --scheduler-api=$(LIGHTRAIL_SCHEDULER_API)
+          env:
+            - name: LIGHTRAIL_FLEET_API
+              valueFrom:
+                configMapKeyRef:
+                  name: lightrail-operator-config
+                  key: fleet_api_endpoint
+            - name: LIGHTRAIL_SCHEDULER_API
+              valueFrom:
+                configMapKeyRef:
+                  name: lightrail-operator-config
+                  key: scheduler_api_endpoint
+            - name: LIGHTRAIL_FLEET_MTLS
+              value: "true"
+            - name: LIGHTRAIL_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          ports:
+            - name: metrics
+              containerPort: 8080
+            - name: health
+              containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      nodeSelector:
+        lightrail.ai/role: controller
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lightrail-operator-config
+  namespace: lightrail-system
+data:
+  fleet_api_endpoint: "http://lightrail-fleet-api.lightrail-system:8000"
+  scheduler_api_endpoint: "http://lightrail-scheduler.lightrail-system:7100"
+  ota_channel: "stable"
+  preemption_enabled: "false"
+  scheduler_alpha: "0.40"
+  scheduler_beta: "0.30"
+  scheduler_gamma: "0.20"
+  scheduler_delta: "0.10"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lightrail-operator-metrics
+  namespace: lightrail-system
+  labels:
+    app.kubernetes.io/name: lightrail-operator
+spec:
+  selector:
+    app.kubernetes.io/name: lightrail-operator
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+
+---
+# Example: Production cluster definition
+apiVersion: lightrail.ai/v1
+kind: LightRailCluster
+metadata:
+  name: prod-cluster
+  namespace: lightrail-system
+spec:
+  fabricId: photonic-mesh-20x64
+  nodePools:
+    - name: worker-pool-a
+      size: 4
+      nodeSelector:
+        lightrail.ai/role: worker
+        lightrail.ai/fabric-id: photonic-mesh-20x64
+  telemetry:
+    prometheusEndpoint: http://prometheus.lightrail-monitoring:9090
+
+---
+# Example: OTA rolling update policy
+apiVersion: lightrail.ai/v1
+kind: LightRailOTAPolicy
+metadata:
+  name: rolling-2.0.1
+  namespace: lightrail-system
+spec:
+  targetImage: 2.0.1-stable
+  strategy: rolling
+  maxUnavailable: 1
+  maintenanceWindow: "Sun 02:00-06:00 UTC"
+  targetNodeSelector:
+    lightrail.ai/channel: stable
+  frozen: false
