@@ -1,0 +1,342 @@
+---
+# LightRail Operator — Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lightrail-system
+  labels:
+    app.kubernetes.io/managed-by: lightrail-operator
+---
+# LightRail Operator — ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lightrail-operator
+  namespace: lightrail-system
+---
+# LightRail Operator — ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lightrail-operator
+rules:
+  - apiGroups: ["lightrail.ai"]
+    resources:
+      - lightrailclusters
+      - lightrailclusters/status
+      - lightrailjobs
+      - lightrailjobs/status
+      - lightrailnodepools
+      - lightrailnodepools/status
+      - lightrailotapolicies
+      - lightrailotapolicies/status
+      - lightrailfabricroutes
+      - lightrailfabricroutes/status
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "events", "services", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets", "deployments", "daemonsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+# LightRail Operator — ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lightrail-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lightrail-operator
+subjects:
+  - kind: ServiceAccount
+    name: lightrail-operator
+    namespace: lightrail-system
+---
+# LightRail Operator — ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lightrail-operator-config
+  namespace: lightrail-system
+data:
+  config.yaml: |
+    leaderElection:
+      enabled: true
+      leaseDuration: 15s
+      renewDeadline: 10s
+      retryPeriod: 2s
+    metrics:
+      bindAddress: ":8080"
+    health:
+      bindAddress: ":8081"
+    reconcile:
+      workers: 4
+      requeueAfter: 30s
+---
+# Fabric Scheduler — ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fabric-scheduler-config
+  namespace: lightrail-system
+data:
+  config.yaml: |
+    weights:
+      alpha: 0.40
+      beta: 0.30
+      gamma: 0.20
+      delta: 0.10
+    topology_cache_ttl_s: 30
+    congestion_hard_gate: 0.85
+    attestation_required: true
+    listen: ":9090"
+---
+# LightRail Operator — Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lrd-controller
+  namespace: lightrail-system
+  labels:
+    app: lrd-controller
+    app.kubernetes.io/component: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lrd-controller
+  template:
+    metadata:
+      labels:
+        app: lrd-controller
+    spec:
+      serviceAccountName: lightrail-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: manager
+          image: lightrail/lrd-controller:v0.3.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /manager
+          args:
+            - --config=/etc/lightrail/config.yaml
+            - --leader-elect
+          ports:
+            - containerPort: 8080
+              name: metrics
+            - containerPort: 8081
+              name: health
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/lightrail
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: lightrail-operator-config
+      terminationGracePeriodSeconds: 10
+---
+# Fabric Scheduler — Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-scheduler
+  namespace: lightrail-system
+  labels:
+    app: fabric-scheduler
+    app.kubernetes.io/component: scheduler
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fabric-scheduler
+  template:
+    metadata:
+      labels:
+        app: fabric-scheduler
+    spec:
+      serviceAccountName: lightrail-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+      containers:
+        - name: scheduler
+          image: lightrail/fabric-scheduler:v0.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9090
+              name: extender
+            - containerPort: 9091
+              name: slurm
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/lightrail
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: fabric-scheduler-config
+---
+# Fabric Scheduler — Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fabric-scheduler
+  namespace: lightrail-system
+spec:
+  selector:
+    app: fabric-scheduler
+  ports:
+    - name: extender
+      port: 9090
+      targetPort: 9090
+    - name: slurm
+      port: 9091
+      targetPort: 9091
+---
+# Operator — Service (metrics)
+apiVersion: v1
+kind: Service
+metadata:
+  name: lrd-controller-metrics
+  namespace: lightrail-system
+  labels:
+    app: lrd-controller
+spec:
+  selector:
+    app: lrd-controller
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+---
+# Example: LightRailCluster CR
+apiVersion: lightrail.ai/v1alpha1
+kind: LightRailCluster
+metadata:
+  name: prod-cluster
+  namespace: lightrail-system
+spec:
+  topology: photonic-mesh
+  layers: 20
+  nodesPerLayer: 64
+  wdmChannels: 96
+  fabricBwGbps: 3200
+  nodeSelector:
+    matchLabels:
+      lightrail.ai/cluster: prod-cluster
+---
+# Example: LightRailNodePool CR
+apiVersion: lightrail.ai/v1alpha1
+kind: LightRailNodePool
+metadata:
+  name: gpu-pool-a
+  namespace: lightrail-system
+spec:
+  clusterRef: prod-cluster
+  tier: gpu
+  fabricLayer: 0
+  maxNodes: 8
+  nodeSelector:
+    matchLabels:
+      lightrail.ai/pool: gpu-pool-a
+---
+# Example: LightRailJob CR
+apiVersion: lightrail.ai/v1alpha1
+kind: LightRailJob
+metadata:
+  name: llama-train-demo
+  namespace: lightrail-system
+spec:
+  clusterRef: prod-cluster
+  nodes: 4
+  collective: all-reduce
+  model: llama-3-70b
+  image: lightrail/vllm:0.5.0
+  fabricPreference: locality
+  resources:
+    gpuPerNode: 8
+    memGbPerNode: 80
+  env:
+    - name: NCCL_DEBUG
+      value: INFO
+  command: ["torchrun", "--nproc_per_node=8", "train.py"]
+---
+# Example: LightRailOTAPolicy CR
+apiVersion: lightrail.ai/v1alpha1
+kind: LightRailOTAPolicy
+metadata:
+  name: prod-weekly
+  namespace: lightrail-system
+spec:
+  targetVersion: lightos-2.0.1
+  selector:
+    matchLabels:
+      lightrail.ai/role: gpu-node
+  strategy: rolling
+  maxUnavailable: 1
+  schedule: "0 2 * * 0"
+  imageURL: https://updates.lightrail.ai/lightos/2.0.1/image.squashfs
+  imageDigest: sha256:placeholder
+  imageSignature: base64:placeholder
+---
+# Example: LightRailFabricRoute CR
+apiVersion: lightrail.ai/v1alpha1
+kind: LightRailFabricRoute
+metadata:
+  name: mesh-route-alpha
+  namespace: lightrail-system
+spec:
+  clusterRef: prod-cluster
+  layerRange: [0, 4]
+  preferenceMode: locality
+  wdmChannels: [0, 4, 8, 12]
+  reservedBwGbps: 400

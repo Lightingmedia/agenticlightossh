@@ -1,0 +1,415 @@
+---
+# LightRail CRD Definitions
+# Apply with: kubectl apply -f lightrail-crds.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lightrailclusters.lightrail.ai
+spec:
+  group: lightrail.ai
+  scope: Namespaced
+  names:
+    kind: LightRailCluster
+    plural: lightrailclusters
+    singular: lightrailcluster
+    shortNames:
+      - lrc
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["topology", "layers", "nodesPerLayer"]
+              properties:
+                topology:
+                  type: string
+                  enum: ["photonic-mesh", "photonic-ring", "photonic-star"]
+                layers:
+                  type: integer
+                  minimum: 1
+                nodesPerLayer:
+                  type: integer
+                  minimum: 1
+                wdmChannels:
+                  type: integer
+                  default: 96
+                fabricBwGbps:
+                  type: integer
+                  default: 3200
+                nodeSelector:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                nodeCount:
+                  type: integer
+                fabricUtilizationPct:
+                  type: number
+                congestionScore:
+                  type: number
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Topology
+          type: string
+          jsonPath: .spec.topology
+        - name: Layers
+          type: integer
+          jsonPath: .spec.layers
+        - name: Nodes
+          type: integer
+          jsonPath: .status.nodeCount
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lightrailjobs.lightrail.ai
+spec:
+  group: lightrail.ai
+  scope: Namespaced
+  names:
+    kind: LightRailJob
+    plural: lightrailjobs
+    singular: lightrailjob
+    shortNames:
+      - lrj
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["clusterRef", "nodes", "image"]
+              properties:
+                clusterRef:
+                  type: string
+                nodes:
+                  type: integer
+                  minimum: 1
+                collective:
+                  type: string
+                  enum: ["all-reduce", "ring-allreduce", "all-gather", "reduce-scatter", "point-to-point", "broadcast"]
+                  default: "all-reduce"
+                model:
+                  type: string
+                image:
+                  type: string
+                fabricPreference:
+                  type: string
+                  enum: ["locality", "throughput", "balanced"]
+                  default: "locality"
+                schedulerWeights:
+                  type: object
+                  properties:
+                    alpha:
+                      type: number
+                      default: 0.40
+                    beta:
+                      type: number
+                      default: 0.30
+                    gamma:
+                      type: number
+                      default: 0.20
+                    delta:
+                      type: number
+                      default: 0.10
+                resources:
+                  type: object
+                  properties:
+                    gpuPerNode:
+                      type: integer
+                    memGbPerNode:
+                      type: integer
+                env:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                command:
+                  type: array
+                  items:
+                    type: string
+                minOSVersion:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: ["Pending", "Running", "Succeeded", "Failed"]
+                startTime:
+                  type: string
+                  format: date-time
+                completionTime:
+                  type: string
+                  format: date-time
+                podNames:
+                  type: array
+                  items:
+                    type: string
+                fabricRoute:
+                  type: string
+                epochsCompleted:
+                  type: integer
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Nodes
+          type: integer
+          jsonPath: .spec.nodes
+        - name: Collective
+          type: string
+          jsonPath: .spec.collective
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lightrailnodepools.lightrail.ai
+spec:
+  group: lightrail.ai
+  scope: Namespaced
+  names:
+    kind: LightRailNodePool
+    plural: lightrailnodepools
+    singular: lightrailnodepool
+    shortNames:
+      - lrnp
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["clusterRef", "tier"]
+              properties:
+                clusterRef:
+                  type: string
+                nodeSelector:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                tier:
+                  type: string
+                  enum: ["gpu", "cpu", "spine", "edge"]
+                fabricLayer:
+                  type: integer
+                  default: 0
+                maxNodes:
+                  type: integer
+            status:
+              type: object
+              properties:
+                readyNodes:
+                  type: integer
+                allocatedNodes:
+                  type: integer
+                idleNodes:
+                  type: integer
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Tier
+          type: string
+          jsonPath: .spec.tier
+        - name: Ready
+          type: integer
+          jsonPath: .status.readyNodes
+        - name: Allocated
+          type: integer
+          jsonPath: .status.allocatedNodes
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lightrailotapolicies.lightrail.ai
+spec:
+  group: lightrail.ai
+  scope: Namespaced
+  names:
+    kind: LightRailOTAPolicy
+    plural: lightrailotapolicies
+    singular: lightrailotapolicy
+    shortNames:
+      - lrotp
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["targetVersion", "imageURL", "imageDigest"]
+              properties:
+                targetVersion:
+                  type: string
+                selector:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                strategy:
+                  type: string
+                  enum: ["rolling", "canary", "immediate"]
+                  default: "rolling"
+                maxUnavailable:
+                  type: integer
+                  default: 1
+                  minimum: 1
+                schedule:
+                  type: string
+                  default: "manual"
+                imageURL:
+                  type: string
+                imageDigest:
+                  type: string
+                imageSignature:
+                  type: string
+                minOSVersion:
+                  type: string
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: ["Inactive", "Active", "Running", "Suspended"]
+                devicesTotal:
+                  type: integer
+                devicesUpdated:
+                  type: integer
+                devicesPending:
+                  type: integer
+                lastRun:
+                  type: string
+                  format: date-time
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Target
+          type: string
+          jsonPath: .spec.targetVersion
+        - name: Strategy
+          type: string
+          jsonPath: .spec.strategy
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Updated
+          type: integer
+          jsonPath: .status.devicesUpdated
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lightrailfabricroutes.lightrail.ai
+spec:
+  group: lightrail.ai
+  scope: Namespaced
+  names:
+    kind: LightRailFabricRoute
+    plural: lightrailfabricroutes
+    singular: lightrailfabricroute
+    shortNames:
+      - lrfr
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["clusterRef"]
+              properties:
+                clusterRef:
+                  type: string
+                layerRange:
+                  type: array
+                  items:
+                    type: integer
+                  minItems: 2
+                  maxItems: 2
+                preferenceMode:
+                  type: string
+                  enum: ["locality", "throughput"]
+                  default: "locality"
+                wdmChannels:
+                  type: array
+                  items:
+                    type: integer
+                reservedBwGbps:
+                  type: integer
+                  default: 0
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: ["Unbound", "Bound", "Congested", "Failed"]
+                boundJobs:
+                  type: array
+                  items:
+                    type: string
+                actualBwGbps:
+                  type: number
+                congestionScore:
+                  type: number
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Mode
+          type: string
+          jsonPath: .spec.preferenceMode
+        - name: ReservedBw
+          type: integer
+          jsonPath: .spec.reservedBwGbps
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
