@@ -48,6 +48,8 @@ export function Window({ win, children }: Props) {
       <motion.div
         onPointerDown={(e) => {
           if (win.maximized) return;
+          // Don't start drag when clicking interactive controls (buttons, etc.)
+          if ((e.target as HTMLElement).closest("button")) return;
           dragOrigin.current = { x: e.clientX - win.x, y: e.clientY - win.y };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         }}
@@ -59,9 +61,10 @@ export function Window({ win, children }: Props) {
             y: Math.max(TOP_PANEL, e.clientY - dragOrigin.current.y),
           });
         }}
-        onPointerUp={(e) =>
-          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
-        }
+        onPointerUp={(e) => {
+          const el = e.currentTarget as HTMLElement;
+          if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+        }}
         onDoubleClick={() => toggleMaximize(win.id)}
         className="flex items-center justify-between px-3 h-9 bg-muted/40 border-b border-border/60 cursor-grab active:cursor-grabbing select-none"
       >
