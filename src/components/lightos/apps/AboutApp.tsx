@@ -37,5 +37,7 @@ export function AboutApp() {
         </p>
       </div>
     </div>
+    </AppChrome>
   );
 }
+
