@@ -60,11 +60,152 @@ const builtins: Record<string, Builtin> = {
       "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
       "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
       "          fetch curl exit true false\n" +
+      "Network:  ifconfig ip ping netstat ss route dig nslookup traceroute host arp\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
     code: 0,
   }),
+  ifconfig: () => ({
+    stdout:
+      "lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST>  mtu 16384\n" +
+      "        inet 127.0.0.1  netmask 0xff000000\n" +
+      "        inet6 ::1  prefixlen 128\n" +
+      "\n" +
+      "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 9000\n" +
+      "        inet 10.42.0.11  netmask 255.255.255.0  broadcast 10.42.0.255\n" +
+      "        inet6 fe80::1ff:fe23:4567:890a  prefixlen 64  scopeid 0x20<link>\n" +
+      "        ether 02:42:0a:2a:00:0b  txqueuelen 1000  (Ethernet)\n" +
+      "        RX packets 1842301  bytes 9824513021 (9.1 GiB)\n" +
+      "        TX packets 1502998  bytes 6112049823 (5.6 GiB)\n" +
+      "\n" +
+      "lr0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 9000\n" +
+      "        inet 10.200.0.11  netmask 255.255.0.0  broadcast 10.200.255.255\n" +
+      "        photonic-fabric  link-rate 1.6Tb/s  lambda-channels 64\n" +
+      "        RX photons 9.21e15  TX photons 7.84e15  ber 1e-15\n",
+    code: 0,
+  }),
+  ip: (a) => {
+    const sub = a[0] ?? "";
+    if (sub === "a" || sub === "addr" || sub === "address" || sub === "") {
+      return {
+        stdout:
+          "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536\n" +
+          "    inet 127.0.0.1/8 scope host lo\n" +
+          "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000\n" +
+          "    link/ether 02:42:0a:2a:00:0b\n" +
+          "    inet 10.42.0.11/24 brd 10.42.0.255 scope global eth0\n" +
+          "3: lr0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000\n" +
+          "    link/photonic 1.6Tb/s lambda 64\n" +
+          "    inet 10.200.0.11/16 brd 10.200.255.255 scope global lr0\n",
+        code: 0,
+      };
+    }
+    if (sub === "r" || sub === "route") {
+      return {
+        stdout:
+          "default via 10.42.0.1 dev eth0\n" +
+          "10.42.0.0/24 dev eth0 proto kernel scope link src 10.42.0.11\n" +
+          "10.200.0.0/16 dev lr0 proto kernel scope link src 10.200.0.11\n",
+        code: 0,
+      };
+    }
+    if (sub === "l" || sub === "link") {
+      return {
+        stdout: "1: lo\n2: eth0\n3: lr0 (photonic)\n",
+        code: 0,
+      };
+    }
+    return { stdout: "", stderr: `ip: unknown subcommand: ${sub}\n`, code: 1 };
+  },
+  ping: (a) => {
+    const host = a.find((x) => !x.startsWith("-")) ?? "127.0.0.1";
+    const count = (() => {
+      const i = a.indexOf("-c");
+      return i >= 0 ? Math.min(8, parseInt(a[i + 1] || "4", 10) || 4) : 4;
+    })();
+    const lines: string[] = [`PING ${host} (10.42.0.1): 56 data bytes`];
+    let sum = 0;
+    for (let i = 0; i < count; i++) {
+      const t = +(0.18 + Math.random() * 0.4).toFixed(3);
+      sum += t;
+      lines.push(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
+    }
+    lines.push("");
+    lines.push(`--- ${host} ping statistics ---`);
+    lines.push(`${count} packets transmitted, ${count} received, 0% packet loss`);
+    lines.push(`round-trip min/avg/max = 0.18/${(sum / count).toFixed(3)}/0.58 ms`);
+    return { stdout: lines.join("\n") + "\n", code: 0 };
+  },
+  netstat: () => ({
+    stdout:
+      "Active Internet connections\n" +
+      "Proto Recv-Q Send-Q Local Address          Foreign Address        State\n" +
+      "tcp        0      0 10.42.0.11:22          10.42.0.4:51822        ESTABLISHED\n" +
+      "tcp        0      0 10.42.0.11:443         10.42.0.7:39204        ESTABLISHED\n" +
+      "tcp        0      0 10.200.0.11:9100       10.200.0.1:54021       ESTABLISHED\n" +
+      "tcp        0      0 0.0.0.0:8080           0.0.0.0:*              LISTEN\n" +
+      "tcp        0      0 0.0.0.0:9090           0.0.0.0:*              LISTEN\n",
+    code: 0,
+  }),
+  ss: (a) => builtins.netstat(a, "", { cwd: "/", env: {}, lastExit: 0, setCwd: () => {} }),
+  route: () => ({
+    stdout:
+      "Kernel IP routing table\n" +
+      "Destination     Gateway         Genmask         Flags  Iface\n" +
+      "default         10.42.0.1       0.0.0.0         UG     eth0\n" +
+      "10.42.0.0       0.0.0.0         255.255.255.0   U      eth0\n" +
+      "10.200.0.0      0.0.0.0         255.255.0.0     U      lr0\n",
+    code: 0,
+  }),
+  arp: () => ({
+    stdout:
+      "Address          HWtype  HWaddress           Iface\n" +
+      "10.42.0.1        ether   02:42:0a:2a:00:01   eth0\n" +
+      "10.42.0.4        ether   02:42:0a:2a:00:04   eth0\n" +
+      "10.200.0.1       photon  --:--:--:--:--:--   lr0\n",
+    code: 0,
+  }),
+  dig: (a) => {
+    const host = a[0] ?? "lightos.sh";
+    return {
+      stdout:
+        `; <<>> DiG 9.18 <<>> ${host}\n` +
+        `;; ANSWER SECTION:\n` +
+        `${host}.\t300\tIN\tA\t10.42.0.${20 + Math.floor(Math.random() * 30)}\n` +
+        `\n;; Query time: 2 msec\n;; SERVER: 10.42.0.1#53\n`,
+      code: 0,
+    };
+  },
+  nslookup: (a) => {
+    const host = a[0] ?? "lightos.sh";
+    return {
+      stdout:
+        `Server:\t\t10.42.0.1\nAddress:\t10.42.0.1#53\n\n` +
+        `Name:\t${host}\nAddress: 10.42.0.${20 + Math.floor(Math.random() * 30)}\n`,
+      code: 0,
+    };
+  },
+  host: (a) => {
+    const h = a[0] ?? "lightos.sh";
+    return { stdout: `${h} has address 10.42.0.${20 + Math.floor(Math.random() * 30)}\n`, code: 0 };
+  },
+  traceroute: (a) => {
+    const host = a[0] ?? "lightos.sh";
+    const hops = [
+      "10.42.0.1     0.412 ms",
+      "10.200.0.1    0.821 ms  [photonic-fabric]",
+      "10.200.255.1  1.204 ms",
+      `${host}       1.518 ms`,
+    ];
+    return {
+      stdout:
+        `traceroute to ${host}, 30 hops max, 60 byte packets\n` +
+        hops.map((l, i) => ` ${i + 1}  ${l}`).join("\n") +
+        "\n",
+      code: 0,
+    };
+  },
   true: () => ({ stdout: "", code: 0 }),
   false: () => ({ stdout: "", code: 1 }),
   echo: (a) => ({ stdout: a.join(" ") + "\n", code: 0 }),
