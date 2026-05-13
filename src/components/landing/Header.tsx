@@ -88,6 +88,9 @@ const Header = () => {
               <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Dashboard
               </Link>
+              <Link to="/os" className="text-primary hover:text-primary/80 transition-colors font-mono text-sm uppercase tracking-wide">
+                OS
+              </Link>
               <Link to="/onboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Onboard
