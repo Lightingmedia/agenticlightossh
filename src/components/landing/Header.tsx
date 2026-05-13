@@ -136,6 +136,7 @@ const Header = () => {
                 <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
                 <Link to="/benchmark" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Benchmark</Link>
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                <Link to="/os" className="text-primary hover:text-primary/80 font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>OS</Link>
                 <Link to="/onboard" className="flex items-center gap-2 text-primary font-mono text-sm" onClick={() => setMobileMenuOpen(false)}>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   Onboard
