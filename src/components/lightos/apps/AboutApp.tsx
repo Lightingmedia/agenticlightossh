@@ -1,5 +1,9 @@
+import { Info } from "lucide-react";
+import { AppChrome } from "../AppChrome";
+
 export function AboutApp() {
   return (
+    <AppChrome icon={Info} title="About LightOS" subtitle="System Information">
     <div className="p-8 h-full overflow-auto bg-background text-foreground">
       <div className="flex items-center gap-4 mb-6">
         <div className="w-16 h-16 rounded-full bg-primary/30 border border-primary grid place-items-center font-mono font-bold text-primary text-xl">
