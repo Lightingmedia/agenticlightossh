@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { WindowManagerProvider, useWindowManager } from "@/components/lightos/WindowManager";
 import { TopPanel } from "@/components/lightos/TopPanel";
 import { Dock } from "@/components/lightos/Dock";
 import { Taskbar, TASKBAR_HEIGHT } from "@/components/lightos/Taskbar";
 import { DesktopIcons } from "@/components/lightos/DesktopIcons";
 import { WindowSurface } from "@/components/lightos/WindowSurface";
+import { SplashScreen } from "@/components/lightos/SplashScreen";
 
 function Desktop() {
   const { openApp, windows } = useWindowManager();
@@ -37,9 +38,11 @@ function Desktop() {
 }
 
 export default function LightOS() {
+  const [booted, setBooted] = useState(false);
   return (
     <WindowManagerProvider>
-      <Desktop />
+      {!booted && <SplashScreen onDone={() => setBooted(true)} />}
+      {booted && <Desktop />}
     </WindowManagerProvider>
   );
 }
