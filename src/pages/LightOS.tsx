@@ -2,12 +2,13 @@ import { useEffect } from "react";
 import { WindowManagerProvider, useWindowManager } from "@/components/lightos/WindowManager";
 import { TopPanel } from "@/components/lightos/TopPanel";
 import { Dock } from "@/components/lightos/Dock";
+import { Taskbar, TASKBAR_HEIGHT } from "@/components/lightos/Taskbar";
+import { DesktopIcons } from "@/components/lightos/DesktopIcons";
 import { WindowSurface } from "@/components/lightos/WindowSurface";
 
 function Desktop() {
   const { openApp, windows } = useWindowManager();
 
-  // Auto-open Control Center on first load
   useEffect(() => {
     if (windows.length === 0) openApp("control");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -23,21 +24,14 @@ function Desktop() {
     >
       <TopPanel />
       <Dock />
-      <div className="absolute top-8 left-16 right-0 bottom-0">
+      <div
+        className="absolute top-8 left-16 right-0"
+        style={{ bottom: TASKBAR_HEIGHT }}
+      >
+        <DesktopIcons />
         <WindowSurface />
       </div>
-
-      {/* Desktop hint when nothing open */}
-      {windows.length === 0 && (
-        <div className="absolute inset-0 grid place-items-center pointer-events-none">
-          <div className="text-center font-mono">
-            <div className="text-6xl font-bold text-primary mb-3 tracking-tight">LightOS</div>
-            <div className="text-sm text-muted-foreground">
-              Click an app from the dock to get started
-            </div>
-          </div>
-        </div>
-      )}
+      <Taskbar />
     </div>
   );
 }

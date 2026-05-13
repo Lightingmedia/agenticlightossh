@@ -11,6 +11,7 @@ interface Props {
 
 const TOP_PANEL = 32;
 const DOCK = 64;
+const TASKBAR = 40;
 
 export function Window({ win, children }: Props) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize, updateWindow } =
@@ -23,7 +24,7 @@ export function Window({ win, children }: Props) {
     x: DOCK,
     y: TOP_PANEL,
     width: typeof window !== "undefined" ? window.innerWidth - DOCK : 1280,
-    height: typeof window !== "undefined" ? window.innerHeight - TOP_PANEL : 720,
+    height: typeof window !== "undefined" ? window.innerHeight - TOP_PANEL - TASKBAR : 720,
   };
 
   const style = win.maximized
