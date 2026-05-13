@@ -1,23 +1,44 @@
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { Window } from "./Window";
+import { AppChrome } from "./AppChrome";
 import { SettingsApp } from "./apps/SettingsApp";
 import { FilesApp } from "./apps/FilesApp";
 import { TerminalApp } from "./apps/TerminalApp";
 import { ControlCenterApp } from "./apps/ControlCenterApp";
+import { FleetApp } from "./apps/FleetApp";
+import { ClusterApp } from "./apps/ClusterApp";
 import { BrowserApp } from "./apps/BrowserApp";
 import { AboutApp } from "./apps/AboutApp";
 import { RouteApp } from "./apps/RouteApp";
-import type { WindowState } from "./types";
+import type { WindowState, AppId } from "./types";
+
+const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
+  settings: { icon: Settings, title: "Settings", subtitle: "System preferences" },
+  files: { icon: Folder, title: "Files", subtitle: "/root" },
+  terminal: { icon: TerminalSquare, title: "Terminal", subtitle: "lsh — root@lightos-main" },
+  control: { icon: LayoutDashboard, title: "AI Control Center", subtitle: "Photonic Mesh 20×64" },
+  fleet: { icon: Shield, title: "Fleet Manager", subtitle: "mTLS · LightRail CA" },
+  cluster: { icon: Box, title: "Cluster Manager", subtitle: "K3s · Slurm · Ray" },
+  browser: { icon: Globe, title: "Browser", subtitle: "lightos://web" },
+  about: { icon: Info, title: "About LightOS", subtitle: "System Information" },
+  route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
+};
 
 export function WindowSurface() {
   const { windows } = useWindowManager();
   return (
     <>
-      {windows.map((w) => (
-        <Window key={w.id} win={w}>
-          {renderApp(w)}
-        </Window>
-      ))}
+      {windows.map((w) => {
+        const meta = APP_META[w.appId];
+        return (
+          <Window key={w.id} win={w}>
+            <AppChrome icon={meta.icon} title={meta.title} subtitle={meta.subtitle}>
+              {renderApp(w)}
+            </AppChrome>
+          </Window>
+        );
+      })}
     </>
   );
 }
@@ -32,6 +53,10 @@ function renderApp(w: WindowState) {
       return <TerminalApp />;
     case "control":
       return <ControlCenterApp />;
+    case "fleet":
+      return <FleetApp />;
+    case "cluster":
+      return <ClusterApp />;
     case "browser":
       return <BrowserApp />;
     case "about":
