@@ -1,23 +1,18 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, Bot, GitMerge, Building2, Coins, Cloud } from "lucide-react";
+import { Settings, LayoutDashboard, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { usePreferences, useReducedMotion } from "./Preferences";
 import { sfx } from "./sfx";
 import type { AppId } from "./types";
 
+// Desktop shows feature apps only. System/utility apps live in the dock to avoid duplication.
 const DESKTOP_APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
   { id: "control", label: "Control Center", icon: LayoutDashboard },
   { id: "agentic", label: "Agentic AI", icon: Bot },
   { id: "mlops", label: "MLOps", icon: GitMerge },
+  { id: "inference", label: "Inference", icon: Activity },
+  { id: "cloud", label: "Compute Cloud", icon: Cloud },
   { id: "datacenter", label: "Datacenter", icon: Building2 },
   { id: "tokenfactory", label: "Token Factory", icon: Coins },
-  { id: "inferencecloud", label: "Inference Cloud", icon: Cloud },
-  { id: "fleet", label: "Fleet Manager", icon: Shield },
-  { id: "cluster", label: "Cluster Manager", icon: Box },
-  { id: "terminal", label: "Terminal", icon: TerminalSquare },
-  { id: "files", label: "Files", icon: Folder },
-  { id: "browser", label: "Browser", icon: Globe },
-  { id: "settings", label: "Settings", icon: Settings },
-  { id: "about", label: "About", icon: Info },
 ];
 
 export function DesktopIcons() {
