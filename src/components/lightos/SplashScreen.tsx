@@ -45,13 +45,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     if (phase !== "logo") return;
-    const t1 = setTimeout(() => setPhase("fade"), logoFadeMs);
-    const t2 = setTimeout(() => onDone(), logoFadeMs + 500);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [phase, logoFadeMs, onDone]);
+    const t = setTimeout(() => setPhase("fade"), logoFadeMs);
+    return () => clearTimeout(t);
+  }, [phase, logoFadeMs]);
+
+  useEffect(() => {
+    if (phase !== "fade") return;
+    const t = setTimeout(() => onDone(), 500);
+    return () => clearTimeout(t);
+  }, [phase, onDone]);
 
   if (!hidePlaceholder) {
     return (
