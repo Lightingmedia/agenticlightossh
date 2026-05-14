@@ -57,10 +57,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 export function usePreferences(): Ctx {
   const ctx = useContext(PrefsCtx);
   if (ctx) return ctx;
-  // Safe fallback so consumers (e.g. SplashScreen during HMR) never crash.
-  return {
-    ...DEFAULTS,
-    setPref: () => {},
-    reset: () => {},
-  };
+  return { ...DEFAULTS, setPref: () => {}, reset: () => {} };
+}
+
+/** Returns null when no PreferencesProvider is mounted yet. */
+export function usePreferencesOptional(): Ctx | null {
+  return useContext(PrefsCtx);
 }
