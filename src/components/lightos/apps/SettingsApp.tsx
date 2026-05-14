@@ -9,22 +9,40 @@ const PREVIEW_LINES = [
   "[  OK  ] Reached target Graphical Interface.",
 ];
 
+type PreviewPhase = "boot" | "logo" | "done";
+
 function BootPreview() {
   const { bootSpeed, logoFadeMs } = usePreferences();
   const [runId, setRunId] = useState(0);
   const [shown, setShown] = useState(0);
-  const [phase, setPhase] = useState<"boot" | "logo" | "done">("boot");
+  const [phase, setPhase] = useState<PreviewPhase>("boot");
+  const [playing, setPlaying] = useState(true);
   const timers = useRef<number[]>([]);
 
-  useEffect(() => {
+  const restart = () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     setShown(0);
     setPhase("boot");
+    setPlaying(true);
+    setRunId((n) => n + 1);
+  };
+
+  // Auto-replay whenever boot timing prefs change.
+  useEffect(() => {
+    restart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootSpeed, logoFadeMs]);
+
+  // Reset on manual restart.
+  useEffect(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
   }, [runId]);
 
+  // Boot phase auto-advance.
   useEffect(() => {
-    if (phase !== "boot") return;
+    if (!playing || phase !== "boot") return;
     if (shown >= PREVIEW_LINES.length) {
       const t = window.setTimeout(() => setPhase("logo"), 200);
       timers.current.push(t);
@@ -33,30 +51,79 @@ function BootPreview() {
     const t = window.setTimeout(() => setShown((s) => s + 1), bootSpeed);
     timers.current.push(t);
     return () => clearTimeout(t);
-  }, [shown, phase, bootSpeed]);
+  }, [playing, shown, phase, bootSpeed]);
 
+  // Logo phase auto-advance.
   useEffect(() => {
-    if (phase !== "logo") return;
+    if (!playing || phase !== "logo") return;
     const t = window.setTimeout(() => setPhase("done"), logoFadeMs);
     timers.current.push(t);
     return () => clearTimeout(t);
-  }, [phase, logoFadeMs]);
+  }, [playing, phase, logoFadeMs]);
+
+  const step = () => {
+    setPlaying(false);
+    if (phase === "boot") {
+      if (shown < PREVIEW_LINES.length) setShown((s) => s + 1);
+      else setPhase("logo");
+    } else if (phase === "logo") {
+      setPhase("done");
+    } else {
+      restart();
+      setPlaying(false);
+    }
+  };
+
+  const phaseChip = (p: PreviewPhase, label: string) => (
+    <span
+      className={`px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider ${
+        phase === p ? "bg-primary/20 text-primary" : "text-muted-foreground"
+      }`}
+    >
+      {label}
+    </span>
+  );
 
   return (
     <div className="mt-5 rounded-lg border border-border/60 bg-black overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-card/40">
-        <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-          Live preview
-        </span>
-        <button
-          onClick={() => setRunId((n) => n + 1)}
-          className="inline-flex items-center gap-1 text-[11px] font-mono text-primary hover:text-primary/80"
-        >
-          <Play className="w-3 h-3" /> Replay
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+            Live preview
+          </span>
+          <div className="flex items-center gap-1">
+            {phaseChip("boot", "boot")}
+            {phaseChip("logo", "logo")}
+            {phaseChip("done", "done")}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPlaying((p) => !p)}
+            disabled={phase === "done"}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-foreground/80 hover:text-primary hover:bg-foreground/5 disabled:opacity-40"
+            title={playing ? "Pause" : "Play"}
+          >
+            {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+            {playing ? "Pause" : "Play"}
+          </button>
+          <button
+            onClick={step}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-foreground/80 hover:text-primary hover:bg-foreground/5"
+            title="Step to next line / phase"
+          >
+            <SkipForward className="w-3 h-3" /> Step
+          </button>
+          <button
+            onClick={restart}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-primary hover:bg-foreground/5"
+            title="Restart preview"
+          >
+            <RefreshCw className="w-3 h-3" /> Restart
+          </button>
+        </div>
       </div>
       <div className="relative h-44">
-        {/* Boot text */}
         <div
           className={`absolute inset-0 p-3 font-mono text-[11px] leading-relaxed text-emerald-400/90 transition-opacity duration-300 ${
             phase === "boot" ? "opacity-100" : "opacity-0"
@@ -69,7 +136,6 @@ function BootPreview() {
             <span className="inline-block w-1.5 h-3 bg-emerald-400 animate-pulse align-middle" />
           )}
         </div>
-        {/* Logo phase */}
         <div
           className={`absolute inset-0 grid place-items-center transition-opacity ${
             phase === "logo" ? "opacity-100" : "opacity-0"
@@ -91,10 +157,9 @@ function BootPreview() {
             </div>
           </div>
         </div>
-        {/* Done */}
         {phase === "done" && (
           <div className="absolute inset-0 grid place-items-center text-[11px] font-mono text-muted-foreground">
-            ✓ Boot complete · click Replay
+            ✓ Boot complete · click Restart
           </div>
         )}
       </div>
