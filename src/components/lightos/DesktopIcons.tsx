@@ -1,6 +1,7 @@
 import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { usePreferences } from "./Preferences";
+import { sfx } from "./sfx";
 import type { AppId } from "./types";
 
 const DESKTOP_APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
