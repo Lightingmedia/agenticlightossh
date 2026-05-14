@@ -18,6 +18,7 @@ const DESKTOP_APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
 export function DesktopIcons() {
   const { openApp } = useWindowManager();
   const { iconSize, density } = usePreferences();
+  const reduced = useReducedMotion();
 
   const tileW = iconSize + 32; // label/padding allowance
   const gapX = density === "compact" ? 12 : 32;
