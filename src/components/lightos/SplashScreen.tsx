@@ -19,10 +19,18 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const prefs = usePreferencesOptional();
   const [shown, setShown] = useState(0);
   const [phase, setPhase] = useState<"boot" | "logo" | "fade">("boot");
+  const [hidePlaceholder, setHidePlaceholder] = useState(false);
 
   const bootSpeed = prefs?.bootSpeed ?? 180;
   const logoFadeMs = prefs?.logoFadeMs ?? 1600;
-  const ready = prefs !== null;
+  const ready = prefs?.ready ?? false;
+
+  // Trigger placeholder fade-out as soon as prefs hydrate.
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => setHidePlaceholder(true), 250);
+    return () => clearTimeout(t);
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -45,9 +53,13 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     };
   }, [phase, logoFadeMs, onDone]);
 
-  if (!ready) {
+  if (!hidePlaceholder) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-black text-foreground grid place-items-center">
+      <div
+        className={`fixed inset-0 z-[9999] bg-black text-foreground grid place-items-center transition-opacity duration-300 ${
+          ready ? "opacity-0" : "opacity-100"
+        }`}
+      >
         <div className="flex items-center gap-3 font-mono text-[12px] text-emerald-400/80">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           Preparing LightOS…
