@@ -942,6 +942,17 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void)
 
 export function TerminalApp() {
   const ref = useRef<HTMLDivElement>(null);
+  const wm = useWindowManager();
+  const shutdownEvt = () => window.dispatchEvent(new CustomEvent("lightos:shutdown"));
+
+  useEffect(() => {
+    setOSActions({
+      openApp: (id) => wm.openApp(id),
+      closeAll: () => wm.windows.forEach((w) => wm.closeWindow(w.id)),
+      shutdown: shutdownEvt,
+    });
+    return () => setOSActions(null);
+  }, [wm]);
 
   useEffect(() => {
     if (!ref.current) return;
