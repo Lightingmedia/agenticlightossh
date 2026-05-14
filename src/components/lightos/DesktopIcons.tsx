@@ -63,7 +63,7 @@ export function DesktopIcons() {
               />
               <Icon
                 style={{ width: iconSize * 0.5, height: iconSize * 0.5 }}
-                className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
+                className={`relative z-10 transition-transform duration-300 ${reduced ? "" : "group-hover:scale-110 group-active:scale-95"}`}
               />
             </div>
             <span className="font-mono text-[11px] text-foreground/90 text-center leading-tight px-1.5 py-0.5 rounded group-hover:bg-background/70 group-hover:text-primary transition-colors">
