@@ -1,4 +1,12 @@
 import { useEffect, useRef } from "react";
+import { usePreferencesOptional, useReducedMotion } from "./Preferences";
+
+const INTENSITY = {
+  off: { count: 0, blur: 0, speed: 0, blobAlpha: 0 },
+  subtle: { count: 3, blur: 60, speed: 0.4, blobAlpha: 0.35 },
+  normal: { count: 6, blur: 40, speed: 1, blobAlpha: 0.55 },
+  intense: { count: 9, blur: 28, speed: 1.7, blobAlpha: 0.75 },
+} as const;
 
 /**
  * Liquid-crystal animated background.
