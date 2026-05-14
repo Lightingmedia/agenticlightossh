@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity, Power } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useWindowManager } from "./WindowManager";
 import { sfx } from "./sfx";
