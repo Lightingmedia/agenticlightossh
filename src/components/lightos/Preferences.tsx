@@ -76,3 +76,21 @@ export function usePreferences(): Ctx {
 export function usePreferencesOptional(): Ctx | null {
   return useContext(PrefsCtx);
 }
+
+/** Resolves the reducedMotion preference, honoring the system setting on "auto". */
+export function useReducedMotion(): boolean {
+  const { reducedMotion } = usePreferences();
+  const [systemPref, setSystemPref] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setSystemPref(m.matches);
+    update();
+    m.addEventListener?.("change", update);
+    return () => m.removeEventListener?.("change", update);
+  }, []);
+  if (reducedMotion === "on") return true;
+  if (reducedMotion === "off") return false;
+  return systemPref;
+}
+
