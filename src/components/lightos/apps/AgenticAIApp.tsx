@@ -134,12 +134,31 @@ export function AgenticAIApp() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [events]);
 
-  const startRun = (agent: string) => {
+  const startRun = (agent: string, goal = "Ad-hoc operator run") => {
     const id = `run-${Math.random().toString(36).slice(2, 6)}`;
-    setRuns((p) => [{ id, agent, goal: "Ad-hoc operator run", status: "running", startedAt: Date.now(), steps: 0 }, ...p]);
+    setRuns((p) => [{ id, agent, goal, status: "running", startedAt: Date.now(), steps: 0 }, ...p]);
+    return id;
   };
   const stopRun = (id: string) =>
     setRuns((p) => p.map((r) => (r.id === id ? { ...r, status: "complete" } : r)));
+
+  // Listen to terminal-driven events: lightctl agentic {run|stop}
+  useEffect(() => {
+    const onRun = (e: Event) => {
+      const { agent, goal } = (e as CustomEvent).detail || {};
+      if (agent) startRun(agent, goal);
+    };
+    const onStop = (e: Event) => {
+      const { id } = (e as CustomEvent).detail || {};
+      if (id) stopRun(id);
+    };
+    window.addEventListener("lightos:agentic:run", onRun);
+    window.addEventListener("lightos:agentic:stop", onStop);
+    return () => {
+      window.removeEventListener("lightos:agentic:run", onRun);
+      window.removeEventListener("lightos:agentic:stop", onStop);
+    };
+  }, []);
 
   const toggleTool = (id: string) =>
     setTools((p) => p.map((t) => (t.id === id ? { ...t, enabled: !t.enabled } : t)));

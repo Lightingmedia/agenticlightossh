@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity, Power } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useWindowManager } from "./WindowManager";
 import { sfx } from "./sfx";
@@ -110,6 +110,18 @@ export function Taskbar() {
           {audioOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
         </button>
         <span className="text-foreground tabular-nums">{time}</span>
+        <button
+          aria-label="Shut down LightOS"
+          title="Shut down — exit to main app"
+          onClick={() => {
+            if (audioOn) sfx.click();
+            window.dispatchEvent(new CustomEvent("lightos:shutdown"));
+          }}
+          className="ml-1 px-2 h-7 rounded-md border border-red-400/40 text-red-300 hover:bg-red-400/15 hover:text-red-200 hover:shadow-[0_0_12px_hsl(0_80%_60%/0.5)] transition-all flex items-center gap-1 text-[11px] font-bold"
+        >
+          <Power className="w-3.5 h-3.5" />
+          Power
+        </button>
       </div>
     </div>
   );

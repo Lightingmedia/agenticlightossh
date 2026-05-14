@@ -3,6 +3,7 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { useWindowManager } from "../WindowManager";
 import {
   completePath,
   copy,
@@ -52,6 +53,46 @@ interface ShellCtx {
 
 type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Promise<CmdResult>;
 
+// --------------------------- OS action bridge ---------------------------
+// Populated by TerminalApp on mount so builtins can drive the window manager.
+type AppKey =
+  | "settings" | "files" | "terminal" | "control" | "fleet" | "cluster"
+  | "browser" | "about" | "agentic" | "mlops" | "datacenter" | "tokenfactory"
+  | "inference" | "cloud";
+
+interface OSActions {
+  openApp: (id: AppKey) => void;
+  shutdown: () => void;
+  closeAll: () => void;
+}
+
+let osActions: OSActions | null = null;
+export function setOSActions(a: OSActions | null) {
+  osActions = a;
+}
+
+const APP_ALIASES: Record<string, AppKey> = {
+  settings: "settings", prefs: "settings",
+  files: "files", finder: "files",
+  terminal: "terminal", term: "terminal", shell: "terminal",
+  control: "control", "control-center": "control", cc: "control",
+  fleet: "fleet",
+  cluster: "cluster", k8s: "cluster",
+  browser: "browser", web: "browser",
+  about: "about",
+  agentic: "agentic", agents: "agentic", "agentic-ai": "agentic", ai: "agentic",
+  mlops: "mlops", ml: "mlops",
+  datacenter: "datacenter", dc: "datacenter",
+  tokenfactory: "tokenfactory", "token-factory": "tokenfactory", tokens: "tokenfactory",
+  inference: "inference", inf: "inference",
+  cloud: "cloud", compute: "cloud",
+};
+
+// MLOps + Agentic command effects (lightweight in-memory broadcast for live apps to listen to).
+function emitOSEvent(name: string, detail: unknown = {}) {
+  try { window.dispatchEvent(new CustomEvent(`lightos:${name}`, { detail })); } catch { /* noop */ }
+}
+
 // --------------------------- builtins ---------------------------
 
 const builtins: Record<string, Builtin> = {
@@ -59,8 +100,10 @@ const builtins: Record<string, Builtin> = {
     stdout:
       "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
       "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
-      "          fetch curl exit true false\n" +
+      "          os fetch curl exit true false\n" +
       "Network:  ifconfig ip ping netstat ss route dig nslookup traceroute host arp\n" +
+      "OS:       os open <app> | os list | os shutdown\n" +
+      "Control:  lightctl mlops {start|stop|train|canary} | lightctl agentic run <agent>\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
@@ -562,11 +605,108 @@ const builtins: Record<string, Builtin> = {
   }),
   top: (a, s, c) => builtins.ps(a, s, c) as CmdResult,
   lightctl: (a) => {
-    if (!a[0]) return { stdout: "usage: lightctl {status|fabric|deploy|logs}\n", code: 1 };
-    if (a[0] === "status")
+    const sub = a[0];
+    if (!sub)
+      return {
+        stdout:
+          "usage: lightctl <command>\n" +
+          "  status                          show fabric daemon status\n" +
+          "  fabric                          show photonic fabric details\n" +
+          "  open <app>                      open an app (alias of: os open)\n" +
+          "  mlops start|stop <pipeline>     start/stop an MLOps pipeline\n" +
+          "  mlops train [name]              trigger a new training run\n" +
+          "  mlops canary [name]             roll out a canary deployment\n" +
+          "  agentic run <agent> [goal]      kick off an agent run\n" +
+          "  agentic stop <runId>            stop a running agent\n",
+        code: 1,
+      };
+    if (sub === "status")
       return { stdout: `${C.green}● lightrail-fabricd active (running)${C.reset}\n`, code: 0 };
-    if (a[0] === "fabric") return builtins.fabric([], "", { cwd: "/", env: {}, lastExit: 0, setCwd: () => {} }) as CmdResult;
-    return { stdout: "", stderr: `lightctl: unknown subcommand '${a[0]}'\n`, code: 1 };
+    if (sub === "fabric")
+      return builtins.fabric([], "", { cwd: "/", env: {}, lastExit: 0, setCwd: () => {} }) as CmdResult;
+    if (sub === "open") {
+      return builtins.os(["open", ...a.slice(1)], "", { cwd: "/", env: {}, lastExit: 0, setCwd: () => {} }) as CmdResult;
+    }
+    if (sub === "mlops") {
+      const verb = a[1];
+      if (!verb)
+        return { stdout: "", stderr: "lightctl mlops: usage start|stop <pipeline> | train [name] | canary [name]\n", code: 1 };
+      if (!osActions) return { stdout: "", stderr: "lightctl: OS bridge not ready\n", code: 1 };
+      osActions.openApp("mlops");
+      if (verb === "start" || verb === "stop") {
+        const name = a[2];
+        if (!name) return { stdout: "", stderr: `lightctl mlops ${verb}: missing pipeline name\n`, code: 1 };
+        emitOSEvent("mlops:toggle", { name, action: verb });
+        return { stdout: `${C.green}✓${C.reset} ${verb === "start" ? "Starting" : "Stopping"} pipeline ${C.cyan}${name}${C.reset}\n`, code: 0 };
+      }
+      if (verb === "train") {
+        const name = a[2] || `finetune-${Math.random().toString(36).slice(2, 6)}`;
+        emitOSEvent("mlops:train", { name });
+        return { stdout: `${C.green}✓${C.reset} Training run ${C.cyan}${name}${C.reset} queued\n`, code: 0 };
+      }
+      if (verb === "canary") {
+        const name = a[2] || `canary-${Math.random().toString(36).slice(2, 6)}`;
+        emitOSEvent("mlops:canary", { name });
+        return { stdout: `${C.green}✓${C.reset} Canary ${C.cyan}${name}${C.reset} rolling out 1% → 25%\n`, code: 0 };
+      }
+      return { stdout: "", stderr: `lightctl mlops: unknown verb '${verb}'\n`, code: 1 };
+    }
+    if (sub === "agentic") {
+      const verb = a[1];
+      if (!osActions) return { stdout: "", stderr: "lightctl: OS bridge not ready\n", code: 1 };
+      osActions.openApp("agentic");
+      if (verb === "run") {
+        const agent = a[2];
+        if (!agent) return { stdout: "", stderr: "lightctl agentic run: missing agent name\n", code: 1 };
+        const goal = a.slice(3).join(" ") || "Ad-hoc operator run";
+        emitOSEvent("agentic:run", { agent, goal });
+        return { stdout: `${C.green}✓${C.reset} Agent ${C.cyan}${agent}${C.reset} launched — ${C.gray}${goal}${C.reset}\n`, code: 0 };
+      }
+      if (verb === "stop") {
+        const id = a[2];
+        if (!id) return { stdout: "", stderr: "lightctl agentic stop: missing run id\n", code: 1 };
+        emitOSEvent("agentic:stop", { id });
+        return { stdout: `${C.yellow}■${C.reset} Stopped run ${id}\n`, code: 0 };
+      }
+      return { stdout: "", stderr: `lightctl agentic: unknown verb '${verb}'\n`, code: 1 };
+    }
+    return { stdout: "", stderr: `lightctl: unknown subcommand '${sub}'\n`, code: 1 };
+  },
+  os: (a) => {
+    const sub = a[0];
+    if (!sub)
+      return {
+        stdout:
+          "usage: os <command>\n" +
+          "  open <app>     launch an app window (settings, files, terminal,\n" +
+          "                 control, fleet, cluster, browser, about, agentic,\n" +
+          "                 mlops, datacenter, tokenfactory, inference, cloud)\n" +
+          "  list           list available apps\n" +
+          "  close-all      close every open window\n" +
+          "  shutdown       power off LightOS and return to the main app\n",
+        code: 1,
+      };
+    if (!osActions) return { stdout: "", stderr: "os: bridge not ready\n", code: 1 };
+    if (sub === "list") {
+      const names = Array.from(new Set(Object.values(APP_ALIASES))).sort();
+      return { stdout: names.join("  ") + "\n", code: 0 };
+    }
+    if (sub === "open") {
+      const key = (a[1] || "").toLowerCase();
+      const id = APP_ALIASES[key];
+      if (!id) return { stdout: "", stderr: `os: unknown app '${a[1]}'. try: os list\n`, code: 1 };
+      osActions.openApp(id);
+      return { stdout: `${C.green}→${C.reset} opened ${C.cyan}${id}${C.reset}\n`, code: 0 };
+    }
+    if (sub === "close-all") {
+      osActions.closeAll();
+      return { stdout: "all windows closed\n", code: 0 };
+    }
+    if (sub === "shutdown" || sub === "poweroff" || sub === "halt") {
+      osActions.shutdown();
+      return { stdout: `${C.yellow}● shutting down LightOS…${C.reset}\n`, code: 0 };
+    }
+    return { stdout: "", stderr: `os: unknown subcommand '${sub}'\n`, code: 1 };
   },
   exit: () => ({ stdout: "logout (close window to exit)\n", code: 0 }),
   fetch: async (a) => {
@@ -803,6 +943,17 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void)
 
 export function TerminalApp() {
   const ref = useRef<HTMLDivElement>(null);
+  const wm = useWindowManager();
+  const shutdownEvt = () => window.dispatchEvent(new CustomEvent("lightos:shutdown"));
+
+  useEffect(() => {
+    setOSActions({
+      openApp: (id) => wm.openApp(id),
+      closeAll: () => wm.windows.forEach((w) => wm.closeWindow(w.id)),
+      shutdown: shutdownEvt,
+    });
+    return () => setOSActions(null);
+  }, [wm]);
 
   useEffect(() => {
     if (!ref.current) return;

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { WindowManagerProvider, useWindowManager } from "@/components/lightos/WindowManager";
 import { PreferencesProvider, usePreferences } from "@/components/lightos/Preferences";
 import { TopPanel } from "@/components/lightos/TopPanel";
@@ -29,6 +30,30 @@ function Desktop() {
 function Boot() {
   const { splashEnabled } = usePreferences();
   const [booted, setBooted] = useState(!splashEnabled);
+  const [shuttingDown, setShuttingDown] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onShutdown = () => {
+      setShuttingDown(true);
+      setTimeout(() => navigate("/"), 1400);
+    };
+    window.addEventListener("lightos:shutdown", onShutdown);
+    return () => window.removeEventListener("lightos:shutdown", onShutdown);
+  }, [navigate]);
+
+  if (shuttingDown) {
+    return (
+      <div className="fixed inset-0 bg-background grid place-items-center text-primary font-mono">
+        <div className="text-center space-y-3 animate-pulse">
+          <div className="text-xs uppercase tracking-[0.4em] text-foreground/50">LightOS</div>
+          <div className="text-2xl font-bold">● Shutting down…</div>
+          <div className="text-[11px] text-foreground/40">returning to main app</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {!booted && <SplashScreen onDone={() => setBooted(true)} />}

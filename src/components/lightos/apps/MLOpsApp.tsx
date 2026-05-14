@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Database, Brain, GitMerge, FlaskConical, Package, TrendingUp, Play, Pause, Rocket, GitBranch } from "lucide-react";
 
 type Stage = "data" | "training" | "eval" | "deploy";
@@ -61,6 +61,39 @@ export function MLOpsApp() {
     ]);
     flash(`Canary ${id} rolling out`);
   };
+
+  // Listen to terminal-driven events: lightctl mlops {start|stop|train|canary}
+  useEffect(() => {
+    const onToggle = (e: Event) => {
+      const { name, action } = (e as CustomEvent).detail || {};
+      setPipelines((p) => {
+        const exists = p.some((x) => x.name === name);
+        if (!exists) {
+          return [{ name, stage: "training", status: action === "stop" ? "paused" : "running", throughput: "via terminal", health: 100 }, ...p];
+        }
+        return p.map((x) => (x.name === name ? { ...x, status: action === "stop" ? "paused" : "running" } : x));
+      });
+      flash(`${action === "stop" ? "Stopped" : "Started"} ${name}`);
+    };
+    const onTrain = (e: Event) => {
+      const { name } = (e as CustomEvent).detail || {};
+      setPipelines((p) => [{ name, stage: "training", status: "running", throughput: "epoch 1/40", health: 100 }, ...p]);
+      flash(`Training run ${name} started`);
+    };
+    const onCanary = (e: Event) => {
+      const { name } = (e as CustomEvent).detail || {};
+      setPipelines((p) => [{ name, stage: "deploy", status: "running", throughput: "1% → 5% → 25%", health: 100 }, ...p]);
+      flash(`Canary ${name} rolling out`);
+    };
+    window.addEventListener("lightos:mlops:toggle", onToggle);
+    window.addEventListener("lightos:mlops:train", onTrain);
+    window.addEventListener("lightos:mlops:canary", onCanary);
+    return () => {
+      window.removeEventListener("lightos:mlops:toggle", onToggle);
+      window.removeEventListener("lightos:mlops:train", onTrain);
+      window.removeEventListener("lightos:mlops:canary", onCanary);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground font-mono overflow-hidden">
