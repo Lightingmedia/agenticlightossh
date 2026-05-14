@@ -397,6 +397,43 @@ export function SettingsApp() {
                   ))}
                 </div>
               </Row>
+              <Row label="Background intensity" hint="Liquid-crystal animation strength on the desktop">
+                <div className="flex rounded-md border border-border/60 overflow-hidden text-xs font-mono">
+                  {(["off", "subtle", "normal", "intense"] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => prefs.setPref("bgIntensity", v)}
+                      className={`px-3 py-1.5 ${
+                        prefs.bgIntensity === v
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground/70 hover:bg-foreground/5"
+                      }`}
+                    >
+                      {v.charAt(0).toUpperCase() + v.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </Row>
+              <Row
+                label="Reduced motion"
+                hint="Disable background animation and hover scaling. Auto follows your system."
+              >
+                <div className="flex rounded-md border border-border/60 overflow-hidden text-xs font-mono">
+                  {(["auto", "on", "off"] as const).map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => prefs.setPref("reducedMotion", v)}
+                      className={`px-3 py-1.5 ${
+                        prefs.reducedMotion === v
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground/70 hover:bg-foreground/5"
+                      }`}
+                    >
+                      {v.charAt(0).toUpperCase() + v.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </Row>
             </div>
             <button
               onClick={prefs.reset}
