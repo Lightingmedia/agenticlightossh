@@ -16,9 +16,13 @@ const BOOT_LINES = [
 ];
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
-  const { bootSpeed, logoFadeMs } = usePreferences();
+  const prefs = usePreferencesOptional();
   const [shown, setShown] = useState(0);
   const [phase, setPhase] = useState<"boot" | "logo" | "fade">("boot");
+
+  const bootSpeed = prefs?.bootSpeed ?? 180;
+  const logoFadeMs = prefs?.logoFadeMs ?? 1600;
+  const ready = prefs !== null;
 
   useEffect(() => {
     if (phase !== "boot") return;
