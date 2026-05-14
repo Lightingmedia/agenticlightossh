@@ -52,6 +52,46 @@ interface ShellCtx {
 
 type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Promise<CmdResult>;
 
+// --------------------------- OS action bridge ---------------------------
+// Populated by TerminalApp on mount so builtins can drive the window manager.
+type AppKey =
+  | "settings" | "files" | "terminal" | "control" | "fleet" | "cluster"
+  | "browser" | "about" | "agentic" | "mlops" | "datacenter" | "tokenfactory"
+  | "inference" | "cloud";
+
+interface OSActions {
+  openApp: (id: AppKey) => void;
+  shutdown: () => void;
+  closeAll: () => void;
+}
+
+let osActions: OSActions | null = null;
+export function setOSActions(a: OSActions | null) {
+  osActions = a;
+}
+
+const APP_ALIASES: Record<string, AppKey> = {
+  settings: "settings", prefs: "settings",
+  files: "files", finder: "files",
+  terminal: "terminal", term: "terminal", shell: "terminal",
+  control: "control", "control-center": "control", cc: "control",
+  fleet: "fleet",
+  cluster: "cluster", k8s: "cluster",
+  browser: "browser", web: "browser",
+  about: "about",
+  agentic: "agentic", agents: "agentic", "agentic-ai": "agentic", ai: "agentic",
+  mlops: "mlops", ml: "mlops",
+  datacenter: "datacenter", dc: "datacenter",
+  tokenfactory: "tokenfactory", "token-factory": "tokenfactory", tokens: "tokenfactory",
+  inference: "inference", inf: "inference",
+  cloud: "cloud", compute: "cloud",
+};
+
+// MLOps + Agentic command effects (lightweight in-memory broadcast for live apps to listen to).
+function emitOSEvent(name: string, detail: unknown = {}) {
+  try { window.dispatchEvent(new CustomEvent(`lightos:${name}`, { detail })); } catch { /* noop */ }
+}
+
 // --------------------------- builtins ---------------------------
 
 const builtins: Record<string, Builtin> = {
