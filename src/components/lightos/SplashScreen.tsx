@@ -25,10 +25,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const logoFadeMs = prefs?.logoFadeMs ?? 1600;
   const ready = prefs?.ready ?? false;
 
-  // Trigger placeholder fade-out as soon as prefs hydrate.
+  // Unmount placeholder only after its fade-out transition (300ms) fully completes.
   useEffect(() => {
     if (!ready) return;
-    const t = setTimeout(() => setHidePlaceholder(true), 250);
+    const t = setTimeout(() => setHidePlaceholder(true), 350);
     return () => clearTimeout(t);
   }, [ready]);
 
