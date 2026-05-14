@@ -54,8 +54,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function usePreferences() {
+export function usePreferences(): Ctx {
   const ctx = useContext(PrefsCtx);
-  if (!ctx) throw new Error("usePreferences must be used inside PreferencesProvider");
-  return ctx;
+  if (ctx) return ctx;
+  // Safe fallback so consumers (e.g. SplashScreen during HMR) never crash.
+  return {
+    ...DEFAULTS,
+    setPref: () => {},
+    reset: () => {},
+  };
 }
