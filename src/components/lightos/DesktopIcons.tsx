@@ -1,6 +1,6 @@
 import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
-import { usePreferences } from "./Preferences";
+import { usePreferences, useReducedMotion } from "./Preferences";
 import { sfx } from "./sfx";
 import type { AppId } from "./types";
 
@@ -18,6 +18,7 @@ const DESKTOP_APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
 export function DesktopIcons() {
   const { openApp } = useWindowManager();
   const { iconSize, density } = usePreferences();
+  const reduced = useReducedMotion();
 
   const tileW = iconSize + 32; // label/padding allowance
   const gapX = density === "compact" ? 12 : 32;
@@ -46,11 +47,11 @@ export function DesktopIcons() {
               }
             }}
             style={{ width: tileW, animationDelay: `${i * 60}ms` }}
-            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-all duration-300 hover:-translate-y-1 animate-fade-in`}
+            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-all duration-300 ${reduced ? "" : "hover:-translate-y-1 animate-fade-in"}`}
           >
             <div
               style={{ width: iconSize, height: iconSize }}
-              className={`${radius} relative overflow-hidden border border-border/60 bg-card/70 backdrop-blur-md grid place-items-center text-foreground/85 group-hover:border-primary group-hover:text-primary group-hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] group-hover:scale-110 transition-all duration-300`}
+              className={`${radius} relative overflow-hidden border border-border/60 bg-card/70 backdrop-blur-md grid place-items-center text-foreground/85 group-hover:border-primary group-hover:text-primary group-hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] transition-all duration-300 ${reduced ? "" : "group-hover:scale-110"}`}
             >
               <span
                 aria-hidden
@@ -62,7 +63,7 @@ export function DesktopIcons() {
               />
               <Icon
                 style={{ width: iconSize * 0.5, height: iconSize * 0.5 }}
-                className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
+                className={`relative z-10 transition-transform duration-300 ${reduced ? "" : "group-hover:scale-110 group-active:scale-95"}`}
               />
             </div>
             <span className="font-mono text-[11px] text-foreground/90 text-center leading-tight px-1.5 py-0.5 rounded group-hover:bg-background/70 group-hover:text-primary transition-colors">
