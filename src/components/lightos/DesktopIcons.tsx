@@ -51,7 +51,7 @@ export function DesktopIcons() {
           >
             <div
               style={{ width: iconSize, height: iconSize }}
-              className={`${radius} relative overflow-hidden border border-border/60 bg-card/70 backdrop-blur-md grid place-items-center text-foreground/85 group-hover:border-primary group-hover:text-primary group-hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] group-hover:scale-110 transition-all duration-300`}
+              className={`${radius} relative overflow-hidden border border-border/60 bg-card/70 backdrop-blur-md grid place-items-center text-foreground/85 group-hover:border-primary group-hover:text-primary group-hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] transition-all duration-300 ${reduced ? "" : "group-hover:scale-110"}`}
             >
               <span
                 aria-hidden
