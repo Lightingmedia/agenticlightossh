@@ -317,8 +317,9 @@ export function SettingsApp() {
                 />
               </Row>
             </div>
-            <p className="mt-4 text-[11px] font-mono text-muted-foreground">
-              Changes apply on next boot. Reload <span className="text-primary">/os</span> to preview.
+            <BootPreview />
+            <p className="mt-3 text-[11px] font-mono text-muted-foreground">
+              Live preview reflects current settings. Full splash plays on next reload of <span className="text-primary">/os</span>.
             </p>
           </div>
         )}
