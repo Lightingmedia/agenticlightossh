@@ -7,6 +7,11 @@ export type AppId =
   | "cluster"
   | "browser"
   | "about"
+  | "agentic"
+  | "mlops"
+  | "datacenter"
+  | "tokenfactory"
+  | "inferencecloud"
   | "route";
 
 export interface WindowState {
