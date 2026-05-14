@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/lightrail-logo-splash.jpg";
+import { usePreferences } from "./Preferences";
 
 const BOOT_LINES = [
   "[  OK  ] Started LightRail Photonic Fabric Controller.",
@@ -15,28 +16,29 @@ const BOOT_LINES = [
 ];
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
+  const { bootSpeed, logoFadeMs } = usePreferences();
   const [shown, setShown] = useState(0);
   const [phase, setPhase] = useState<"boot" | "logo" | "fade">("boot");
 
   useEffect(() => {
     if (phase !== "boot") return;
     if (shown >= BOOT_LINES.length) {
-      const t = setTimeout(() => setPhase("logo"), 350);
+      const t = setTimeout(() => setPhase("logo"), 300);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setShown((s) => s + 1), 160 + Math.random() * 90);
+    const t = setTimeout(() => setShown((s) => s + 1), bootSpeed);
     return () => clearTimeout(t);
-  }, [shown, phase]);
+  }, [shown, phase, bootSpeed]);
 
   useEffect(() => {
     if (phase !== "logo") return;
-    const t1 = setTimeout(() => setPhase("fade"), 1600);
-    const t2 = setTimeout(() => onDone(), 2200);
+    const t1 = setTimeout(() => setPhase("fade"), logoFadeMs);
+    const t2 = setTimeout(() => onDone(), logoFadeMs + 500);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [phase, onDone]);
+  }, [phase, logoFadeMs, onDone]);
 
   return (
     <div
