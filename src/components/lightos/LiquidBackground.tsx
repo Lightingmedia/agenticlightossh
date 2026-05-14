@@ -10,11 +10,15 @@ const INTENSITY = {
 
 /**
  * Liquid-crystal animated background.
- * Renders animated metaball-style blobs to a canvas with a subtle
- * chromatic shimmer reminiscent of liquid crystal.
+ * Honors the bgIntensity preference and the reduced-motion setting
+ * (prefers-reduced-motion or user override).
  */
 export function LiquidBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const prefs = usePreferencesOptional();
+  const reduced = useReducedMotion();
+  const intensityKey = reduced ? "off" : prefs?.bgIntensity ?? "normal";
+  const cfg = INTENSITY[intensityKey];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,12 +42,31 @@ export function LiquidBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    const blobs = Array.from({ length: 6 }).map((_, i) => ({
+    const renderStatic = () => {
+      const grd = ctx.createLinearGradient(0, 0, w, h);
+      grd.addColorStop(0, "hsl(220 25% 5%)");
+      grd.addColorStop(1, "hsl(200 30% 7%)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, w, h);
+    };
+
+    if (cfg.count === 0 || cfg.speed === 0) {
+      renderStatic();
+      const onResize = () => {
+        resize();
+        renderStatic();
+      };
+      window.removeEventListener("resize", resize);
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }
+
+    const blobs = Array.from({ length: cfg.count }).map((_, i) => ({
       x: Math.random(),
       y: Math.random(),
       r: 0.22 + Math.random() * 0.18,
-      sx: (Math.random() - 0.5) * 0.00012,
-      sy: (Math.random() - 0.5) * 0.00012,
+      sx: (Math.random() - 0.5) * 0.00012 * cfg.speed,
+      sy: (Math.random() - 0.5) * 0.00012 * cfg.speed,
       hue: 150 + i * 12,
       phase: Math.random() * Math.PI * 2,
     }));
@@ -52,13 +75,7 @@ export function LiquidBackground() {
 
     const render = (t: number) => {
       const dt = t - start;
-
-      // Base wash
-      const grd = ctx.createLinearGradient(0, 0, w, h);
-      grd.addColorStop(0, "hsl(220 25% 5%)");
-      grd.addColorStop(1, "hsl(200 30% 7%)");
-      ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, w, h);
+      renderStatic();
 
       ctx.globalCompositeOperation = "lighter";
       for (const b of blobs) {
@@ -67,13 +84,14 @@ export function LiquidBackground() {
         if (b.x < -0.2 || b.x > 1.2) b.sx *= -1;
         if (b.y < -0.2 || b.y > 1.2) b.sy *= -1;
 
-        const cx = b.x * w + Math.sin(dt * 0.0006 + b.phase) * 40;
-        const cy = b.y * h + Math.cos(dt * 0.0005 + b.phase) * 40;
-        const rad = b.r * Math.min(w, h) * (1 + Math.sin(dt * 0.0008 + b.phase) * 0.08);
+        const cx = b.x * w + Math.sin(dt * 0.0006 * cfg.speed + b.phase) * 40;
+        const cy = b.y * h + Math.cos(dt * 0.0005 * cfg.speed + b.phase) * 40;
+        const rad =
+          b.r * Math.min(w, h) * (1 + Math.sin(dt * 0.0008 * cfg.speed + b.phase) * 0.08);
 
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-        g.addColorStop(0, `hsla(${b.hue} 90% 55% / 0.55)`);
-        g.addColorStop(0.45, `hsla(${b.hue + 20} 80% 50% / 0.18)`);
+        g.addColorStop(0, `hsla(${b.hue} 90% 55% / ${cfg.blobAlpha})`);
+        g.addColorStop(0.45, `hsla(${b.hue + 20} 80% 50% / ${cfg.blobAlpha * 0.33})`);
         g.addColorStop(1, "hsla(160 80% 50% / 0)");
         ctx.fillStyle = g;
         ctx.beginPath();
@@ -82,10 +100,9 @@ export function LiquidBackground() {
       }
       ctx.globalCompositeOperation = "source-over";
 
-      // Shimmer scanlines
       ctx.globalAlpha = 0.06;
       ctx.fillStyle = "hsl(160 90% 60%)";
-      const offset = (dt * 0.04) % 6;
+      const offset = (dt * 0.04 * cfg.speed) % 6;
       for (let y = -6 + offset; y < h; y += 6) {
         ctx.fillRect(0, y, w, 1);
       }
@@ -99,14 +116,14 @@ export function LiquidBackground() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [cfg.count, cfg.speed, cfg.blobAlpha, cfg.blur]);
 
   return (
     <>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ filter: "blur(40px) saturate(140%)" }}
+        style={{ filter: `blur(${cfg.blur}px) saturate(140%)` }}
         aria-hidden
       />
       <div
