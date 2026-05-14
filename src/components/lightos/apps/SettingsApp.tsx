@@ -1,6 +1,106 @@
-import { useState } from "react";
-import { Cpu, MemoryStick, HardDrive, Monitor, RotateCcw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Cpu, MemoryStick, HardDrive, Monitor, RotateCcw, Play } from "lucide-react";
 import { usePreferences } from "../Preferences";
+
+const PREVIEW_LINES = [
+  "[  OK  ] Started LightRail Photonic Fabric Controller.",
+  "[  OK  ] Mounted /dev/lr0 (1.6 Tb/s lambda link).",
+  "[  OK  ] Started Aurora LLM Service.",
+  "[  OK  ] Reached target Graphical Interface.",
+];
+
+function BootPreview() {
+  const { bootSpeed, logoFadeMs } = usePreferences();
+  const [runId, setRunId] = useState(0);
+  const [shown, setShown] = useState(0);
+  const [phase, setPhase] = useState<"boot" | "logo" | "done">("boot");
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setShown(0);
+    setPhase("boot");
+  }, [runId]);
+
+  useEffect(() => {
+    if (phase !== "boot") return;
+    if (shown >= PREVIEW_LINES.length) {
+      const t = window.setTimeout(() => setPhase("logo"), 200);
+      timers.current.push(t);
+      return () => clearTimeout(t);
+    }
+    const t = window.setTimeout(() => setShown((s) => s + 1), bootSpeed);
+    timers.current.push(t);
+    return () => clearTimeout(t);
+  }, [shown, phase, bootSpeed]);
+
+  useEffect(() => {
+    if (phase !== "logo") return;
+    const t = window.setTimeout(() => setPhase("done"), logoFadeMs);
+    timers.current.push(t);
+    return () => clearTimeout(t);
+  }, [phase, logoFadeMs]);
+
+  return (
+    <div className="mt-5 rounded-lg border border-border/60 bg-black overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-card/40">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+          Live preview
+        </span>
+        <button
+          onClick={() => setRunId((n) => n + 1)}
+          className="inline-flex items-center gap-1 text-[11px] font-mono text-primary hover:text-primary/80"
+        >
+          <Play className="w-3 h-3" /> Replay
+        </button>
+      </div>
+      <div className="relative h-44">
+        {/* Boot text */}
+        <div
+          className={`absolute inset-0 p-3 font-mono text-[11px] leading-relaxed text-emerald-400/90 transition-opacity duration-300 ${
+            phase === "boot" ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {PREVIEW_LINES.slice(0, shown).map((l, i) => (
+            <div key={i}>{l}</div>
+          ))}
+          {phase === "boot" && shown < PREVIEW_LINES.length && (
+            <span className="inline-block w-1.5 h-3 bg-emerald-400 animate-pulse align-middle" />
+          )}
+        </div>
+        {/* Logo phase */}
+        <div
+          className={`absolute inset-0 grid place-items-center transition-opacity ${
+            phase === "logo" ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ transitionDuration: `${Math.min(logoFadeMs, 800)}ms` }}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-primary font-mono text-sm font-bold tracking-wider">
+              LIGHTRAIL · AURORA
+            </div>
+            <div className="flex gap-1">
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"
+                  style={{ animationDelay: `${i * 120}ms` }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Done */}
+        {phase === "done" && (
+          <div className="absolute inset-0 grid place-items-center text-[11px] font-mono text-muted-foreground">
+            ✓ Boot complete · click Replay
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 type Tab = "system" | "desktop" | "boot";
 
