@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Database, Brain, GitMerge, FlaskConical, Package, TrendingUp, Play, Pause, Rocket, GitBranch } from "lucide-react";
 
 type Stage = "data" | "training" | "eval" | "deploy";
