@@ -29,6 +29,11 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   cluster: { title: "Cluster Manager", w: 960, h: 660 },
   browser: { title: "LightRail Browser", w: 1080, h: 680 },
   about: { title: "About LightOS", w: 520, h: 420 },
+  agentic: { title: "Agentic AI", w: 960, h: 660 },
+  mlops: { title: "MLOps", w: 960, h: 660 },
+  datacenter: { title: "Datacenter Operations", w: 960, h: 660 },
+  tokenfactory: { title: "Token Factory", w: 880, h: 640 },
+  inferencecloud: { title: "Inference Cloud", w: 960, h: 640 },
   route: { title: "Application", w: 1180, h: 720 },
 };
 
