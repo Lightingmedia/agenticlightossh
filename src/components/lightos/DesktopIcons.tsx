@@ -47,7 +47,7 @@ export function DesktopIcons() {
               }
             }}
             style={{ width: tileW, animationDelay: `${i * 60}ms` }}
-            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-all duration-300 hover:-translate-y-1 animate-fade-in`}
+            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-all duration-300 ${reduced ? "" : "hover:-translate-y-1 animate-fade-in"}`}
           >
             <div
               style={{ width: iconSize, height: iconSize }}
