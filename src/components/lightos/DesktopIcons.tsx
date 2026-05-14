@@ -1,6 +1,6 @@
 import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
-import { usePreferences } from "./Preferences";
+import { usePreferences, useReducedMotion } from "./Preferences";
 import { sfx } from "./sfx";
 import type { AppId } from "./types";
 
