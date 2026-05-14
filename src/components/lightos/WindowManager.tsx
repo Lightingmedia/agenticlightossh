@@ -33,7 +33,8 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   mlops: { title: "MLOps", w: 960, h: 660 },
   datacenter: { title: "Datacenter Operations", w: 960, h: 660 },
   tokenfactory: { title: "Token Factory", w: 880, h: 640 },
-  inferencecloud: { title: "Inference Cloud", w: 960, h: 640 },
+  inference: { title: "Inference Endpoints", w: 960, h: 640 },
+  cloud: { title: "Compute Cloud", w: 960, h: 640 },
   route: { title: "Application", w: 1180, h: 720 },
 };
 
