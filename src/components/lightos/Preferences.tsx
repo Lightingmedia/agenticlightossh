@@ -1,11 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+export type BgIntensity = "off" | "subtle" | "normal" | "intense";
+
 export interface LightOSPrefs {
   iconSize: number; // px (40-96)
   density: "compact" | "comfy";
   splashEnabled: boolean;
   bootSpeed: number; // ms per line (40-400)
   logoFadeMs: number; // ms (300-3000)
+  bgIntensity: BgIntensity;
+  reducedMotion: "auto" | "on" | "off"; // auto = follow system
 }
 
 const DEFAULTS: LightOSPrefs = {
@@ -14,6 +18,8 @@ const DEFAULTS: LightOSPrefs = {
   splashEnabled: true,
   bootSpeed: 180,
   logoFadeMs: 1600,
+  bgIntensity: "normal",
+  reducedMotion: "auto",
 };
 
 const KEY = "lightos:prefs:v1";
