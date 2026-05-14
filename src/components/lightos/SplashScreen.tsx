@@ -25,6 +25,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const ready = prefs !== null;
 
   useEffect(() => {
+    if (!ready) return;
     if (phase !== "boot") return;
     if (shown >= BOOT_LINES.length) {
       const t = setTimeout(() => setPhase("logo"), 300);
@@ -32,7 +33,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     }
     const t = setTimeout(() => setShown((s) => s + 1), bootSpeed);
     return () => clearTimeout(t);
-  }, [shown, phase, bootSpeed]);
+  }, [ready, shown, phase, bootSpeed]);
 
   useEffect(() => {
     if (phase !== "logo") return;
