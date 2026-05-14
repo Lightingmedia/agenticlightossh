@@ -1,6 +1,18 @@
-import { Database, Brain, GitMerge, FlaskConical, Package, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Database, Brain, GitMerge, FlaskConical, Package, TrendingUp, Play, Pause, Rocket, GitBranch } from "lucide-react";
 
-const PIPELINES = [
+type Stage = "data" | "training" | "eval" | "deploy";
+type Status = "running" | "paused" | "complete";
+
+interface Pipeline {
+  name: string;
+  stage: Stage;
+  status: Status;
+  throughput: string;
+  health: number;
+}
+
+const SEED: Pipeline[] = [
   { name: "ingest-clickstream", stage: "data", status: "running", throughput: "12.4k rec/s", health: 98 },
   { name: "feature-store-sync", stage: "data", status: "running", throughput: "3.1k feat/s", health: 100 },
   { name: "llama3-finetune-v7", stage: "training", status: "running", throughput: "epoch 14/40", health: 96 },
@@ -9,7 +21,7 @@ const PIPELINES = [
   { name: "canary-rollout-v6", stage: "deploy", status: "running", throughput: "5% traffic", health: 99 },
 ];
 
-const STAGES = [
+const STAGES: { id: Stage; label: string; icon: typeof Database; color: string }[] = [
   { id: "data", label: "Data", icon: Database, color: "text-blue-400 border-blue-400/40 bg-blue-400/10" },
   { id: "training", label: "Training", icon: Brain, color: "text-violet-400 border-violet-400/40 bg-violet-400/10" },
   { id: "eval", label: "Eval", icon: FlaskConical, color: "text-yellow-400 border-yellow-400/40 bg-yellow-400/10" },
@@ -17,12 +29,61 @@ const STAGES = [
 ];
 
 export function MLOpsApp() {
+  const [pipelines, setPipelines] = useState<Pipeline[]>(SEED);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const flash = (m: string) => {
+    setToast(m);
+    setTimeout(() => setToast(null), 2200);
+  };
+
+  const toggle = (name: string) =>
+    setPipelines((p) =>
+      p.map((x) =>
+        x.name === name ? { ...x, status: x.status === "running" ? "paused" : "running" } : x,
+      ),
+    );
+
+  const triggerTraining = () => {
+    const id = `finetune-${Math.random().toString(36).slice(2, 6)}`;
+    setPipelines((p) => [
+      { name: id, stage: "training", status: "running", throughput: "epoch 1/40", health: 100 },
+      ...p,
+    ]);
+    flash(`Training run ${id} started`);
+  };
+
+  const rolloutCanary = () => {
+    const id = `canary-${Math.random().toString(36).slice(2, 6)}`;
+    setPipelines((p) => [
+      { name: id, stage: "deploy", status: "running", throughput: "1% → 5% → 25%", health: 100 },
+      ...p,
+    ]);
+    flash(`Canary ${id} rolling out`);
+  };
+
   return (
     <div className="flex flex-col h-full bg-background text-foreground font-mono overflow-hidden">
       <div className="p-4 border-b border-border/40 bg-card/20">
-        <div className="flex items-center gap-3 mb-3">
-          <GitMerge className="w-4 h-4 text-primary" />
-          <span className="text-xs uppercase tracking-widest text-foreground/50">ML Pipeline</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <GitMerge className="w-4 h-4 text-primary" />
+            <span className="text-xs uppercase tracking-widest text-foreground/50">ML Pipeline</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={triggerTraining}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-violet-400/40 bg-violet-400/10 text-violet-300 hover:bg-violet-400/20 text-[11px] font-bold transition"
+            >
+              <Brain className="w-3.5 h-3.5" /> New Training Run
+            </button>
+            <button
+              onClick={rolloutCanary}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-emerald-400/40 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/20 text-[11px] font-bold transition"
+            >
+              <Rocket className="w-3.5 h-3.5" /> Canary Rollout
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {STAGES.map((s, i) => (
@@ -31,7 +92,7 @@ export function MLOpsApp() {
                 <s.icon className="w-4 h-4" />
                 <div>
                   <div className="text-xs font-bold">{s.label}</div>
-                  <div className="text-[9px] opacity-60">{PIPELINES.filter((p) => p.stage === s.id).length} pipelines</div>
+                  <div className="text-[9px] opacity-60">{pipelines.filter((p) => p.stage === s.id).length} pipelines</div>
                 </div>
               </div>
               {i < STAGES.length - 1 && <span className="text-foreground/30">→</span>}
@@ -60,7 +121,7 @@ export function MLOpsApp() {
 
         <div className="text-[10px] uppercase tracking-widest text-foreground/40 mb-2">Active Pipelines</div>
         <div className="space-y-2">
-          {PIPELINES.map((p) => {
+          {pipelines.map((p) => {
             const stage = STAGES.find((s) => s.id === p.stage)!;
             return (
               <div key={p.name} className="rounded-lg border border-border/40 bg-card/40 p-3 flex items-center gap-3">
@@ -71,15 +132,32 @@ export function MLOpsApp() {
                   <div className="text-sm font-bold truncate">{p.name}</div>
                   <div className="text-[10px] text-foreground/50">{p.throughput}</div>
                 </div>
-                <div className="text-right">
-                  <div className={`text-[10px] font-bold ${p.status === "running" ? "text-emerald-400" : "text-blue-400"}`}>{p.status.toUpperCase()}</div>
+                <div className="text-right mr-2">
+                  <div className={`text-[10px] font-bold ${
+                    p.status === "running" ? "text-emerald-400" :
+                    p.status === "paused" ? "text-amber-400" : "text-blue-400"
+                  }`}>{p.status.toUpperCase()}</div>
                   <div className="text-[10px] text-foreground/50">health {p.health}%</div>
                 </div>
+                {p.status !== "complete" && (
+                  <button
+                    onClick={() => toggle(p.name)}
+                    className="px-2 py-1 rounded border border-border/60 hover:border-primary/60 hover:text-primary text-[10px] flex items-center gap-1"
+                  >
+                    {p.status === "running" ? <><Pause className="w-3 h-3" />Stop</> : <><Play className="w-3 h-3" />Start</>}
+                  </button>
+                )}
               </div>
             );
           })}
         </div>
       </div>
+
+      {toast && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg border border-primary/50 bg-background/95 text-primary text-[11px] shadow-[0_0_24px_hsl(var(--primary)/0.4)] flex items-center gap-2">
+          <GitBranch className="w-3.5 h-3.5" /> {toast}
+        </div>
+      )}
     </div>
   );
 }
