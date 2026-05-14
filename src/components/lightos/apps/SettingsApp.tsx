@@ -13,10 +13,12 @@ type PreviewPhase = "boot" | "logo" | "done";
 
 function BootPreview() {
   const { bootSpeed, logoFadeMs } = usePreferences();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [runId, setRunId] = useState(0);
   const [shown, setShown] = useState(0);
   const [phase, setPhase] = useState<PreviewPhase>("boot");
   const [playing, setPlaying] = useState(true);
+  const [autoReplay, setAutoReplay] = useState(true);
   const timers = useRef<number[]>([]);
 
   const restart = () => {
@@ -28,19 +30,18 @@ function BootPreview() {
     setRunId((n) => n + 1);
   };
 
-  // Auto-replay whenever boot timing prefs change.
+  // Auto-replay whenever boot timing prefs change (when enabled).
   useEffect(() => {
+    if (!autoReplay) return;
     restart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bootSpeed, logoFadeMs]);
 
-  // Reset on manual restart.
   useEffect(() => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
   }, [runId]);
 
-  // Boot phase auto-advance.
   useEffect(() => {
     if (!playing || phase !== "boot") return;
     if (shown >= PREVIEW_LINES.length) {
@@ -53,7 +54,6 @@ function BootPreview() {
     return () => clearTimeout(t);
   }, [playing, shown, phase, bootSpeed]);
 
-  // Logo phase auto-advance.
   useEffect(() => {
     if (!playing || phase !== "logo") return;
     const t = window.setTimeout(() => setPhase("done"), logoFadeMs);
@@ -68,11 +68,31 @@ function BootPreview() {
       else setPhase("logo");
     } else if (phase === "logo") {
       setPhase("done");
-    } else {
-      restart();
-      setPlaying(false);
     }
   };
+
+  // Keyboard shortcuts (only when preview area is focused/hovered).
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs.
+      const tgt = e.target as HTMLElement | null;
+      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA")) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (phase !== "done") setPlaying((p) => !p);
+      } else if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        step();
+      } else if (e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        restart();
+      }
+    };
+    el.addEventListener("keydown", onKey);
+    return () => el.removeEventListener("keydown", onKey);
+  }, [phase, shown]);
 
   const phaseChip = (p: PreviewPhase, label: string) => (
     <span
@@ -84,9 +104,19 @@ function BootPreview() {
     </span>
   );
 
+  // Progress: lines shown across boot phase, plus full once past boot.
+  const total = PREVIEW_LINES.length;
+  const bootProgress =
+    phase === "boot" ? shown / total : 1;
+  const progressPct = Math.round(bootProgress * 100);
+
   return (
-    <div className="mt-5 rounded-lg border border-border/60 bg-black overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-card/40">
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      className="mt-5 rounded-lg border border-border/60 bg-black overflow-hidden focus:outline-none focus:ring-1 focus:ring-primary/40"
+    >
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-card/40 gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
             Live preview
@@ -98,11 +128,20 @@ function BootPreview() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <label className="inline-flex items-center gap-1.5 mr-2 text-[10px] font-mono text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={autoReplay}
+              onChange={(e) => setAutoReplay(e.target.checked)}
+              className="accent-primary"
+            />
+            Auto-replay on change
+          </label>
           <button
             onClick={() => setPlaying((p) => !p)}
             disabled={phase === "done"}
             className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-foreground/80 hover:text-primary hover:bg-foreground/5 disabled:opacity-40"
-            title={playing ? "Pause" : "Play"}
+            title="Play / Pause (Space)"
           >
             {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
             {playing ? "Pause" : "Play"}
@@ -110,19 +149,36 @@ function BootPreview() {
           <button
             onClick={step}
             className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-foreground/80 hover:text-primary hover:bg-foreground/5"
-            title="Step to next line / phase"
+            title="Step (N)"
           >
             <SkipForward className="w-3 h-3" /> Step
           </button>
           <button
             onClick={restart}
             className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-mono text-primary hover:bg-foreground/5"
-            title="Restart preview"
+            title="Restart (R)"
           >
             <RefreshCw className="w-3 h-3" /> Restart
           </button>
         </div>
       </div>
+
+      {/* Progress bar */}
+      <div className="px-3 py-1.5 border-b border-border/40 bg-card/20 flex items-center gap-2">
+        <span className="text-[10px] font-mono text-muted-foreground tabular-nums w-14">
+          {Math.min(shown, total)}/{total}
+        </span>
+        <div className="flex-1 h-1 bg-foreground/10 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all duration-200"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        <span className="text-[10px] font-mono text-muted-foreground tabular-nums w-10 text-right">
+          {progressPct}%
+        </span>
+      </div>
+
       <div className="relative h-44">
         <div
           className={`absolute inset-0 p-3 font-mono text-[11px] leading-relaxed text-emerald-400/90 transition-opacity duration-300 ${
@@ -159,9 +215,15 @@ function BootPreview() {
         </div>
         {phase === "done" && (
           <div className="absolute inset-0 grid place-items-center text-[11px] font-mono text-muted-foreground">
-            ✓ Boot complete · click Restart
+            ✓ Boot complete · press R to restart
           </div>
         )}
+      </div>
+
+      <div className="px-3 py-1.5 border-t border-border/40 bg-card/20 text-[10px] font-mono text-muted-foreground/70">
+        Shortcuts: <span className="text-foreground/70">Space</span> play/pause ·{" "}
+        <span className="text-foreground/70">N</span> step ·{" "}
+        <span className="text-foreground/70">R</span> restart
       </div>
     </div>
   );
