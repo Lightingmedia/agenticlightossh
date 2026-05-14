@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Cpu, MemoryStick, HardDrive, Monitor, RotateCcw, Play } from "lucide-react";
+import { Cpu, MemoryStick, HardDrive, Monitor, RotateCcw, Play, Pause, SkipForward, RefreshCw } from "lucide-react";
 import { usePreferences } from "../Preferences";
 
 const PREVIEW_LINES = [
