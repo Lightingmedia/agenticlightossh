@@ -63,7 +63,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 export function usePreferences(): Ctx {
   const ctx = useContext(PrefsCtx);
   if (ctx) return ctx;
-  return { ...DEFAULTS, setPref: () => {}, reset: () => {} };
+  return { ...DEFAULTS, setPref: () => {}, reset: () => {}, ready: false };
 }
 
 /** Returns null when no PreferencesProvider is mounted yet. */
