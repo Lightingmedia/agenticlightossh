@@ -50,7 +50,7 @@ export function LiquidBackground() {
       ctx.fillRect(0, 0, w, h);
     };
 
-    if (cfg.count === 0 || cfg.speed === 0) {
+    if (cfg.count === 0) {
       renderStatic();
       const onResize = () => {
         resize();
