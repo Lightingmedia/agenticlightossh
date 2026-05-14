@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { WindowManagerProvider, useWindowManager } from "@/components/lightos/WindowManager";
 import { PreferencesProvider, usePreferences } from "@/components/lightos/Preferences";
 import { TopPanel } from "@/components/lightos/TopPanel";
