@@ -1,4 +1,4 @@
-import { Settings, LayoutDashboard, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
+import { Settings, LayoutDashboard, Bot, GitMerge, Building2, Coins, Cloud, Activity, TerminalSquare } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { usePreferences, useReducedMotion } from "./Preferences";
 import { sfx } from "./sfx";
@@ -13,6 +13,7 @@ const DESKTOP_APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
   { id: "cloud", label: "Compute Cloud", icon: Cloud },
   { id: "datacenter", label: "Datacenter", icon: Building2 },
   { id: "tokenfactory", label: "Token Factory", icon: Coins },
+  { id: "terminal", label: "Terminal", icon: TerminalSquare },
 ];
 
 export function DesktopIcons() {
