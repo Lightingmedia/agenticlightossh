@@ -31,23 +31,41 @@ export function DesktopIcons() {
         className="grid grid-cols-4 pointer-events-auto"
         style={{ columnGap: gapX, rowGap: gapY }}
       >
-        {DESKTOP_APPS.map(({ id, label, icon: Icon }) => (
+        {DESKTOP_APPS.map(({ id, label, icon: Icon }, i) => (
           <button
             key={id}
-            onDoubleClick={() => openApp(id)}
-            onClick={(e) => {
-              if ((e.detail ?? 1) === 1 && window.matchMedia("(hover: none)").matches) openApp(id);
+            onMouseEnter={() => sfx.hover()}
+            onDoubleClick={() => {
+              sfx.open();
+              openApp(id);
             }}
-            style={{ width: tileW }}
-            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-colors`}
+            onClick={(e) => {
+              if ((e.detail ?? 1) === 1 && window.matchMedia("(hover: none)").matches) {
+                sfx.open();
+                openApp(id);
+              }
+            }}
+            style={{ width: tileW, animationDelay: `${i * 60}ms` }}
+            className={`group flex flex-col items-center gap-1.5 ${padding} rounded-lg hover:bg-primary/10 focus:bg-primary/15 focus:outline-none transition-all duration-300 hover:-translate-y-1 animate-fade-in`}
           >
             <div
               style={{ width: iconSize, height: iconSize }}
-              className={`${radius} border border-border/60 bg-card/80 backdrop-blur-sm grid place-items-center text-foreground/85 group-hover:border-primary/60 group-hover:text-primary group-hover:shadow-[0_0_18px_hsl(var(--primary)/0.45)] transition-all`}
+              className={`${radius} relative overflow-hidden border border-border/60 bg-card/70 backdrop-blur-md grid place-items-center text-foreground/85 group-hover:border-primary group-hover:text-primary group-hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] group-hover:scale-110 transition-all duration-300`}
             >
-              <Icon style={{ width: iconSize * 0.5, height: iconSize * 0.5 }} />
+              <span
+                aria-hidden
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{
+                  background:
+                    "radial-gradient(circle at 30% 30%, hsl(var(--primary) / 0.35), transparent 60%)",
+                }}
+              />
+              <Icon
+                style={{ width: iconSize * 0.5, height: iconSize * 0.5 }}
+                className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
+              />
             </div>
-            <span className="font-mono text-[11px] text-foreground/85 text-center leading-tight px-1.5 py-0.5 rounded group-hover:bg-background/70">
+            <span className="font-mono text-[11px] text-foreground/90 text-center leading-tight px-1.5 py-0.5 rounded group-hover:bg-background/70 group-hover:text-primary transition-colors">
               {label}
             </span>
           </button>
