@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { Window } from "./Window";
 import { AppChrome } from "./AppChrome";
@@ -15,6 +15,7 @@ import { AgenticAIApp } from "./apps/AgenticAIApp";
 import { MLOpsApp } from "./apps/MLOpsApp";
 import { DatacenterApp } from "./apps/DatacenterApp";
 import { TokenFactoryApp } from "./apps/TokenFactoryApp";
+import { InferenceApp } from "./apps/InferenceApp";
 import { InferenceCloudApp } from "./apps/InferenceCloudApp";
 import type { WindowState, AppId } from "./types";
 
@@ -27,11 +28,12 @@ const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?:
   cluster: { icon: Box, title: "Cluster Manager", subtitle: "K3s · Slurm · Ray" },
   browser: { icon: Globe, title: "Browser", subtitle: "lightos://web" },
   about: { icon: Info, title: "About LightOS", subtitle: "System Information" },
-  agentic: { icon: Bot, title: "Agentic AI", subtitle: "Autonomous operators" },
+  agentic: { icon: Bot, title: "Agentic AI", subtitle: "Workspace · runs · tools" },
   mlops: { icon: GitMerge, title: "MLOps", subtitle: "Data · Training · Deploy" },
   datacenter: { icon: Building2, title: "Datacenter Operations", subtitle: "Halls · Power · Cooling" },
   tokenfactory: { icon: Coins, title: "Token Factory", subtitle: "Generation economics" },
-  inferencecloud: { icon: Cloud, title: "Inference Cloud", subtitle: "On-demand GPU compute" },
+  inference: { icon: Activity, title: "Inference", subtitle: "Model endpoints · live traffic" },
+  cloud: { icon: Cloud, title: "Compute Cloud", subtitle: "On-demand GPU instances" },
   route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
 };
 
@@ -79,7 +81,9 @@ function renderApp(w: WindowState) {
       return <DatacenterApp />;
     case "tokenfactory":
       return <TokenFactoryApp />;
-    case "inferencecloud":
+    case "inference":
+      return <InferenceApp />;
+    case "cloud":
       return <InferenceCloudApp />;
     case "route":
       return <RouteApp win={w} />;

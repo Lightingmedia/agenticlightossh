@@ -11,7 +11,8 @@ export type AppId =
   | "mlops"
   | "datacenter"
   | "tokenfactory"
-  | "inferencecloud"
+  | "inference"
+  | "cloud"
   | "route";
 
 export interface WindowState {

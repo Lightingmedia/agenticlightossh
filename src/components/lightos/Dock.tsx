@@ -1,21 +1,16 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, Bot, GitMerge, Building2, Coins, Cloud } from "lucide-react";
+import { Settings, Folder, TerminalSquare, Globe, Info, Shield, Box } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import type { AppId } from "./types";
 
+// Dock = system/utility apps. Feature apps are reachable via desktop icons.
 const APPS: { id: AppId; label: string; icon: typeof Settings }[] = [
-  { id: "control", label: "AI Control Center", icon: LayoutDashboard },
-  { id: "agentic", label: "Agentic AI",          icon: Bot },
-  { id: "mlops",   label: "MLOps",               icon: GitMerge },
-  { id: "datacenter", label: "Datacenter Ops",   icon: Building2 },
-  { id: "tokenfactory", label: "Token Factory",  icon: Coins },
-  { id: "inferencecloud", label: "Inference Cloud", icon: Cloud },
-  { id: "fleet",   label: "Fleet Manager",       icon: Shield },
-  { id: "cluster", label: "Cluster Manager",     icon: Box },
-  { id: "terminal", label: "Terminal",           icon: TerminalSquare },
-  { id: "files",   label: "Files",               icon: Folder },
-  { id: "browser", label: "Browser",             icon: Globe },
-  { id: "settings", label: "Settings",           icon: Settings },
-  { id: "about",   label: "About",               icon: Info },
+  { id: "fleet",    label: "Fleet Manager",    icon: Shield },
+  { id: "cluster",  label: "Cluster Manager",  icon: Box },
+  { id: "terminal", label: "Terminal",         icon: TerminalSquare },
+  { id: "files",    label: "Files",            icon: Folder },
+  { id: "browser",  label: "Browser",          icon: Globe },
+  { id: "settings", label: "Settings",         icon: Settings },
+  { id: "about",    label: "About",            icon: Info },
 ];
 
 export function Dock() {
