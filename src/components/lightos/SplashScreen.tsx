@@ -45,6 +45,17 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     };
   }, [phase, logoFadeMs, onDone]);
 
+  if (!ready) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-black text-foreground grid place-items-center">
+        <div className="flex items-center gap-3 font-mono text-[12px] text-emerald-400/80">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          Preparing LightOS…
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`fixed inset-0 z-[9999] bg-black text-foreground transition-opacity duration-500 ${
