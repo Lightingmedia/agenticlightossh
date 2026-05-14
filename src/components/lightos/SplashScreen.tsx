@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/lightrail-logo-splash.jpg";
-import { usePreferences } from "./Preferences";
+import { usePreferencesOptional } from "./Preferences";
 
 const BOOT_LINES = [
   "[  OK  ] Started LightRail Photonic Fabric Controller.",
