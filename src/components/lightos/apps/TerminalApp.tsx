@@ -99,8 +99,10 @@ const builtins: Record<string, Builtin> = {
     stdout:
       "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
       "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
-      "          fetch curl exit true false\n" +
+      "          os fetch curl exit true false\n" +
       "Network:  ifconfig ip ping netstat ss route dig nslookup traceroute host arp\n" +
+      "OS:       os open <app> | os list | os shutdown\n" +
+      "Control:  lightctl mlops {start|stop|train|canary} | lightctl agentic run <agent>\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
