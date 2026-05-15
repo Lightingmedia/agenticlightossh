@@ -155,28 +155,29 @@ export function TokenFactoryApp() {
     const m = MODELS.find((x) => x.id === model) ?? MODELS[0];
     return (
       <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
-        <div className="px-6 py-3 border-b border-border/40 bg-card/30 flex items-center justify-between">
+        <div className="px-6 py-3 border-b border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setView("start")}
-              className="text-xs text-foreground/60 hover:text-primary"
+              className="text-[10px] font-mono uppercase tracking-wider text-foreground/60 hover:text-[hsl(var(--lightrail))]"
             >
-              ← Get started
+              ← get_started
             </button>
             <div className="h-4 w-px bg-border/60" />
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="bg-background/60 border border-border/40 rounded px-2 py-1 text-xs"
+              className="bg-background border border-[hsl(var(--terminal-border))] rounded px-2 py-1 text-[11px] font-mono text-[hsl(var(--lightrail))]"
             >
               {MODELS.map((mm) => <option key={mm.id} value={mm.id}>{mm.name}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-mono">
-            <span className="text-foreground/50">Live TPS</span>
-            <span className="text-emerald-400 font-bold tabular-nums">{tps || "—"}</span>
-            <span className="text-foreground/50">·</span>
+            <span className="text-foreground/50 uppercase tracking-wider">tps</span>
+            <span className="text-[hsl(var(--lightrail))] font-bold tabular-nums glow-text">{tps || "—"}</span>
+            <span className="text-foreground/30">·</span>
             <span className="text-foreground/50">{m.name}</span>
+            <span className="w-2 h-2 rounded-full bg-[hsl(var(--lightrail))] animate-pulse glow-primary" />
           </div>
         </div>
 
