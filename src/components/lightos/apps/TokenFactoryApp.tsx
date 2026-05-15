@@ -355,29 +355,29 @@ export function TokenFactoryApp() {
 
 function ModelCard({ m, onTry }: { m: Model; onTry: () => void }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/40 p-5 flex flex-col">
+    <div className="rounded-lg border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-5 flex flex-col hover:border-[hsl(var(--lightrail))]/50 transition group">
       <div className="mb-2">
-        <div className="text-base font-bold">{m.name}</div>
-        <div className="inline-block mt-1 font-mono text-[10px] text-primary bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5">
+        <div className="text-base font-bold font-mono group-hover:text-[hsl(var(--lightrail))] transition">{m.name}</div>
+        <div className="inline-block mt-1 font-mono text-[10px] text-[hsl(var(--lightrail))] bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/30 rounded px-1.5 py-0.5">
           {m.id}
         </div>
       </div>
       <p className="text-xs text-foreground/70 leading-relaxed mb-4 line-clamp-4">{m.desc}</p>
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4 pt-3 border-t border-border/30">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-foreground/50">Input</div>
-          <div className="text-base font-bold tabular-nums">${m.input.toFixed(2)}</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50">input</div>
+          <div className="text-base font-bold font-mono tabular-nums text-[hsl(var(--lightrail))]">${m.input.toFixed(2)}</div>
           <div className="text-[10px] text-foreground/50">per 1M tokens</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-foreground/50">Output</div>
-          <div className="text-base font-bold tabular-nums">${m.output.toFixed(2)}</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50">output</div>
+          <div className="text-base font-bold font-mono tabular-nums text-[hsl(var(--lightrail))]">${m.output.toFixed(2)}</div>
           <div className="text-[10px] text-foreground/50">per 1M tokens</div>
         </div>
       </div>
       <button
         onClick={onTry}
-        className="mt-auto flex items-center gap-1.5 bg-primary text-primary-foreground rounded px-3 py-2 text-[11px] uppercase tracking-wider font-bold hover:opacity-90 w-fit"
+        className="mt-auto flex items-center gap-1.5 bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] rounded px-3 py-2 text-[11px] font-mono uppercase tracking-wider font-bold hover:opacity-90 w-fit hover:glow-primary transition"
       >
         <ArrowRight className="w-3 h-3" />
         Try in Playground
