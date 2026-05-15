@@ -180,46 +180,47 @@ export function TokenFactoryApp() {
           </div>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 grid-pattern">
           {messages.length === 0 && (
             <div className="h-full grid place-items-center text-center text-foreground/40 text-sm">
               <div>
-                <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary/40" />
-                <div>Send a prompt to mint your first tokens</div>
+                <Zap className="w-8 h-8 mx-auto mb-2 text-[hsl(var(--lightrail))] glow-text" />
+                <div className="font-mono uppercase tracking-wider text-xs text-[hsl(var(--lightrail))]">// awaiting prompt</div>
                 <div className="mt-1 text-[11px]">Streamed from LightOS · powered by wafer-scale silicon</div>
               </div>
             </div>
           )}
           {messages.map((mm, i) => (
             <div key={i} className={`flex ${mm.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+              <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm whitespace-pre-wrap font-mono ${
                 mm.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card border border-border/40 text-foreground/90"
+                  ? "bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/40 text-foreground"
+                  : "bg-[hsl(var(--terminal-bg))] border border-[hsl(var(--terminal-border))] text-foreground/90"
               }`}>
-                {mm.content || (streaming && i === messages.length - 1 ? <span className="inline-block w-2 h-4 bg-foreground/60 animate-pulse" /> : null)}
+                {mm.content || (streaming && i === messages.length - 1 ? <span className="inline-block w-2 h-4 bg-[hsl(var(--lightrail))] animate-pulse" /> : null)}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="p-4 border-t border-border/40 bg-card/20">
-          <div className="flex gap-2">
+        <div className="p-4 border-t border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))]">
+          <div className="flex gap-2 items-center">
+            <span className="font-mono text-xs text-[hsl(var(--lightrail))]">lightos&gt;</span>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               disabled={streaming}
-              placeholder="Ask anything…"
-              className="flex-1 bg-background/60 border border-border/40 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary/60"
+              placeholder="prompt --stream"
+              className="flex-1 bg-transparent border-none outline-none text-sm font-mono text-foreground placeholder:text-foreground/30"
             />
             <button
               onClick={send}
               disabled={streaming || !input.trim()}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 disabled:opacity-40 transition"
+              className="flex items-center gap-1.5 px-4 py-2 rounded bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] text-xs font-mono font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-40 transition glow-primary"
             >
-              <Send className="w-3.5 h-3.5" />
-              {streaming ? "Streaming…" : "Send"}
+              <Send className="w-3 h-3" />
+              {streaming ? "Streaming…" : "Run"}
             </button>
           </div>
         </div>
