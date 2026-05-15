@@ -38,6 +38,19 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   route: { title: "Application", w: 1180, h: 720 },
 };
 
+const FULL_PAGE_APP_ROUTES: Partial<Record<AppId, string>> = {
+  control: "/dashboard",
+  fleet: "/dashboard/clusters",
+  cluster: "/dashboard/clusters",
+  browser: "/docs",
+  agentic: "/dashboard/agents",
+  mlops: "/dashboard/studio",
+  datacenter: "/dashboard/clusters",
+  tokenfactory: "/pricing",
+  inference: "/dashboard/inference",
+  cloud: "/dashboard/clusters",
+};
+
 let zCounter = 10;
 
 export function WindowManagerProvider({ children }: { children: ReactNode }) {
@@ -53,6 +66,12 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openApp = useCallback((appId: AppId) => {
+    const fullPageRoute = FULL_PAGE_APP_ROUTES[appId];
+    if (fullPageRoute && typeof window !== "undefined") {
+      window.location.assign(fullPageRoute);
+      return;
+    }
+
     setWindows((ws) => {
       const existing = ws.find((w) => w.appId === appId);
       if (existing && appId !== "route") {
@@ -85,27 +104,9 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
 
   const openRoute = useCallback(
     (url: string, title?: string, opts?: OpenRouteOpts) => {
-      setWindows((ws) => {
-        const meta = APP_META.route;
-        const id = `route-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-        zCounter += 1;
-        const offset = ws.length * 28;
-        const newWin: WindowState = {
-          id,
-          appId: "route",
-          title: title || url,
-          x: 100 + offset,
-          y: 70 + offset,
-          width: opts?.width ?? meta.w,
-          height: opts?.height ?? meta.h,
-          zIndex: zCounter,
-          minimized: false,
-          maximized: false,
-          payload: { url },
-        };
-        setActiveId(id);
-        return [...ws, newWin];
-      });
+      void title;
+      void opts;
+      if (typeof window !== "undefined") window.location.assign(url);
     },
     [],
   );
