@@ -126,7 +126,12 @@ export function DesktopIcons() {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="overflow-hidden" style={{ width: (tileW + gapX) * 4 }}>
+          <div
+            className="overflow-hidden touch-pan-y"
+            style={{ width: (tileW + gapX) * 4 }}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             <div
               className="flex transition-transform duration-500 ease-out"
               style={{ transform: `translateX(-${page * 100}%)` }}
