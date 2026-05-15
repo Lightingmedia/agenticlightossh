@@ -222,7 +222,7 @@ export function DesktopIcons() {
   const launch = (app: DesktopApp) => {
     sfx.open();
     if (app.kind === "app") openApp(app.id);
-    else openRoute(app.url, app.label, { width: 1200, height: 760 });
+    else window.location.assign(app.url);
   };
 
   return (
