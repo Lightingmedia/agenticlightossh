@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Check, Send, ArrowRight, Sparkles } from "lucide-react";
+import { Copy, Check, Send, ArrowRight, Zap, Cpu, Activity, Terminal as TerminalIcon } from "lucide-react";
 
 type Model = {
   id: string;
