@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Check, Send, ArrowRight, Sparkles } from "lucide-react";
+import { Copy, Check, Send, ArrowRight, Zap, Cpu, Activity, Terminal as TerminalIcon } from "lucide-react";
 
 type Model = {
   id: string;
@@ -155,71 +155,73 @@ export function TokenFactoryApp() {
     const m = MODELS.find((x) => x.id === model) ?? MODELS[0];
     return (
       <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
-        <div className="px-6 py-3 border-b border-border/40 bg-card/30 flex items-center justify-between">
+        <div className="px-6 py-3 border-b border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setView("start")}
-              className="text-xs text-foreground/60 hover:text-primary"
+              className="text-[10px] font-mono uppercase tracking-wider text-foreground/60 hover:text-[hsl(var(--lightrail))]"
             >
-              ← Get started
+              ← get_started
             </button>
             <div className="h-4 w-px bg-border/60" />
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="bg-background/60 border border-border/40 rounded px-2 py-1 text-xs"
+              className="bg-background border border-[hsl(var(--terminal-border))] rounded px-2 py-1 text-[11px] font-mono text-[hsl(var(--lightrail))]"
             >
               {MODELS.map((mm) => <option key={mm.id} value={mm.id}>{mm.name}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-mono">
-            <span className="text-foreground/50">Live TPS</span>
-            <span className="text-emerald-400 font-bold tabular-nums">{tps || "—"}</span>
-            <span className="text-foreground/50">·</span>
+            <span className="text-foreground/50 uppercase tracking-wider">tps</span>
+            <span className="text-[hsl(var(--lightrail))] font-bold tabular-nums glow-text">{tps || "—"}</span>
+            <span className="text-foreground/30">·</span>
             <span className="text-foreground/50">{m.name}</span>
+            <span className="w-2 h-2 rounded-full bg-[hsl(var(--lightrail))] animate-pulse glow-primary" />
           </div>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 grid-pattern">
           {messages.length === 0 && (
             <div className="h-full grid place-items-center text-center text-foreground/40 text-sm">
               <div>
-                <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary/40" />
-                <div>Send a prompt to mint your first tokens</div>
+                <Zap className="w-8 h-8 mx-auto mb-2 text-[hsl(var(--lightrail))] glow-text" />
+                <div className="font-mono uppercase tracking-wider text-xs text-[hsl(var(--lightrail))]">// awaiting prompt</div>
                 <div className="mt-1 text-[11px]">Streamed from LightOS · powered by wafer-scale silicon</div>
               </div>
             </div>
           )}
           {messages.map((mm, i) => (
             <div key={i} className={`flex ${mm.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+              <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm whitespace-pre-wrap font-mono ${
                 mm.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card border border-border/40 text-foreground/90"
+                  ? "bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/40 text-foreground"
+                  : "bg-[hsl(var(--terminal-bg))] border border-[hsl(var(--terminal-border))] text-foreground/90"
               }`}>
-                {mm.content || (streaming && i === messages.length - 1 ? <span className="inline-block w-2 h-4 bg-foreground/60 animate-pulse" /> : null)}
+                {mm.content || (streaming && i === messages.length - 1 ? <span className="inline-block w-2 h-4 bg-[hsl(var(--lightrail))] animate-pulse" /> : null)}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="p-4 border-t border-border/40 bg-card/20">
-          <div className="flex gap-2">
+        <div className="p-4 border-t border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))]">
+          <div className="flex gap-2 items-center">
+            <span className="font-mono text-xs text-[hsl(var(--lightrail))]">lightos&gt;</span>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               disabled={streaming}
-              placeholder="Ask anything…"
-              className="flex-1 bg-background/60 border border-border/40 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary/60"
+              placeholder="prompt --stream"
+              className="flex-1 bg-transparent border-none outline-none text-sm font-mono text-foreground placeholder:text-foreground/30"
             />
             <button
               onClick={send}
               disabled={streaming || !input.trim()}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 disabled:opacity-40 transition"
+              className="flex items-center gap-1.5 px-4 py-2 rounded bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] text-xs font-mono font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-40 transition glow-primary"
             >
-              <Send className="w-3.5 h-3.5" />
-              {streaming ? "Streaming…" : "Send"}
+              <Send className="w-3 h-3" />
+              {streaming ? "Streaming…" : "Run"}
             </button>
           </div>
         </div>
@@ -227,64 +229,78 @@ export function TokenFactoryApp() {
     );
   }
 
-  // Start view (Cerebras-style)
+  // Start view (LightOS-branded)
   return (
-    <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto">
-      <div className="max-w-5xl mx-auto w-full px-8 py-8">
+    <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto relative">
+      <div className="absolute inset-0 grid-pattern opacity-40 pointer-events-none" />
+      <div className="max-w-5xl mx-auto w-full px-8 py-8 relative">
         {/* Title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">
-            Get started with <span className="text-primary">LightOS Inference</span>
-          </h1>
-          <p className="text-sm text-foreground/60 mt-1">
-            Grab your API key and start building for free — cheaper inference, wafer-scale speed.
-          </p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/40 grid place-items-center glow-primary">
+            <Zap className="w-5 h-5 text-[hsl(var(--lightrail))]" />
+          </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--lightrail))]">// token factory · v1.0</div>
+            <h1 className="text-2xl font-bold font-mono">
+              LightOS <span className="text-gradient">Inference</span>
+            </h1>
+          </div>
         </div>
+        <p className="text-sm text-foreground/60 mb-8 max-w-2xl">
+          Mint tokens at wafer-scale speed. Photonic-routed inference, billed by the million.
+          Grab your key — start streaming in seconds.
+        </p>
 
         {/* Usage + API key card */}
-        <div className="rounded-2xl border border-border/50 bg-card/40 p-1 mb-10">
+        <div className="rounded-xl border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-1 mb-10">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-1">
             {/* Usage */}
-            <div className="rounded-xl bg-card/60 p-6">
+            <div className="rounded-lg bg-card/40 p-6 border border-border/30">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-bold">Usage</h3>
-                <span className="text-[11px] text-foreground/50 border border-border/50 rounded px-2 py-0.5">All models ▾</span>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+                  <h3 className="text-sm font-mono uppercase tracking-wider">Usage</h3>
+                </div>
+                <span className="text-[10px] font-mono text-foreground/50 border border-border/50 rounded px-2 py-0.5">all_models ▾</span>
               </div>
               <div className="space-y-5">
                 <div>
-                  <div className="text-[11px] text-foreground/50 mb-1">Tokens used (last month)</div>
-                  <div className="text-3xl font-bold tabular-nums">{tokensUsed.toLocaleString()}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50 mb-1">tokens_used / 30d</div>
+                  <div className="text-3xl font-bold tabular-nums font-mono text-[hsl(var(--lightrail))]">{tokensUsed.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-foreground/50 mb-1">API calls (last month)</div>
-                  <div className="text-3xl font-bold tabular-nums">{apiCalls.toLocaleString()}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50 mb-1">api_calls / 30d</div>
+                  <div className="text-3xl font-bold tabular-nums font-mono">{apiCalls.toLocaleString()}</div>
                 </div>
               </div>
               <div className="mt-6 text-right">
-                <button className="text-[11px] uppercase tracking-wider text-primary hover:underline">Explore plans</button>
+                <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">$ explore_plans →</button>
               </div>
             </div>
 
             {/* API key */}
-            <div className="rounded-xl bg-card/60 p-6 flex flex-col">
-              <h3 className="text-base font-bold mb-3">API key</h3>
+            <div className="rounded-lg bg-card/40 p-6 flex flex-col border border-border/30">
+              <div className="flex items-center gap-2 mb-3">
+                <TerminalIcon className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+                <h3 className="text-sm font-mono uppercase tracking-wider">API Key</h3>
+              </div>
               <div className="flex-1 grid place-items-center my-3">
-                <div className="w-28 h-28 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/40 grid place-items-center">
-                  <Sparkles className="w-10 h-10 text-primary" />
+                <div className="w-28 h-28 rounded-xl bg-gradient-to-br from-[hsl(var(--lightrail))]/30 to-[hsl(var(--lightrail))]/5 border border-[hsl(var(--lightrail))]/40 grid place-items-center glow-primary">
+                  <Zap className="w-10 h-10 text-[hsl(var(--lightrail))]" />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="font-mono text-[11px] bg-background/60 border border-border/40 rounded px-2 py-1.5 text-center text-foreground/80 select-all">
-                  {showKey ? fakeKey : "csk-•••••••••••••••••••••"}
+                <div className="font-mono text-[11px] bg-background border border-[hsl(var(--terminal-border))] rounded px-2 py-1.5 text-center text-[hsl(var(--lightrail))] select-all">
+                  {showKey ? fakeKey : "lro-•••••••••••••••••••••"}
                 </div>
                 <button
                   onClick={() => { setShowKey(true); copyKey(); }}
-                  className="w-full flex items-center justify-center gap-1.5 bg-primary text-primary-foreground rounded px-3 py-2 text-[11px] uppercase tracking-wider font-bold hover:opacity-90"
+                  className="w-full flex items-center justify-center gap-1.5 bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] rounded px-3 py-2 text-[11px] font-mono uppercase tracking-wider font-bold hover:opacity-90 glow-primary transition"
                 >
-                  {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy API Key</>}
+                  {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Key</>}
                 </button>
-                <button className="w-full text-[10px] uppercase tracking-wider text-foreground/50 hover:text-primary py-1">
-                  View all API keys
+                <button className="w-full text-[10px] font-mono uppercase tracking-wider text-foreground/50 hover:text-[hsl(var(--lightrail))] py-1">
+                  view_all_keys
                 </button>
               </div>
             </div>
@@ -294,8 +310,11 @@ export function TokenFactoryApp() {
         {/* Models */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Models</h2>
-            <button className="text-xs text-primary hover:underline">Browse all</button>
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+              <h2 className="text-lg font-mono uppercase tracking-wider">Models</h2>
+            </div>
+            <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">browse_all →</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {MODELS.slice(0, 3).map((m) => (
@@ -307,19 +326,22 @@ export function TokenFactoryApp() {
         {/* Dedicated Endpoints */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold">Dedicated Endpoints</h2>
-            <button className="text-xs text-primary hover:underline">View All Models</button>
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+              <h2 className="text-lg font-mono uppercase tracking-wider">Dedicated Endpoints</h2>
+            </div>
+            <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">view_all →</button>
           </div>
           <p className="text-xs text-foreground/60 mb-4 max-w-3xl">
-            Private, provisioned inference instances reserved exclusively for your organization. Get predictable
-            performance and deploy custom fine-tuned weights for production workloads.
+            Private, provisioned inference instances reserved exclusively for your organization.
+            Predictable performance · custom fine-tuned weights · production SLAs.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {DEDICATED.map((m) => (
-              <div key={m.id} className="rounded-xl border border-border/50 bg-card/40 p-5">
+              <div key={m.id} className="rounded-lg border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-5 hover:border-[hsl(var(--lightrail))]/40 transition">
                 <div className="mb-2">
-                  <div className="text-base font-bold">{m.name}</div>
-                  <div className="text-[11px] text-foreground/50">{m.vendor}</div>
+                  <div className="text-base font-bold font-mono">{m.name}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))]/80">{m.vendor}</div>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed line-clamp-3">{m.desc}</p>
               </div>
@@ -333,29 +355,29 @@ export function TokenFactoryApp() {
 
 function ModelCard({ m, onTry }: { m: Model; onTry: () => void }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/40 p-5 flex flex-col">
+    <div className="rounded-lg border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-5 flex flex-col hover:border-[hsl(var(--lightrail))]/50 transition group">
       <div className="mb-2">
-        <div className="text-base font-bold">{m.name}</div>
-        <div className="inline-block mt-1 font-mono text-[10px] text-primary bg-primary/10 border border-primary/30 rounded px-1.5 py-0.5">
+        <div className="text-base font-bold font-mono group-hover:text-[hsl(var(--lightrail))] transition">{m.name}</div>
+        <div className="inline-block mt-1 font-mono text-[10px] text-[hsl(var(--lightrail))] bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/30 rounded px-1.5 py-0.5">
           {m.id}
         </div>
       </div>
       <p className="text-xs text-foreground/70 leading-relaxed mb-4 line-clamp-4">{m.desc}</p>
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-4 pt-3 border-t border-border/30">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-foreground/50">Input</div>
-          <div className="text-base font-bold tabular-nums">${m.input.toFixed(2)}</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50">input</div>
+          <div className="text-base font-bold font-mono tabular-nums text-[hsl(var(--lightrail))]">${m.input.toFixed(2)}</div>
           <div className="text-[10px] text-foreground/50">per 1M tokens</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-foreground/50">Output</div>
-          <div className="text-base font-bold tabular-nums">${m.output.toFixed(2)}</div>
+          <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50">output</div>
+          <div className="text-base font-bold font-mono tabular-nums text-[hsl(var(--lightrail))]">${m.output.toFixed(2)}</div>
           <div className="text-[10px] text-foreground/50">per 1M tokens</div>
         </div>
       </div>
       <button
         onClick={onTry}
-        className="mt-auto flex items-center gap-1.5 bg-primary text-primary-foreground rounded px-3 py-2 text-[11px] uppercase tracking-wider font-bold hover:opacity-90 w-fit"
+        className="mt-auto flex items-center gap-1.5 bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] rounded px-3 py-2 text-[11px] font-mono uppercase tracking-wider font-bold hover:opacity-90 w-fit hover:glow-primary transition"
       >
         <ArrowRight className="w-3 h-3" />
         Try in Playground
