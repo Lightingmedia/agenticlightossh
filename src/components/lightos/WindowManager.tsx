@@ -47,7 +47,6 @@ const FULL_PAGE_APP_ROUTES: Partial<Record<AppId, string>> = {
   mlops: "/dashboard/studio",
   datacenter: "/dashboard/clusters",
   tokenfactory: "/pricing",
-  inference: "/dashboard/inference",
   cloud: "/dashboard/clusters",
 };
 
