@@ -108,8 +108,8 @@ export function TopPanel() {
                     <button
                       key={r.url}
                       onClick={() => {
-                        openRoute(r.url, r.label);
                         setOpen(false);
+                        window.location.assign(r.url);
                       }}
                       className="text-left px-2 py-1 rounded text-xs text-foreground/80 hover:bg-foreground/10 hover:text-primary truncate"
                       title={r.url}
