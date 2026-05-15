@@ -4,7 +4,7 @@ import {
   Sparkles, ScrollText, Wand2, Rocket, Eye, Server, Brain, GraduationCap, Gauge, FileCode2,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWindowManager } from "./WindowManager";
 import { usePreferences, useReducedMotion } from "./Preferences";
 import { sfx } from "./sfx";
