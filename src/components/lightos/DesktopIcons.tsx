@@ -55,11 +55,22 @@ const PAGES: DesktopApp[][] = [
   ],
 ];
 
+const PAGE_KEY = "lightos.desktop.page";
+
 export function DesktopIcons() {
   const { openApp, openRoute } = useWindowManager();
   const { iconSize, density } = usePreferences();
   const reduced = useReducedMotion();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const saved = parseInt(localStorage.getItem(PAGE_KEY) ?? "0", 10);
+    return Number.isFinite(saved) && saved >= 0 && saved < PAGES.length ? saved : 0;
+  });
+
+  // Persist page across refreshes / logins
+  useEffect(() => {
+    try { localStorage.setItem(PAGE_KEY, String(page)); } catch { /* ignore */ }
+  }, [page]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -70,6 +81,24 @@ export function DesktopIcons() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Touch swipe gestures
+  const touch = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touch.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touch.current.x;
+    const dy = t.clientY - touch.current.y;
+    const dt = Date.now() - touch.current.t;
+    touch.current = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2 || dt > 600) return;
+    if (dx < 0) setPage((p) => Math.min(PAGES.length - 1, p + 1));
+    else setPage((p) => Math.max(0, p - 1));
+  };
 
   const tileW = iconSize + 32;
   const gapX = density === "compact" ? 12 : 28;
