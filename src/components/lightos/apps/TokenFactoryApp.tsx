@@ -228,64 +228,78 @@ export function TokenFactoryApp() {
     );
   }
 
-  // Start view (Cerebras-style)
+  // Start view (LightOS-branded)
   return (
-    <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto">
-      <div className="max-w-5xl mx-auto w-full px-8 py-8">
+    <div className="flex flex-col h-full bg-background text-foreground overflow-y-auto relative">
+      <div className="absolute inset-0 grid-pattern opacity-40 pointer-events-none" />
+      <div className="max-w-5xl mx-auto w-full px-8 py-8 relative">
         {/* Title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">
-            Get started with <span className="text-primary">LightOS Inference</span>
-          </h1>
-          <p className="text-sm text-foreground/60 mt-1">
-            Grab your API key and start building for free — cheaper inference, wafer-scale speed.
-          </p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[hsl(var(--lightrail))]/10 border border-[hsl(var(--lightrail))]/40 grid place-items-center glow-primary">
+            <Zap className="w-5 h-5 text-[hsl(var(--lightrail))]" />
+          </div>
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--lightrail))]">// token factory · v1.0</div>
+            <h1 className="text-2xl font-bold font-mono">
+              LightOS <span className="text-gradient">Inference</span>
+            </h1>
+          </div>
         </div>
+        <p className="text-sm text-foreground/60 mb-8 max-w-2xl">
+          Mint tokens at wafer-scale speed. Photonic-routed inference, billed by the million.
+          Grab your key — start streaming in seconds.
+        </p>
 
         {/* Usage + API key card */}
-        <div className="rounded-2xl border border-border/50 bg-card/40 p-1 mb-10">
+        <div className="rounded-xl border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-1 mb-10">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-1">
             {/* Usage */}
-            <div className="rounded-xl bg-card/60 p-6">
+            <div className="rounded-lg bg-card/40 p-6 border border-border/30">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-bold">Usage</h3>
-                <span className="text-[11px] text-foreground/50 border border-border/50 rounded px-2 py-0.5">All models ▾</span>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+                  <h3 className="text-sm font-mono uppercase tracking-wider">Usage</h3>
+                </div>
+                <span className="text-[10px] font-mono text-foreground/50 border border-border/50 rounded px-2 py-0.5">all_models ▾</span>
               </div>
               <div className="space-y-5">
                 <div>
-                  <div className="text-[11px] text-foreground/50 mb-1">Tokens used (last month)</div>
-                  <div className="text-3xl font-bold tabular-nums">{tokensUsed.toLocaleString()}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50 mb-1">tokens_used / 30d</div>
+                  <div className="text-3xl font-bold tabular-nums font-mono text-[hsl(var(--lightrail))]">{tokensUsed.toLocaleString()}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-foreground/50 mb-1">API calls (last month)</div>
-                  <div className="text-3xl font-bold tabular-nums">{apiCalls.toLocaleString()}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50 mb-1">api_calls / 30d</div>
+                  <div className="text-3xl font-bold tabular-nums font-mono">{apiCalls.toLocaleString()}</div>
                 </div>
               </div>
               <div className="mt-6 text-right">
-                <button className="text-[11px] uppercase tracking-wider text-primary hover:underline">Explore plans</button>
+                <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">$ explore_plans →</button>
               </div>
             </div>
 
             {/* API key */}
-            <div className="rounded-xl bg-card/60 p-6 flex flex-col">
-              <h3 className="text-base font-bold mb-3">API key</h3>
+            <div className="rounded-lg bg-card/40 p-6 flex flex-col border border-border/30">
+              <div className="flex items-center gap-2 mb-3">
+                <TerminalIcon className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+                <h3 className="text-sm font-mono uppercase tracking-wider">API Key</h3>
+              </div>
               <div className="flex-1 grid place-items-center my-3">
-                <div className="w-28 h-28 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/40 grid place-items-center">
-                  <Sparkles className="w-10 h-10 text-primary" />
+                <div className="w-28 h-28 rounded-xl bg-gradient-to-br from-[hsl(var(--lightrail))]/30 to-[hsl(var(--lightrail))]/5 border border-[hsl(var(--lightrail))]/40 grid place-items-center glow-primary">
+                  <Zap className="w-10 h-10 text-[hsl(var(--lightrail))]" />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="font-mono text-[11px] bg-background/60 border border-border/40 rounded px-2 py-1.5 text-center text-foreground/80 select-all">
-                  {showKey ? fakeKey : "csk-•••••••••••••••••••••"}
+                <div className="font-mono text-[11px] bg-background border border-[hsl(var(--terminal-border))] rounded px-2 py-1.5 text-center text-[hsl(var(--lightrail))] select-all">
+                  {showKey ? fakeKey : "lro-•••••••••••••••••••••"}
                 </div>
                 <button
                   onClick={() => { setShowKey(true); copyKey(); }}
-                  className="w-full flex items-center justify-center gap-1.5 bg-primary text-primary-foreground rounded px-3 py-2 text-[11px] uppercase tracking-wider font-bold hover:opacity-90"
+                  className="w-full flex items-center justify-center gap-1.5 bg-[hsl(var(--lightrail))] text-[hsl(var(--lightrail-foreground))] rounded px-3 py-2 text-[11px] font-mono uppercase tracking-wider font-bold hover:opacity-90 glow-primary transition"
                 >
-                  {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy API Key</>}
+                  {copied ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Key</>}
                 </button>
-                <button className="w-full text-[10px] uppercase tracking-wider text-foreground/50 hover:text-primary py-1">
-                  View all API keys
+                <button className="w-full text-[10px] font-mono uppercase tracking-wider text-foreground/50 hover:text-[hsl(var(--lightrail))] py-1">
+                  view_all_keys
                 </button>
               </div>
             </div>
@@ -295,8 +309,11 @@ export function TokenFactoryApp() {
         {/* Models */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Models</h2>
-            <button className="text-xs text-primary hover:underline">Browse all</button>
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+              <h2 className="text-lg font-mono uppercase tracking-wider">Models</h2>
+            </div>
+            <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">browse_all →</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {MODELS.slice(0, 3).map((m) => (
@@ -308,19 +325,22 @@ export function TokenFactoryApp() {
         {/* Dedicated Endpoints */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold">Dedicated Endpoints</h2>
-            <button className="text-xs text-primary hover:underline">View All Models</button>
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[hsl(var(--lightrail))]" />
+              <h2 className="text-lg font-mono uppercase tracking-wider">Dedicated Endpoints</h2>
+            </div>
+            <button className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))] hover:underline">view_all →</button>
           </div>
           <p className="text-xs text-foreground/60 mb-4 max-w-3xl">
-            Private, provisioned inference instances reserved exclusively for your organization. Get predictable
-            performance and deploy custom fine-tuned weights for production workloads.
+            Private, provisioned inference instances reserved exclusively for your organization.
+            Predictable performance · custom fine-tuned weights · production SLAs.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {DEDICATED.map((m) => (
-              <div key={m.id} className="rounded-xl border border-border/50 bg-card/40 p-5">
+              <div key={m.id} className="rounded-lg border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-5 hover:border-[hsl(var(--lightrail))]/40 transition">
                 <div className="mb-2">
-                  <div className="text-base font-bold">{m.name}</div>
-                  <div className="text-[11px] text-foreground/50">{m.vendor}</div>
+                  <div className="text-base font-bold font-mono">{m.name}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[hsl(var(--lightrail))]/80">{m.vendor}</div>
                 </div>
                 <p className="text-xs text-foreground/70 leading-relaxed line-clamp-3">{m.desc}</p>
               </div>
