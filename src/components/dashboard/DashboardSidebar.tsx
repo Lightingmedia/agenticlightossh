@@ -25,7 +25,7 @@ import {
   Workflow,
   Server,
   FileText,
-  CreditCard,
+  BatteryCharging,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,7 @@ const monitoringItems = [
   { icon: Cpu, label: "GPU Monitor", path: "/dashboard/gpu" },
   { icon: Activity, label: "Telemetry", path: "/dashboard/telemetry" },
   { icon: Thermometer, label: "Thermal Control", path: "/dashboard/thermal" },
+  { icon: BatteryCharging, label: "Power Governor", path: "/dashboard/governor" },
   { icon: Zap, label: "Inference", path: "/dashboard/inference" },
   { icon: Server, label: "LLM Serving", path: "/dashboard/llm-serving" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },
@@ -69,23 +70,30 @@ const DashboardSidebar = () => {
       <Link
         to={item.path}
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all duration-300 group relative overflow-hidden",
           isActive
-            ? "bg-primary/15 text-primary"
-            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            ? "bg-gradient-to-r from-primary/12 to-primary/5 border-primary/25 text-primary shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),0_0_14px_rgba(16,185,129,0.12)]"
+            : "border-transparent text-muted-foreground hover:bg-primary/5 hover:border-primary/10 hover:text-foreground hover:shadow-[inset_0_1px_1px_rgba(16,185,129,0.06)]"
         )}
       >
+        {/* Active left-edge accent bar */}
+        {isActive && (
+          <span className="sidebar-active-indicator" />
+        )}
+
         <item.icon
           className={cn(
-            "w-5 h-5 flex-shrink-0 transition-colors",
-            isActive ? "text-primary" : "group-hover:text-foreground"
+            "w-4 h-4 flex-shrink-0 transition-all duration-300",
+            isActive
+              ? "text-primary scale-110 drop-shadow-[0_0_6px_rgba(16,185,129,0.55)]"
+              : "group-hover:text-foreground group-hover:scale-105"
           )}
         />
         {!collapsed && (
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="font-medium text-sm truncate"
+            className="font-mono font-medium text-[11px] truncate tracking-widest uppercase"
           >
             {item.label}
           </motion.span>
@@ -93,7 +101,7 @@ const DashboardSidebar = () => {
         {isActive && !collapsed && (
           <motion.div
             layoutId="activeNav"
-            className="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+            className="ml-auto w-1.5 h-1.5 rounded-full bg-primary led-glow-green flex-shrink-0"
           />
         )}
       </Link>
@@ -105,73 +113,118 @@ const DashboardSidebar = () => {
       initial={false}
       animate={{ width: collapsed ? 72 : 256 }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-      className="fixed left-0 top-0 h-screen bg-card border-r border-border z-50 flex flex-col"
+      className="fixed left-0 top-0 h-screen z-50 flex flex-col"
+      style={{
+        background: "linear-gradient(180deg, rgba(6,10,18,0.97) 0%, rgba(8,14,24,0.95) 50%, rgba(6,10,18,0.97) 100%)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderRight: "1px solid rgba(16,185,129,0.12)",
+        boxShadow: "4px 0 32px rgba(0,0,0,0.7), inset -1px 0 0 rgba(16,185,129,0.06)",
+      }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-border">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-glow-secondary flex items-center justify-center flex-shrink-0">
-            <Layers className="w-5 h-5 text-primary-foreground" />
+      {/* Top gradient accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.4), rgba(56,189,248,0.25), transparent)" }} />
+
+      {/* Logo Panel */}
+      <div
+        className="h-16 flex items-center px-4 relative overflow-hidden"
+        style={{ borderBottom: "1px solid rgba(16,185,129,0.1)" }}
+      >
+        {/* Subtle bg glow behind logo */}
+        <div className="absolute left-0 top-0 w-full h-full pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(16,185,129,0.06) 0%, transparent 70%)" }} />
+
+        <Link to="/" className="flex items-center gap-3 relative z-10">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(56,189,248,0.12) 100%)",
+              border: "1px solid rgba(16,185,129,0.3)",
+              boxShadow: "0 0 16px rgba(16,185,129,0.2), inset 0 1px 1px rgba(255,255,255,0.06)",
+            }}
+          >
+            <Layers className="w-4 h-4 text-primary drop-shadow-[0_0_4px_rgba(16,185,129,0.7)]" />
           </div>
           {!collapsed && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="font-mono font-bold text-lg text-foreground"
-            >
-              LightOS
-            </motion.span>
+            <div className="flex flex-col">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-mono font-bold text-[14px] text-foreground tracking-wider leading-none flex items-center gap-2"
+              >
+                LightOS
+                <span className="w-1.5 h-1.5 rounded-full bg-primary led-glow-green flex-shrink-0" />
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-mono text-[8px] mt-1 leading-none tracking-[0.18em] uppercase"
+                style={{ color: "rgba(16,185,129,0.45)" }}
+              >
+                v1.0.4 // HYPERVISOR
+              </motion.span>
+            </div>
           )}
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto space-y-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-primary/10">
+
         {/* Monitoring Section */}
-        {!collapsed && (
-          <div className="px-3 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
-            Monitoring
-          </div>
-        )}
-        <ul className="space-y-1">
-          {monitoringItems.map((item) => (
-            <li key={item.path}>
-              <NavItem item={item} />
-            </li>
-          ))}
-        </ul>
+        <div>
+          {!collapsed && (
+            <div className="px-3 mb-2 flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full bg-primary/50 led-glow-green" />
+              <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.2em]">Monitoring</span>
+              <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(16,185,129,0.15), transparent)" }} />
+            </div>
+          )}
+          <ul className="space-y-0.5">
+            {monitoringItems.map((item) => (
+              <li key={item.path}>
+                <NavItem item={item} />
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* LightOS Section */}
-        {!collapsed && (
-          <div className="px-3 mt-6 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
-            LightOS Alpha
-          </div>
-        )}
-        <ul className="space-y-1">
-          {lightosItems.map((item) => (
-            <li key={item.path}>
-              <NavItem item={item} />
-            </li>
-          ))}
-        </ul>
+        <div>
+          {!collapsed && (
+            <div className="px-3 mb-2 flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full bg-blue-400/50 led-glow-blue" />
+              <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.2em]">System Alpha</span>
+              <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(56,189,248,0.15), transparent)" }} />
+            </div>
+          )}
+          <ul className="space-y-0.5">
+            {lightosItems.map((item) => (
+              <li key={item.path}>
+                <NavItem item={item} />
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Agent Builder Section */}
-        <div className="mt-6">
+        <div>
           {!collapsed ? (
             <button
               onClick={() => setBuilderExpanded(!builderExpanded)}
-              className="w-full flex items-center justify-between px-3 mb-2 text-xs font-mono text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+              className="w-full flex items-center justify-between px-3 mb-2 group"
             >
-              <span>Agent Builder</span>
-              <ChevronDown className={cn("w-4 h-4 transition-transform", builderExpanded && "rotate-180")} />
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-1 rounded-full bg-amber-400/50 led-glow-amber" />
+                <span className="text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.2em] group-hover:text-muted-foreground/80 transition-colors">Agent Builder</span>
+              </div>
+              <ChevronDown className={cn("w-3 h-3 text-muted-foreground/40 transition-transform duration-200", builderExpanded && "rotate-180")} />
             </button>
           ) : (
-            <div className="h-px bg-border mx-3 mb-4" />
+            <div className="h-px mx-3 mb-4" style={{ background: "rgba(16,185,129,0.1)" }} />
           )}
 
           {(builderExpanded || collapsed) && (
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {builderItems.map((item) => (
                 <li key={item.path}>
                   <NavItem item={item} />
@@ -182,8 +235,11 @@ const DashboardSidebar = () => {
         </div>
       </nav>
 
-      {/* Settings & Collapse */}
-      <div className="border-t border-border p-2">
+      {/* Bottom bar */}
+      <div
+        className="p-2 space-y-0.5"
+        style={{ borderTop: "1px solid rgba(16,185,129,0.08)", background: "rgba(0,0,0,0.25)" }}
+      >
         <Link
           to="/dashboard/billing"
           className={cn(
@@ -199,30 +255,33 @@ const DashboardSidebar = () => {
         <Link
           to="/dashboard/settings"
           className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+            "flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all duration-300 group",
             location.pathname === "/dashboard/settings"
-              ? "bg-primary/15 text-primary"
-              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              ? "bg-primary/10 border-primary/20 text-primary"
+              : "border-transparent text-muted-foreground hover:bg-primary/5 hover:border-primary/10 hover:text-foreground"
           )}
         >
-          <Settings className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium text-sm">Settings</span>}
+          <Settings className="w-4 h-4 flex-shrink-0 group-hover:rotate-45 transition-transform duration-300" />
+          {!collapsed && <span className="font-mono text-[11px] tracking-widest uppercase">Settings</span>}
         </Link>
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors mt-1"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all duration-300"
         >
           {collapsed ? (
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 text-primary" />
           ) : (
             <>
-              <ChevronLeft className="w-5 h-5" />
-              <span className="font-medium text-sm">Collapse</span>
+              <ChevronLeft className="w-4 h-4" />
+              <span className="font-mono text-[11px] tracking-widest uppercase">Collapse</span>
             </>
           )}
         </button>
       </div>
+
+      {/* Bottom gradient accent line */}
+      <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.2), transparent)" }} />
     </motion.aside>
   );
 };
