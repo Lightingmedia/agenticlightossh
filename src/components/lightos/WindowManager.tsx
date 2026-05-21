@@ -33,9 +33,13 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   mlops: { title: "MLOps", w: 960, h: 660 },
   datacenter: { title: "Datacenter Operations", w: 960, h: 660 },
   tokenfactory: { title: "Token Factory", w: 880, h: 640 },
-  inference: { title: "Inference Endpoints", w: 960, h: 640 },
+  inference: { title: "Inference Endpoints", w: 1280, h: 760 },
   cloud: { title: "Compute Cloud", w: 960, h: 640 },
   route: { title: "Application", w: 1180, h: 720 },
+};
+
+const APP_ROUTE_URLS: Partial<Record<AppId, string>> = {
+  inference: "/dashboard/inference",
 };
 
 const TOP_PANEL = 32;
@@ -82,6 +86,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         );
       }
       const meta = APP_META[appId];
+      const routeUrl = APP_ROUTE_URLS[appId];
       const id = `${appId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       zCounter += 1;
       const offset = (ws.length % 6) * 24;
@@ -97,6 +102,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         zIndex: zCounter,
         minimized: false,
         maximized: false,
+        payload: routeUrl ? { url: routeUrl } : undefined,
       };
       setActiveId(id);
       return [...ws, newWin];

@@ -56,8 +56,13 @@ export function WindowSurface() {
 }
 
 function renderApp(w: WindowState) {
+  // If a built-in app was opened with a route URL, render it as an embedded page.
+  if (w.payload?.url && w.appId !== "route") {
+    return <RouteApp win={w} />;
+  }
   switch (w.appId) {
     case "settings":
+      return <SettingsApp />;
       return <SettingsApp />;
     case "files":
       return <FilesApp />;
