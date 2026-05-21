@@ -102,6 +102,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         zIndex: zCounter,
         minimized: false,
         maximized: false,
+        payload: routeUrl ? { url: routeUrl } : undefined,
       };
       setActiveId(id);
       return [...ws, newWin];
