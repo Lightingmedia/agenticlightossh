@@ -38,17 +38,24 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   route: { title: "Application", w: 1180, h: 720 },
 };
 
-const FULL_PAGE_APP_ROUTES: Partial<Record<AppId, string>> = {
-  control: "/dashboard",
-  fleet: "/dashboard/clusters",
-  cluster: "/dashboard/clusters",
-  browser: "/docs",
-  agentic: "/dashboard/agents",
-  mlops: "/dashboard/studio",
-  datacenter: "/dashboard/clusters",
-  tokenfactory: "/pricing",
-  cloud: "/dashboard/clusters",
-};
+const TOP_PANEL = 32;
+const DOCK = 64;
+const TASKBAR = 40;
+
+function centerInViewport(w: number, h: number, offset = 0) {
+  if (typeof window === "undefined") {
+    return { width: w, height: h, x: 120, y: 80 };
+  }
+  const availW = Math.max(320, window.innerWidth - DOCK - 16);
+  const availH = Math.max(220, window.innerHeight - TOP_PANEL - TASKBAR - 16);
+  const width = Math.min(w, availW);
+  const height = Math.min(h, availH);
+  const baseX = DOCK + (window.innerWidth - DOCK - width) / 2;
+  const baseY = TOP_PANEL + (window.innerHeight - TOP_PANEL - TASKBAR - height) / 2;
+  const x = Math.max(DOCK, Math.min(window.innerWidth - width, Math.round(baseX + offset)));
+  const y = Math.max(TOP_PANEL, Math.min(window.innerHeight - TASKBAR - height, Math.round(baseY + offset)));
+  return { width, height, x, y };
+}
 
 let zCounter = 10;
 
@@ -65,12 +72,6 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openApp = useCallback((appId: AppId) => {
-    const fullPageRoute = FULL_PAGE_APP_ROUTES[appId];
-    if (fullPageRoute && typeof window !== "undefined") {
-      window.location.assign(fullPageRoute);
-      return;
-    }
-
     setWindows((ws) => {
       const existing = ws.find((w) => w.appId === appId);
       if (existing && appId !== "route") {
@@ -83,15 +84,16 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
       const meta = APP_META[appId];
       const id = `${appId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       zCounter += 1;
-      const offset = ws.length * 28;
+      const offset = (ws.length % 6) * 24;
+      const pos = centerInViewport(meta.w, meta.h, offset);
       const newWin: WindowState = {
         id,
         appId,
         title: meta.title,
-        x: 120 + offset,
-        y: 80 + offset,
-        width: meta.w,
-        height: meta.h,
+        x: pos.x,
+        y: pos.y,
+        width: pos.width,
+        height: pos.height,
         zIndex: zCounter,
         minimized: false,
         maximized: false,
@@ -103,9 +105,30 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
 
   const openRoute = useCallback(
     (url: string, title?: string, opts?: OpenRouteOpts) => {
-      void title;
-      void opts;
-      if (typeof window !== "undefined") window.location.assign(url);
+      setWindows((ws) => {
+        const meta = APP_META.route;
+        const w = opts?.width ?? meta.w;
+        const h = opts?.height ?? meta.h;
+        const id = `route-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        zCounter += 1;
+        const offset = (ws.length % 6) * 24;
+        const pos = centerInViewport(w, h, offset);
+        const newWin: WindowState = {
+          id,
+          appId: "route",
+          title: title ?? meta.title,
+          x: pos.x,
+          y: pos.y,
+          width: pos.width,
+          height: pos.height,
+          zIndex: zCounter,
+          minimized: false,
+          maximized: false,
+          payload: { url },
+        };
+        setActiveId(id);
+        return [...ws, newWin];
+      });
     },
     [],
   );
