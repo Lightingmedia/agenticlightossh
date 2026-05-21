@@ -26,6 +26,7 @@ import {
   Server,
   FileText,
   BatteryCharging,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
