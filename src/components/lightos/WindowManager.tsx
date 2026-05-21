@@ -86,6 +86,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
         );
       }
       const meta = APP_META[appId];
+      const routeUrl = APP_ROUTE_URLS[appId];
       const id = `${appId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       zCounter += 1;
       const offset = (ws.length % 6) * 24;
