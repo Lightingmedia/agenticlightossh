@@ -38,17 +38,24 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   route: { title: "Application", w: 1180, h: 720 },
 };
 
-const FULL_PAGE_APP_ROUTES: Partial<Record<AppId, string>> = {
-  control: "/dashboard",
-  fleet: "/dashboard/clusters",
-  cluster: "/dashboard/clusters",
-  browser: "/docs",
-  agentic: "/dashboard/agents",
-  mlops: "/dashboard/studio",
-  datacenter: "/dashboard/clusters",
-  tokenfactory: "/pricing",
-  cloud: "/dashboard/clusters",
-};
+const TOP_PANEL = 32;
+const DOCK = 64;
+const TASKBAR = 40;
+
+function centerInViewport(w: number, h: number, offset = 0) {
+  if (typeof window === "undefined") {
+    return { width: w, height: h, x: 120, y: 80 };
+  }
+  const availW = Math.max(320, window.innerWidth - DOCK - 16);
+  const availH = Math.max(220, window.innerHeight - TOP_PANEL - TASKBAR - 16);
+  const width = Math.min(w, availW);
+  const height = Math.min(h, availH);
+  const baseX = DOCK + (window.innerWidth - DOCK - width) / 2;
+  const baseY = TOP_PANEL + (window.innerHeight - TOP_PANEL - TASKBAR - height) / 2;
+  const x = Math.max(DOCK, Math.min(window.innerWidth - width, Math.round(baseX + offset)));
+  const y = Math.max(TOP_PANEL, Math.min(window.innerHeight - TASKBAR - height, Math.round(baseY + offset)));
+  return { width, height, x, y };
+}
 
 let zCounter = 10;
 
