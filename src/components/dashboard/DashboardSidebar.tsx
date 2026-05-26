@@ -27,6 +27,7 @@ import {
   FileText,
   BatteryCharging,
   CreditCard,
+  CircuitBoard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const monitoringItems = [
   { icon: Activity, label: "Telemetry", path: "/dashboard/telemetry" },
   { icon: Thermometer, label: "Thermal Control", path: "/dashboard/thermal" },
   { icon: BatteryCharging, label: "Power Governor", path: "/dashboard/governor" },
+  { icon: CircuitBoard, label: "Accel Runtime", path: "/dashboard/accelerator" },
   { icon: Zap, label: "Inference", path: "/dashboard/inference" },
   { icon: Server, label: "LLM Serving", path: "/dashboard/llm-serving" },
   { icon: Brain, label: "LLM Models", path: "/dashboard/models" },

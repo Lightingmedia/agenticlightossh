@@ -44,6 +44,9 @@ import Pricing from "./pages/Pricing";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Billing from "./pages/Billing";
 import LightOS from "./pages/LightOS";
+import AuroraLLM from "./pages/AuroraLLM";
+import PowerGovernor from "./pages/PowerGovernor";
+import AcceleratorRuntime from "./pages/AcceleratorRuntime";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +84,7 @@ const App = () => (
             <Route path="gpu" element={<GPUMonitor />} />
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="thermal" element={<ThermalControl />} />
+            <Route path="governor" element={<PowerGovernor />} />
             <Route path="inference" element={<Inference />} />
             <Route path="llm-serving" element={<FeatureGate requiredTier="pro" featureName="LLM Serving"><LLMServing /></FeatureGate>} />
             <Route path="models" element={<Models />} />
@@ -101,6 +105,7 @@ const App = () => (
             <Route path="deploy" element={<DeployAgent />} />
             <Route path="monitor" element={<AgentMonitor />} />
             <Route path="billing" element={<Billing />} />
+            <Route path="accelerator" element={<AcceleratorRuntime />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
