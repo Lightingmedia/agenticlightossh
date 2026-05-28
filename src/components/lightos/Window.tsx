@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Minus, Square, X, Copy } from "lucide-react";
-import { ReactNode, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useWindowManager } from "./WindowManager";
 import type { WindowState } from "./types";
 
