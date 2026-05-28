@@ -20,8 +20,17 @@ export function Window({ win, children }: Props) {
 
   if (win.minimized) return null;
 
-  const viewW = typeof window !== "undefined" ? window.innerWidth : 1280;
-  const viewH = typeof window !== "undefined" ? window.innerHeight : 800;
+  const [vp, setVp] = useState(() => ({
+    w: typeof window !== "undefined" ? window.innerWidth : 1280,
+    h: typeof window !== "undefined" ? window.innerHeight : 800,
+  }));
+  useEffect(() => {
+    const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const viewW = vp.w;
+  const viewH = vp.h;
   const maxBounds = {
     x: DOCK,
     y: TOP_PANEL,
