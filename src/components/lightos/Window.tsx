@@ -20,16 +20,24 @@ export function Window({ win, children }: Props) {
 
   if (win.minimized) return null;
 
+  const viewW = typeof window !== "undefined" ? window.innerWidth : 1280;
+  const viewH = typeof window !== "undefined" ? window.innerHeight : 800;
   const maxBounds = {
     x: DOCK,
     y: TOP_PANEL,
-    width: typeof window !== "undefined" ? window.innerWidth - DOCK : 1280,
-    height: typeof window !== "undefined" ? window.innerHeight - TOP_PANEL - TASKBAR : 720,
+    width: viewW - DOCK,
+    height: viewH - TOP_PANEL - TASKBAR,
   };
+
+  // Clamp non-maximized windows so they never overflow the safe viewport.
+  const safeW = Math.max(320, Math.min(win.width, viewW - DOCK));
+  const safeH = Math.max(220, Math.min(win.height, viewH - TOP_PANEL - TASKBAR));
+  const safeX = Math.max(DOCK, Math.min(win.x, viewW - safeW));
+  const safeY = Math.max(TOP_PANEL, Math.min(win.y, viewH - TASKBAR - safeH));
 
   const style = win.maximized
     ? { x: maxBounds.x, y: maxBounds.y, width: maxBounds.width, height: maxBounds.height }
-    : { x: win.x, y: win.y, width: win.width, height: win.height };
+    : { x: safeX, y: safeY, width: safeW, height: safeH };
 
   return (
     <motion.div
