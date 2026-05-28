@@ -65,9 +65,11 @@ export function Window({ win, children }: Props) {
         onPointerMove={(e) => {
           if (win.maximized) return;
           if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
+          const nx = e.clientX - dragOrigin.current.x;
+          const ny = e.clientY - dragOrigin.current.y;
           updateWindow(win.id, {
-            x: Math.max(0, e.clientX - dragOrigin.current.x),
-            y: Math.max(TOP_PANEL, e.clientY - dragOrigin.current.y),
+            x: Math.max(DOCK, Math.min(viewW - win.width, nx)),
+            y: Math.max(TOP_PANEL, Math.min(viewH - TASKBAR - win.height, ny)),
           });
         }}
         onPointerUp={(e) => {
