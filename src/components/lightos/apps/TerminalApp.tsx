@@ -47,11 +47,26 @@ interface ShellCtx {
   cwd: string;
   env: Record<string, string>;
   lastExit: number;
+  signal?: AbortSignal;
   /** Update cwd from a builtin. */
   setCwd: (p: string) => void;
 }
 
 type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Promise<CmdResult>;
+
+const sleep = (ms: number, signal?: AbortSignal) =>
+  new Promise<void>((resolve) => {
+    if (signal?.aborted) return resolve();
+    const timer = window.setTimeout(resolve, ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
 
 // --------------------------- OS action bridge ---------------------------
 // Populated by TerminalApp on mount so builtins can drive the window manager.
