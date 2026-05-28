@@ -1260,6 +1260,8 @@ export function TerminalApp() {
       doPaste();
     });
 
+    let activeController: AbortController | null = null;
+
     const submitLine = async () => {
       term.write("\r\n");
       const line = buf;
@@ -1270,7 +1272,9 @@ export function TerminalApp() {
           history.push(line);
           saveHistory(history);
         }
-        await runScript(line, ctx, (s) => term.write(s));
+        activeController = new AbortController();
+        await runScript(line, ctx, (s) => term.write(s), activeController.signal);
+        activeController = null;
       }
       histIdx = history.length;
       term.write(promptStr());
@@ -1354,6 +1358,11 @@ export function TerminalApp() {
     };
 
     term.onData(async (data) => {
+      if (data === "\x03" && activeController) {
+        activeController.abort();
+        term.write("^C\r\n");
+        return;
+      }
       if (busy) return;
 
       // ---- reverse-i-search mode ----
