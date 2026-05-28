@@ -1449,12 +1449,22 @@ export function TerminalApp() {
     requestAnimationFrame(() => {
       try {
         fit.fit();
+        term.focus();
       } catch {
         /* ignore */
       }
     });
 
+    const el = ref.current;
+    const focusTerm = () => {
+      try { term.focus(); } catch { /* ignore */ }
+    };
+    el.addEventListener("mousedown", focusTerm);
+    el.addEventListener("click", focusTerm);
+
     return () => {
+      el.removeEventListener("mousedown", focusTerm);
+      el.removeEventListener("click", focusTerm);
       ro.disconnect();
       term.dispose();
     };
