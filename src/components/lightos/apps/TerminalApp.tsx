@@ -313,7 +313,7 @@ const builtins: Record<string, Builtin> = {
       return { stdout: "", stderr: `ls: cannot access '${targets[0]}': No such file or directory\n`, code: 2 };
     }
     const entries = listDir(target);
-    if (!showAll && false) void entries; // placeholder, no hidden entries in VFS
+    void showAll; // placeholder, no hidden entries in VFS
     if (long) {
       const lines = entries.map((e) => {
         const full = `${target === "/" ? "" : target}/${e.name}`;
