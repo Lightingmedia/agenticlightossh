@@ -48,6 +48,7 @@ interface ShellCtx {
   env: Record<string, string>;
   lastExit: number;
   signal?: AbortSignal;
+  write?: (s: string) => void;
   /** Update cwd from a builtin. */
   setCwd: (p: string) => void;
 }
