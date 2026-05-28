@@ -953,8 +953,6 @@ async function runPipeline(p: Pipeline, ctx: ShellCtx): Promise<CmdResult> {
 }
 
 async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void, signal?: AbortSignal): Promise<void> {
-  ctx.signal = signal;
-  ctx.write = write;
   let items: ListItem[];
   try {
     items = parse(src);
@@ -963,6 +961,8 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void,
     ctx.lastExit = 2;
     return;
   }
+  ctx.signal = signal;
+  ctx.write = write;
   let prevCode = ctx.lastExit;
   for (const item of items) {
     if (item.op === "&&" && prevCode !== 0) continue;
