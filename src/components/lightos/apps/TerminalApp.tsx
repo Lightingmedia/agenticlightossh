@@ -177,24 +177,35 @@ const builtins: Record<string, Builtin> = {
     }
     return { stdout: "", stderr: `ip: unknown subcommand: ${sub}\n`, code: 1 };
   },
-  ping: (a) => {
+  ping: async (a, _stdin, ctx) => {
     const host = a.find((x) => !x.startsWith("-")) ?? "127.0.0.1";
-    const count = (() => {
-      const i = a.indexOf("-c");
-      return i >= 0 ? Math.min(8, parseInt(a[i + 1] || "4", 10) || 4) : 4;
-    })();
+    const countIndex = a.findIndex((x) => x === "-c" || x === "-n");
+    const parsedCount = countIndex >= 0 ? parseInt(a[countIndex + 1] || "", 10) : NaN;
+    const count = Number.isFinite(parsedCount) && parsedCount > 0 ? Math.min(9999, parsedCount) : Infinity;
+    const intervalIndex = a.findIndex((x) => x === "-i" || x === "-w");
+    const parsedInterval = intervalIndex >= 0 ? parseFloat(a[intervalIndex + 1] || "") : NaN;
+    const intervalMs = Number.isFinite(parsedInterval) && parsedInterval > 0 ? Math.max(200, parsedInterval * 1000) : 1000;
+    const windowsContinuous = a.includes("-t");
+    const limit = Number.isFinite(count) ? count : windowsContinuous ? Infinity : Infinity;
     const lines: string[] = [`PING ${host} (10.42.0.1): 56 data bytes`];
-    let sum = 0;
-    for (let i = 0; i < count; i++) {
+    const times: number[] = [];
+
+    for (let i = 0; i < limit && !ctx.signal?.aborted; i++) {
       const t = +(0.18 + Math.random() * 0.4).toFixed(3);
-      sum += t;
+      times.push(t);
       lines.push(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
+      if (i < limit - 1 && !ctx.signal?.aborted) await sleep(intervalMs, ctx.signal);
     }
+
+    const transmitted = times.length;
+    const min = transmitted ? Math.min(...times).toFixed(3) : "0.000";
+    const avg = transmitted ? (times.reduce((sum, n) => sum + n, 0) / transmitted).toFixed(3) : "0.000";
+    const max = transmitted ? Math.max(...times).toFixed(3) : "0.000";
     lines.push("");
     lines.push(`--- ${host} ping statistics ---`);
-    lines.push(`${count} packets transmitted, ${count} received, 0% packet loss`);
-    lines.push(`round-trip min/avg/max = 0.18/${(sum / count).toFixed(3)}/0.58 ms`);
-    return { stdout: lines.join("\n") + "\n", code: 0 };
+    lines.push(`${transmitted} packets transmitted, ${transmitted} received, 0% packet loss`);
+    lines.push(`round-trip min/avg/max = ${min}/${avg}/${max} ms`);
+    return { stdout: lines.join("\n") + "\n", code: ctx.signal?.aborted ? 130 : 0 };
   },
   netstat: () => ({
     stdout:
