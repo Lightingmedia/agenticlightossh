@@ -126,9 +126,11 @@ export function Window({ win, children }: Props) {
             const target = e.currentTarget as HTMLElement;
             target.setPointerCapture(e.pointerId);
             const move = (ev: PointerEvent) => {
+              const maxW = viewW - win.x - 8;
+              const maxH = viewH - TASKBAR - win.y - 8;
               updateWindow(win.id, {
-                width: Math.max(320, startW + (ev.clientX - startX)),
-                height: Math.max(220, startH + (ev.clientY - startY)),
+                width: Math.max(320, Math.min(maxW, startW + (ev.clientX - startX))),
+                height: Math.max(220, Math.min(maxH, startH + (ev.clientY - startY))),
               });
             };
             const up = (ev: PointerEvent) => {
