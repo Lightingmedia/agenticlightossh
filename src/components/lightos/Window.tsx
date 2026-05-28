@@ -17,9 +17,6 @@ export function Window({ win, children }: Props) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize, updateWindow } =
     useWindowManager();
   const dragOrigin = useRef({ x: 0, y: 0 });
-
-  if (win.minimized) return null;
-
   const [vp, setVp] = useState(() => ({
     w: typeof window !== "undefined" ? window.innerWidth : 1280,
     h: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -29,6 +26,8 @@ export function Window({ win, children }: Props) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  if (win.minimized) return null;
   const viewW = vp.w;
   const viewH = vp.h;
   const maxBounds = {
