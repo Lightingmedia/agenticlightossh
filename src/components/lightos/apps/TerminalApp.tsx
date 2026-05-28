@@ -106,6 +106,7 @@ const builtins: Record<string, Builtin> = {
       "Control:  lightctl mlops {start|stop|train|canary} | lightctl agentic run <agent>\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
+      "Runtime:   ping streams live by default; use Ctrl+C to stop long-running commands.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
     code: 0,
   }),
