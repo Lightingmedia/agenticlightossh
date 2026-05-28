@@ -47,11 +47,27 @@ interface ShellCtx {
   cwd: string;
   env: Record<string, string>;
   lastExit: number;
+  signal?: AbortSignal;
+  write?: (s: string) => void;
   /** Update cwd from a builtin. */
   setCwd: (p: string) => void;
 }
 
 type Builtin = (args: string[], stdin: string, ctx: ShellCtx) => CmdResult | Promise<CmdResult>;
+
+const sleep = (ms: number, signal?: AbortSignal) =>
+  new Promise<void>((resolve) => {
+    if (signal?.aborted) return resolve();
+    const timer = window.setTimeout(resolve, ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
 
 // --------------------------- OS action bridge ---------------------------
 // Populated by TerminalApp on mount so builtins can drive the window manager.
@@ -106,6 +122,7 @@ const builtins: Record<string, Builtin> = {
       "Control:  lightctl mlops {start|stop|train|canary} | lightctl agentic run <agent>\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
+      "Runtime:   ping streams live by default; use Ctrl+C to stop long-running commands.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
     code: 0,
   }),
@@ -161,24 +178,41 @@ const builtins: Record<string, Builtin> = {
     }
     return { stdout: "", stderr: `ip: unknown subcommand: ${sub}\n`, code: 1 };
   },
-  ping: (a) => {
-    const host = a.find((x) => !x.startsWith("-")) ?? "127.0.0.1";
-    const count = (() => {
-      const i = a.indexOf("-c");
-      return i >= 0 ? Math.min(8, parseInt(a[i + 1] || "4", 10) || 4) : 4;
-    })();
+  ping: async (a, _stdin, ctx) => {
+    const countIndex = a.findIndex((x) => x === "-c" || x === "-n");
+    const parsedCount = countIndex >= 0 ? parseInt(a[countIndex + 1] || "", 10) : NaN;
+    const count = Number.isFinite(parsedCount) && parsedCount > 0 ? Math.min(9999, parsedCount) : Infinity;
+    const intervalIndex = a.findIndex((x) => x === "-i" || x === "-w");
+    const parsedInterval = intervalIndex >= 0 ? parseFloat(a[intervalIndex + 1] || "") : NaN;
+    const intervalMs = Number.isFinite(parsedInterval) && parsedInterval > 0 ? Math.max(200, parsedInterval * 1000) : 1000;
+    const optionValues = new Set([countIndex + 1, intervalIndex + 1].filter((i) => i > 0));
+    const host = a.find((x, i) => !x.startsWith("-") && !optionValues.has(i)) ?? "127.0.0.1";
+    const limit = Number.isFinite(count) ? count : Infinity;
     const lines: string[] = [`PING ${host} (10.42.0.1): 56 data bytes`];
-    let sum = 0;
-    for (let i = 0; i < count; i++) {
+    const times: number[] = [];
+    const emit = (line: string) => {
+      if (ctx.write) ctx.write(`${line}\r\n`);
+      else lines.push(line);
+    };
+
+    emit(lines.shift() ?? "");
+
+    for (let i = 0; i < limit && !ctx.signal?.aborted; i++) {
       const t = +(0.18 + Math.random() * 0.4).toFixed(3);
-      sum += t;
-      lines.push(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
+      times.push(t);
+      emit(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
+      if (i < limit - 1 && !ctx.signal?.aborted) await sleep(intervalMs, ctx.signal);
     }
+
+    const transmitted = times.length;
+    const min = transmitted ? Math.min(...times).toFixed(3) : "0.000";
+    const avg = transmitted ? (times.reduce((sum, n) => sum + n, 0) / transmitted).toFixed(3) : "0.000";
+    const max = transmitted ? Math.max(...times).toFixed(3) : "0.000";
     lines.push("");
     lines.push(`--- ${host} ping statistics ---`);
-    lines.push(`${count} packets transmitted, ${count} received, 0% packet loss`);
-    lines.push(`round-trip min/avg/max = 0.18/${(sum / count).toFixed(3)}/0.58 ms`);
-    return { stdout: lines.join("\n") + "\n", code: 0 };
+    lines.push(`${transmitted} packets transmitted, ${transmitted} received, 0% packet loss`);
+    lines.push(`round-trip min/avg/max = ${min}/${avg}/${max} ms`);
+    return { stdout: lines.join("\n") + (lines.length ? "\n" : ""), code: ctx.signal?.aborted ? 130 : 0 };
   },
   netstat: () => ({
     stdout:
@@ -279,7 +313,7 @@ const builtins: Record<string, Builtin> = {
       return { stdout: "", stderr: `ls: cannot access '${targets[0]}': No such file or directory\n`, code: 2 };
     }
     const entries = listDir(target);
-    if (!showAll && false) void entries; // placeholder, no hidden entries in VFS
+    void showAll; // placeholder, no hidden entries in VFS
     if (long) {
       const lines = entries.map((e) => {
         const full = `${target === "/" ? "" : target}/${e.name}`;
@@ -918,7 +952,7 @@ async function runPipeline(p: Pipeline, ctx: ShellCtx): Promise<CmdResult> {
   return lastResult;
 }
 
-async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void): Promise<void> {
+async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void, signal?: AbortSignal): Promise<void> {
   let items: ListItem[];
   try {
     items = parse(src);
@@ -927,6 +961,8 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void)
     ctx.lastExit = 2;
     return;
   }
+  ctx.signal = signal;
+  ctx.write = write;
   let prevCode = ctx.lastExit;
   for (const item of items) {
     if (item.op === "&&" && prevCode !== 0) continue;
@@ -936,7 +972,10 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void)
     if (res.stderr) write(`${C.red}${res.stderr}${C.reset}`.replace(/\n/g, "\r\n"));
     ctx.lastExit = res.code;
     prevCode = res.code;
+    if (signal?.aborted) break;
   }
+  ctx.signal = undefined;
+  ctx.write = undefined;
 }
 
 // --------------------------- component ---------------------------
@@ -1221,6 +1260,8 @@ export function TerminalApp() {
       doPaste();
     });
 
+    let activeController: AbortController | null = null;
+
     const submitLine = async () => {
       term.write("\r\n");
       const line = buf;
@@ -1231,7 +1272,9 @@ export function TerminalApp() {
           history.push(line);
           saveHistory(history);
         }
-        await runScript(line, ctx, (s) => term.write(s));
+        activeController = new AbortController();
+        await runScript(line, ctx, (s) => term.write(s), activeController.signal);
+        activeController = null;
       }
       histIdx = history.length;
       term.write(promptStr());
@@ -1315,6 +1358,11 @@ export function TerminalApp() {
     };
 
     term.onData(async (data) => {
+      if (data === "\x03" && activeController) {
+        activeController.abort();
+        term.write("^C\r\n");
+        return;
+      }
       if (busy) return;
 
       // ---- reverse-i-search mode ----
