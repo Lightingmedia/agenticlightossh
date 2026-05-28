@@ -952,7 +952,9 @@ async function runPipeline(p: Pipeline, ctx: ShellCtx): Promise<CmdResult> {
   return lastResult;
 }
 
-async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void): Promise<void> {
+async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void, signal?: AbortSignal): Promise<void> {
+  ctx.signal = signal;
+  ctx.write = write;
   let items: ListItem[];
   try {
     items = parse(src);
@@ -970,7 +972,10 @@ async function runScript(src: string, ctx: ShellCtx, write: (s: string) => void)
     if (res.stderr) write(`${C.red}${res.stderr}${C.reset}`.replace(/\n/g, "\r\n"));
     ctx.lastExit = res.code;
     prevCode = res.code;
+    if (signal?.aborted) break;
   }
+  ctx.signal = undefined;
+  ctx.write = undefined;
 }
 
 // --------------------------- component ---------------------------
