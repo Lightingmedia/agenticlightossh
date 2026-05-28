@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Minus, Square, X, Copy } from "lucide-react";
-import { ReactNode, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useWindowManager } from "./WindowManager";
 import type { WindowState } from "./types";
 
@@ -17,19 +17,35 @@ export function Window({ win, children }: Props) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize, updateWindow } =
     useWindowManager();
   const dragOrigin = useRef({ x: 0, y: 0 });
+  const [vp, setVp] = useState(() => ({
+    w: typeof window !== "undefined" ? window.innerWidth : 1280,
+    h: typeof window !== "undefined" ? window.innerHeight : 800,
+  }));
+  useEffect(() => {
+    const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   if (win.minimized) return null;
-
+  const viewW = vp.w;
+  const viewH = vp.h;
   const maxBounds = {
     x: DOCK,
     y: TOP_PANEL,
-    width: typeof window !== "undefined" ? window.innerWidth - DOCK : 1280,
-    height: typeof window !== "undefined" ? window.innerHeight - TOP_PANEL - TASKBAR : 720,
+    width: viewW - DOCK,
+    height: viewH - TOP_PANEL - TASKBAR,
   };
+
+  // Clamp non-maximized windows so they never overflow the safe viewport.
+  const safeW = Math.max(320, Math.min(win.width, viewW - DOCK));
+  const safeH = Math.max(220, Math.min(win.height, viewH - TOP_PANEL - TASKBAR));
+  const safeX = Math.max(DOCK, Math.min(win.x, viewW - safeW));
+  const safeY = Math.max(TOP_PANEL, Math.min(win.y, viewH - TASKBAR - safeH));
 
   const style = win.maximized
     ? { x: maxBounds.x, y: maxBounds.y, width: maxBounds.width, height: maxBounds.height }
-    : { x: win.x, y: win.y, width: win.width, height: win.height };
+    : { x: safeX, y: safeY, width: safeW, height: safeH };
 
   return (
     <motion.div
@@ -57,9 +73,11 @@ export function Window({ win, children }: Props) {
         onPointerMove={(e) => {
           if (win.maximized) return;
           if (!(e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) return;
+          const nx = e.clientX - dragOrigin.current.x;
+          const ny = e.clientY - dragOrigin.current.y;
           updateWindow(win.id, {
-            x: Math.max(0, e.clientX - dragOrigin.current.x),
-            y: Math.max(TOP_PANEL, e.clientY - dragOrigin.current.y),
+            x: Math.max(DOCK, Math.min(viewW - win.width, nx)),
+            y: Math.max(TOP_PANEL, Math.min(viewH - TASKBAR - win.height, ny)),
           });
         }}
         onPointerUp={(e) => {
@@ -116,9 +134,11 @@ export function Window({ win, children }: Props) {
             const target = e.currentTarget as HTMLElement;
             target.setPointerCapture(e.pointerId);
             const move = (ev: PointerEvent) => {
+              const maxW = viewW - win.x - 8;
+              const maxH = viewH - TASKBAR - win.y - 8;
               updateWindow(win.id, {
-                width: Math.max(320, startW + (ev.clientX - startX)),
-                height: Math.max(220, startH + (ev.clientY - startY)),
+                width: Math.max(320, Math.min(maxW, startW + (ev.clientX - startX))),
+                height: Math.max(220, Math.min(maxH, startH + (ev.clientY - startY))),
               });
             };
             const up = (ev: PointerEvent) => {

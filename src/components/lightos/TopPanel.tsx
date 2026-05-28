@@ -109,7 +109,11 @@ export function TopPanel() {
                       key={r.url}
                       onClick={() => {
                         setOpen(false);
-                        window.location.assign(r.url);
+                        if (r.url === "/dashboard/inference") {
+                          openApp("inference");
+                        } else {
+                          openRoute(r.url, r.label);
+                        }
                       }}
                       className="text-left px-2 py-1 rounded text-xs text-foreground/80 hover:bg-foreground/10 hover:text-primary truncate"
                       title={r.url}
