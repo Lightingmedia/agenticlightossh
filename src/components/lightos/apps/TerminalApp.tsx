@@ -190,11 +190,17 @@ const builtins: Record<string, Builtin> = {
     const limit = Number.isFinite(count) ? count : windowsContinuous ? Infinity : Infinity;
     const lines: string[] = [`PING ${host} (10.42.0.1): 56 data bytes`];
     const times: number[] = [];
+    const emit = (line: string) => {
+      if (ctx.write) ctx.write(`${line}\r\n`);
+      else lines.push(line);
+    };
+
+    emit(lines.shift() ?? "");
 
     for (let i = 0; i < limit && !ctx.signal?.aborted; i++) {
       const t = +(0.18 + Math.random() * 0.4).toFixed(3);
       times.push(t);
-      lines.push(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
+      emit(`64 bytes from ${host}: icmp_seq=${i} ttl=64 time=${t} ms`);
       if (i < limit - 1 && !ctx.signal?.aborted) await sleep(intervalMs, ctx.signal);
     }
 
@@ -206,7 +212,7 @@ const builtins: Record<string, Builtin> = {
     lines.push(`--- ${host} ping statistics ---`);
     lines.push(`${transmitted} packets transmitted, ${transmitted} received, 0% packet loss`);
     lines.push(`round-trip min/avg/max = ${min}/${avg}/${max} ms`);
-    return { stdout: lines.join("\n") + "\n", code: ctx.signal?.aborted ? 130 : 0 };
+    return { stdout: lines.join("\n") + (lines.length ? "\n" : ""), code: ctx.signal?.aborted ? 130 : 0 };
   },
   netstat: () => ({
     stdout:
