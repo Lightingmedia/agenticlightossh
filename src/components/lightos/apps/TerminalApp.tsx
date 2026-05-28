@@ -179,15 +179,15 @@ const builtins: Record<string, Builtin> = {
     return { stdout: "", stderr: `ip: unknown subcommand: ${sub}\n`, code: 1 };
   },
   ping: async (a, _stdin, ctx) => {
-    const host = a.find((x) => !x.startsWith("-")) ?? "127.0.0.1";
     const countIndex = a.findIndex((x) => x === "-c" || x === "-n");
     const parsedCount = countIndex >= 0 ? parseInt(a[countIndex + 1] || "", 10) : NaN;
     const count = Number.isFinite(parsedCount) && parsedCount > 0 ? Math.min(9999, parsedCount) : Infinity;
     const intervalIndex = a.findIndex((x) => x === "-i" || x === "-w");
     const parsedInterval = intervalIndex >= 0 ? parseFloat(a[intervalIndex + 1] || "") : NaN;
     const intervalMs = Number.isFinite(parsedInterval) && parsedInterval > 0 ? Math.max(200, parsedInterval * 1000) : 1000;
-    const windowsContinuous = a.includes("-t");
-    const limit = Number.isFinite(count) ? count : windowsContinuous ? Infinity : Infinity;
+    const optionValues = new Set([countIndex + 1, intervalIndex + 1].filter((i) => i > 0));
+    const host = a.find((x, i) => !x.startsWith("-") && !optionValues.has(i)) ?? "127.0.0.1";
+    const limit = Number.isFinite(count) ? count : Infinity;
     const lines: string[] = [`PING ${host} (10.42.0.1): 56 data bytes`];
     const times: number[] = [];
     const emit = (line: string) => {
