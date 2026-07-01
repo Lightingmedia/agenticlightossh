@@ -19,12 +19,16 @@ export function Dock() {
   return (
     <div className="absolute left-0 top-8 bottom-0 w-16 bg-background/70 backdrop-blur-md border-r border-border/40 flex flex-col items-center py-3 gap-2 z-[100]">
       {APPS.map(({ id, label, icon: Icon }) => {
-        const open = windows.some((w) => w.appId === id);
-        const active = windows.find((w) => w.appId === id)?.id === activeId;
+        const openWindow = windows.find((w) => w.appId === id);
+        const open = Boolean(openWindow);
+        const minimized = Boolean(openWindow?.minimized);
+        const active = openWindow?.id === activeId && !minimized;
         return (
           <button
             key={id}
+            type="button"
             title={label}
+            aria-label={open ? `${label}${minimized ? " minimized" : " open"}` : label}
             onClick={() => openApp(id)}
             className={`relative w-11 h-11 grid place-items-center rounded-lg border transition-all ${
               active
@@ -34,7 +38,11 @@ export function Dock() {
           >
             <Icon className="w-5 h-5" />
             {open && (
-              <span className="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-primary" />
+              <span
+                className={`absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 rounded-full bg-primary transition-all ${
+                  minimized ? "h-2 opacity-60" : "h-5"
+                }`}
+              />
             )}
           </button>
         );

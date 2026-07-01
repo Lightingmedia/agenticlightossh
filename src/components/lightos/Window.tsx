@@ -48,6 +48,8 @@ export function Window({ win, children }: Props) {
       <motion.div
         onPointerDown={(e) => {
           if (win.maximized) return;
+          // Don't start a drag (or capture) if the press began on a control button.
+          if ((e.target as HTMLElement).closest("button")) return;
           dragOrigin.current = { x: e.clientX - win.x, y: e.clientY - win.y };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         }}
@@ -59,38 +61,51 @@ export function Window({ win, children }: Props) {
             y: Math.max(TOP_PANEL, e.clientY - dragOrigin.current.y),
           });
         }}
-        onPointerUp={(e) =>
-          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
-        }
-        onDoubleClick={() => toggleMaximize(win.id)}
+        onPointerUp={(e) => {
+          const el = e.currentTarget as HTMLElement;
+          if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+        }}
+        onDoubleClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) return;
+          toggleMaximize(win.id);
+        }}
         className="flex items-center justify-between px-3 h-9 bg-muted/40 border-b border-border/60 cursor-grab active:cursor-grabbing select-none"
       >
         <div className="text-xs font-mono text-foreground/90 truncate">{win.title}</div>
         <div className="flex items-center gap-1">
           <button
+            type="button"
+            aria-label={`Minimize ${win.title}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               minimizeWindow(win.id);
             }}
-            className="w-6 h-6 grid place-items-center rounded hover:bg-foreground/10 text-muted-foreground"
+            className="w-6 h-6 cursor-default grid place-items-center rounded hover:bg-foreground/10 text-muted-foreground"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
           <button
+            type="button"
+            aria-label={win.maximized ? `Restore ${win.title}` : `Maximize ${win.title}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               toggleMaximize(win.id);
             }}
-            className="w-6 h-6 grid place-items-center rounded hover:bg-foreground/10 text-muted-foreground"
+            className="w-6 h-6 cursor-default grid place-items-center rounded hover:bg-foreground/10 text-muted-foreground"
           >
             {win.maximized ? <Copy className="w-3 h-3" /> : <Square className="w-3 h-3" />}
           </button>
           <button
+            type="button"
+            aria-label={`Close ${win.title}`}
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               closeWindow(win.id);
             }}
-            className="w-6 h-6 grid place-items-center rounded hover:bg-destructive/80 hover:text-destructive-foreground text-muted-foreground"
+            className="w-6 h-6 cursor-default grid place-items-center rounded hover:bg-destructive/80 hover:text-destructive-foreground text-muted-foreground"
           >
             <X className="w-3.5 h-3.5" />
           </button>

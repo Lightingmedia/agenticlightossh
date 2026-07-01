@@ -34,6 +34,10 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
 
 let zCounter = 10;
 
+function topVisibleWindow(ws: WindowState[]) {
+  return [...ws].filter((w) => !w.minimized).sort((a, b) => b.zIndex - a.zIndex)[0] ?? null;
+}
+
 export function WindowManagerProvider({ children }: { children: ReactNode }) {
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -105,14 +109,33 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   );
 
   const closeWindow = useCallback((id: string) => {
-    setWindows((ws) => ws.filter((w) => w.id !== id));
+    setWindows((ws) => {
+      const next = ws.filter((w) => w.id !== id);
+      setActiveId((current) => {
+        if (current && current !== id && next.some((w) => w.id === current && !w.minimized)) {
+          return current;
+        }
+        return topVisibleWindow(next)?.id ?? null;
+      });
+      return next;
+    });
   }, []);
 
   const minimizeWindow = useCallback((id: string) => {
-    setWindows((ws) => ws.map((w) => (w.id === id ? { ...w, minimized: true } : w)));
+    setWindows((ws) => {
+      const next = ws.map((w) => (w.id === id ? { ...w, minimized: true } : w));
+      setActiveId((current) => {
+        if (current && current !== id && next.some((w) => w.id === current && !w.minimized)) {
+          return current;
+        }
+        return topVisibleWindow(next)?.id ?? null;
+      });
+      return next;
+    });
   }, []);
 
   const toggleMaximize = useCallback((id: string) => {
+    setActiveId(id);
     setWindows((ws) =>
       ws.map((w) => {
         if (w.id !== id) return w;

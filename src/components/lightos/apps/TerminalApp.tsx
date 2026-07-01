@@ -58,8 +58,8 @@ const builtins: Record<string, Builtin> = {
   help: () => ({
     stdout:
       "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
-      "          whoami date hostname uname neofetch env export history ps top gpu fabric lightctl\n" +
-      "          fetch curl exit true false\n" +
+      "          whoami date hostname uname neofetch env export history ps top htop gpu fabric lightctl\n" +
+      "          ifconfig ip ping ssh df free uptime systemctl fetch curl exit true false\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
       "Vi mode:   Esc → normal (h j k l 0 $ w b x i a A I); i/a/A/I → insert.\n",
@@ -426,6 +426,112 @@ const builtins: Record<string, Builtin> = {
       return { stdout: `${C.green}● lightrail-fabricd active (running)${C.reset}\n`, code: 0 };
     if (a[0] === "fabric") return builtins.fabric([], "", { cwd: "/", env: {}, lastExit: 0, setCwd: () => {} }) as CmdResult;
     return { stdout: "", stderr: `lightctl: unknown subcommand '${a[0]}'\n`, code: 1 };
+  },
+  ifconfig: () => ({
+    stdout:
+      `${C.bold}lo${C.reset}: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n` +
+      `        inet 127.0.0.1  netmask 255.0.0.0\n` +
+      `        inet6 ::1  prefixlen 128  scopeid 0x10<host>\n` +
+      `        loop  txqueuelen 1000  (Local Loopback)\n` +
+      `\n` +
+      `${C.bold}eth0${C.reset}: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n` +
+      `        inet 10.0.1.11  netmask 255.255.255.0  broadcast 10.0.1.255\n` +
+      `        inet6 fe80::a00:27ff:fe1c:5a8b  prefixlen 64  scopeid 0x20<link>\n` +
+      `        ether 0a:00:27:1c:5a:8b  txqueuelen 1000  (Ethernet)\n` +
+      `        RX packets 1284922  bytes 1942887331 (1.8 GiB)\n` +
+      `        TX packets 988421   bytes  742118203 (707.7 MiB)\n` +
+      `\n` +
+      `${C.bold}fab0${C.reset}: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 9000\n` +
+      `        inet 192.168.42.11  netmask 255.255.0.0\n` +
+      `        ether 02:42:c0:a8:2a:0b  txqueuelen 0  (LightRail Photonic)\n` +
+      `        RX packets 41882193  bytes 9988123412118 (9.0 TiB)\n` +
+      `        TX packets 39214003  bytes 8721119431201 (7.9 TiB)\n`,
+    code: 0,
+  }),
+  ip: (a) => {
+    const sub = a[0];
+    if (sub === "a" || sub === "addr" || !sub) {
+      return {
+        stdout:
+          `1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN\n` +
+          `    inet 127.0.0.1/8 scope host lo\n` +
+          `2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP\n` +
+          `    inet 10.0.1.11/24 brd 10.0.1.255 scope global dynamic eth0\n` +
+          `3: fab0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc mq state UP\n` +
+          `    inet 192.168.42.11/16 brd 192.168.255.255 scope global fab0\n`,
+        code: 0,
+      };
+    }
+    if (sub === "r" || sub === "route") {
+      return {
+        stdout:
+          `default via 10.0.1.1 dev eth0 proto dhcp metric 100\n` +
+          `10.0.1.0/24 dev eth0 proto kernel scope link src 10.0.1.11\n` +
+          `192.168.0.0/16 dev fab0 proto kernel scope link src 192.168.42.11\n`,
+        code: 0,
+      };
+    }
+    return { stdout: "", stderr: `ip: object "${sub}" is unknown, try "ip help"\n`, code: 1 };
+  },
+  ping: (a) => {
+    const host = a.find((x) => !x.startsWith("-")) || "lightos-main";
+    const lines = [`PING ${host} (10.0.1.11) 56(84) bytes of data.`];
+    for (let i = 0; i < 4; i++) {
+      const ms = (0.2 + Math.random() * 0.6).toFixed(3);
+      lines.push(`64 bytes from ${host} (10.0.1.11): icmp_seq=${i + 1} ttl=64 time=${ms} ms`);
+    }
+    lines.push("");
+    lines.push(`--- ${host} ping statistics ---`);
+    lines.push(`4 packets transmitted, 4 received, 0% packet loss, time 3041ms`);
+    lines.push(`rtt min/avg/max/mdev = 0.214/0.387/0.612/0.142 ms`);
+    return { stdout: lines.join("\n") + "\n", code: 0 };
+  },
+  ssh: (a) => ({
+    stdout: "",
+    stderr: `ssh: connect to host ${a[0] || "host"}: Connection refused (sandboxed shell)\n`,
+    code: 255,
+  }),
+  df: () => ({
+    stdout:
+      `Filesystem        Size  Used Avail Use% Mounted on\n` +
+      `/dev/nvme0n1p2    128T   42T   86T  33% /\n` +
+      `tmpfs             768G  1.2G  766G   1% /run\n` +
+      `tmpfs             1.5T     0  1.5T   0% /dev/shm\n` +
+      `/dev/nvme0n1p1    512M  124M  388M  25% /boot/efi\n` +
+      `lightrail-fab     2.0P   18T  2.0P   1% /mnt/fabric\n`,
+    code: 0,
+  }),
+  free: () => ({
+    stdout:
+      `              total        used        free      shared  buff/cache   available\n` +
+      `Mem:     1610612736   421887488  1015240448      812032   173484800  1147382144\n` +
+      `Swap:             0           0           0\n`,
+    code: 0,
+  }),
+  uptime: () => {
+    const days = 12 + Math.floor(Math.random() * 3);
+    const hours = Math.floor(Math.random() * 24);
+    const min = Math.floor(Math.random() * 60);
+    const t = new Date().toLocaleTimeString("en-GB");
+    return {
+      stdout: ` ${t} up ${days} days, ${hours}:${String(min).padStart(2, "0")},  3 users,  load average: 1.42, 1.18, 0.97\n`,
+      code: 0,
+    };
+  },
+  htop: (a, s, c) => builtins.top(a, s, c) as CmdResult,
+  systemctl: (a) => {
+    if (a[0] === "status" && a[1]) {
+      return {
+        stdout:
+          `● ${a[1]}.service - LightRail ${a[1]} daemon\n` +
+          `     Loaded: loaded (/etc/systemd/system/${a[1]}.service; enabled)\n` +
+          `     Active: ${C.green}active (running)${C.reset} since boot; ${Math.floor(Math.random() * 14) + 1}d ago\n` +
+          `   Main PID: ${1000 + Math.floor(Math.random() * 9000)}\n` +
+          `      Tasks: ${4 + Math.floor(Math.random() * 12)}\n`,
+        code: 0,
+      };
+    }
+    return { stdout: "", stderr: `systemctl: usage: systemctl status <service>\n`, code: 1 };
   },
   exit: () => ({ stdout: "logout (close window to exit)\n", code: 0 }),
   fetch: async (a) => {

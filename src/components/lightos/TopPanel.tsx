@@ -7,6 +7,15 @@ interface RouteEntry {
   url: string;
 }
 
+const OS_APPS = [
+  { id: "control" as const, label: "AI Control Center" },
+  { id: "fleet" as const, label: "Fleet Manager" },
+  { id: "cluster" as const, label: "Cluster Manager" },
+  { id: "terminal" as const, label: "Terminal" },
+  { id: "files" as const, label: "Files" },
+  { id: "settings" as const, label: "Settings" },
+];
+
 const ROUTE_GROUPS: { name: string; routes: RouteEntry[] }[] = [
   {
     name: "Dashboard",
@@ -98,6 +107,26 @@ export function TopPanel() {
         </button>
         {open && (
           <div className="absolute top-9 left-2 w-[640px] max-h-[70vh] overflow-auto rounded-lg border border-border/60 bg-card/95 backdrop-blur-md shadow-2xl p-3 grid grid-cols-3 gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-primary mb-1.5">
+                LightOS
+              </div>
+              <div className="flex flex-col">
+                {OS_APPS.map((app) => (
+                  <button
+                    key={app.id}
+                    type="button"
+                    onClick={() => {
+                      openApp(app.id);
+                      setOpen(false);
+                    }}
+                    className="text-left px-2 py-1 rounded text-xs text-foreground/80 hover:bg-foreground/10 hover:text-primary truncate"
+                  >
+                    {app.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             {ROUTE_GROUPS.map((g) => (
               <div key={g.name}>
                 <div className="text-[10px] uppercase tracking-wider text-primary mb-1.5">

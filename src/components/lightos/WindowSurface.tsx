@@ -7,6 +7,8 @@ import { ControlCenterApp } from "./apps/ControlCenterApp";
 import { BrowserApp } from "./apps/BrowserApp";
 import { AboutApp } from "./apps/AboutApp";
 import { RouteApp } from "./apps/RouteApp";
+import { FleetApp } from "./apps/FleetApp";
+import { ClusterApp } from "./apps/ClusterApp";
 import type { WindowState } from "./types";
 
 export function WindowSurface() {
@@ -32,6 +34,10 @@ function renderApp(w: WindowState) {
       return <TerminalApp />;
     case "control":
       return <ControlCenterApp />;
+    case "fleet":
+      return <FleetApp />;
+    case "cluster":
+      return <ClusterApp />;
     case "browser":
       return <BrowserApp />;
     case "about":
