@@ -29,7 +29,7 @@ LightOS is an AI Infrastructure Operating System built by LightRail AI. It is **
 │  containerd · OCI · gVisor (optional sandboxing)                │
 ├─────────────────────────────────────────────────────────────────┤
 │  Layer 3 — OS Base                                              │
-│  Ubuntu Server 24.04 LTS · Kernel 6.8-lightrail                 │
+│  Ubuntu Server 24.04 LTS (riscv64) · Kernel 6.8-lightrail-rv64                 │
 │  systemd · dm-verity · A/B partitions · TPM 2.0                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  Layer 2 — Photonic Interconnect Driver                         │
