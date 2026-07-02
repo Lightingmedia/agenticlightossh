@@ -39,6 +39,7 @@ const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?:
   inference: { icon: Activity, title: "Inference", subtitle: "Model endpoints · live traffic" },
   cloud: { icon: Cloud, title: "Compute Cloud", subtitle: "On-demand GPU instances" },
   photonic: { icon: Network, title: "Photonic Fabric", subtitle: "TFLN PIC · 64-Ch WDM" },
+  nce: { icon: GaugeIcon, title: "NCE Monitor", subtitle: "X2 Node · 2 Dies · 256 Tiles" },
   route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
 };
 
