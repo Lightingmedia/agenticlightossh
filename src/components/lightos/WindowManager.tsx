@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
+
+const LAST_APP_KEY = "lightos:last-app";
 import type { AppId, WindowState } from "./types";
 
 interface OpenRouteOpts {
