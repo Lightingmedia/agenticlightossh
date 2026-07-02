@@ -43,7 +43,7 @@ const APP_ROUTE_URLS: Partial<Record<AppId, string>> = {
 };
 
 const TOP_PANEL = 32;
-const DOCK = 64;
+const DOCK = 240;
 const TASKBAR = 40;
 
 function centerInViewport(w: number, h: number, offset = 0) {
