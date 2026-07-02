@@ -274,6 +274,80 @@ export function ComputeCloudApp() {
           </button>
         </div>
       </div>
+
+      {/* Confirm dialog */}
+      {confirm && meta && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setConfirm(null)}>
+          <div
+            className="w-[380px] rounded-lg border p-5 space-y-3"
+            style={{ background: "#0F1629", borderColor: `${meta.color}55`, boxShadow: `0 0 30px ${meta.color}22` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="font-mono text-sm font-bold" style={{ color: meta.color }}>{meta.title}</div>
+            <div className="font-mono text-[12px] text-foreground/80 leading-relaxed">{meta.body}</div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setConfirm(null)}
+                className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/70 hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={runConfirm}
+                className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black"
+                style={{ background: meta.color, boxShadow: `0 0 12px ${meta.color}66` }}
+              >
+                {meta.cta}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SSH modal */}
+      {sshFor && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setSshFor(null)}>
+          <div
+            className="w-[520px] rounded-lg border p-5 space-y-4"
+            style={{ background: "#0F1629", borderColor: `${TEAL}55`, boxShadow: `0 0 30px ${TEAL}22` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4" style={{ color: TEAL }} />
+                <div className="font-mono text-sm font-bold" style={{ color: TEAL }}>SSH · {sshFor.id}</div>
+              </div>
+              <button onClick={() => setSshFor(null)} className="text-foreground/50 hover:text-foreground text-lg leading-none">×</button>
+            </div>
+            <div className="font-mono text-[11px] text-foreground/60">
+              Endpoint: <span className="text-foreground/90">{sshFor.id}.nce.lightrail.cloud</span> · Port 22
+            </div>
+            <div>
+              <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Command</label>
+              <div className="mt-1 rounded border border-border/60 bg-[#0A0E1A] px-3 py-2 font-mono text-[11px] text-foreground/90 break-all">
+                {sshCommand}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  try { await navigator.clipboard.writeText(sshCommand); setSshCopied(true); } catch { /* ignore */ }
+                }}
+                className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/80 hover:border-primary/50 hover:text-primary"
+              >
+                {sshCopied ? "Copied ✓" : "Copy command"}
+              </button>
+              <button
+                onClick={() => setSshFor(null)}
+                className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black"
+                style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}55` }}
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
