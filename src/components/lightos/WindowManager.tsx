@@ -38,6 +38,7 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   photonic: { title: "Photonic Fabric — TFLN PIC", w: 1180, h: 720 },
   nce: { title: "NCE Monitor", w: 1180, h: 760 },
   telemetry: { title: "Telemetry", w: 1280, h: 780 },
+  thermalctl: { title: "Thermal Control", w: 1180, h: 760 },
   route: { title: "Application", w: 1180, h: 720 },
 };
 

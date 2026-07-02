@@ -21,7 +21,8 @@ import { ComputeCloudApp } from "./apps/ComputeCloudApp";
 import { PhotonicFabricApp } from "./apps/PhotonicFabricApp";
 import { NCEMonitorApp } from "./apps/NCEMonitorApp";
 import { TelemetryApp } from "./apps/TelemetryApp";
-import { Gauge as GaugeIcon, LineChart as LineChartIcon } from "lucide-react";
+import { ThermalControlApp } from "./apps/ThermalControlApp";
+import { Gauge as GaugeIcon, LineChart as LineChartIcon, Thermometer as ThermometerIcon } from "lucide-react";
 import type { WindowState, AppId } from "./types";
 
 const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
@@ -42,6 +43,7 @@ const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?:
   photonic: { icon: Network, title: "Photonic Fabric", subtitle: "TFLN PIC · 64-Ch WDM" },
   nce: { icon: GaugeIcon, title: "NCE Monitor", subtitle: "X2 Node · 2 Dies · 256 Tiles" },
   telemetry: { icon: LineChartIcon, title: "Telemetry", subtitle: "Metrics · Traces · Logs" },
+  thermalctl: { icon: ThermometerIcon, title: "Thermal Control", subtitle: "Cooling · Fans · Throttling" },
   route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
 };
 
@@ -104,6 +106,8 @@ function renderApp(w: WindowState) {
       return <NCEMonitorApp />;
     case "telemetry":
       return <TelemetryApp />;
+    case "thermalctl":
+      return <ThermalControlApp />;
     case "route":
       return <RouteApp win={w} />;
   }
