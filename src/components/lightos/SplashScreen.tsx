@@ -12,7 +12,7 @@ const BOOT_LINES = [
   "[  OK  ] Started Fleet Manager (mTLS).",
   "[  OK  ] Started lightrail-operator on K3s.",
   "[  OK  ] Reached target Graphical Interface.",
-  "Welcome to LightOS 1.0 (Aurora) — based on Ubuntu 24.04 LTS",
+  "Welcome to LightOS 1.0 (Aurora) — RISC-V64 appliance profile",
 ];
 
 export function SplashScreen({ onDone }: { onDone: () => void }) {
@@ -79,7 +79,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       {phase === "boot" && (
         <div className="h-full w-full p-6 font-mono text-[12px] leading-relaxed text-emerald-400/90 overflow-hidden">
           <div className="text-foreground/60 mb-3">
-            LightOS 1.0 (Aurora) · Kernel 6.8.0-lightrail · tty1
+            LightOS 1.0 (Aurora) · Kernel 6.8.0-lightrail-rv64 · riscv64 tty1
           </div>
           {BOOT_LINES.slice(0, shown).map((l, i) => (
             <div key={i} className="whitespace-pre">
@@ -112,7 +112,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                 ))}
               </div>
               <div className="text-[11px] font-mono text-foreground/50 tracking-widest uppercase">
-                Starting LightOS · Ubuntu 24.04 LTS
+                Starting LightOS · RISC-V64 Appliance
               </div>
             </div>
           </div>
