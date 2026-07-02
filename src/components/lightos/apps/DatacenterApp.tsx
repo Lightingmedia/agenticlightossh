@@ -1,4 +1,5 @@
 import { Building2, Zap, Thermometer, Droplets, Wind, Gauge } from "lucide-react";
+import { DatacenterPittsburg } from "./DatacenterPittsburg";
 
 const HALLS = [
   { id: "DC-01-A", racks: 48, util: 87, powerKW: 312, pue: 1.18, tempC: 24, status: "nominal" },
