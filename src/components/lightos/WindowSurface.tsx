@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud, Activity, Network } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { Window } from "./Window";
 import { AppChrome } from "./AppChrome";
@@ -18,6 +18,7 @@ import { TokenFactoryApp } from "./apps/TokenFactoryApp";
 import { InferenceApp } from "./apps/InferenceApp";
 import { InferenceCloudApp } from "./apps/InferenceCloudApp";
 import { ComputeCloudApp } from "./apps/ComputeCloudApp";
+import { PhotonicFabricApp } from "./apps/PhotonicFabricApp";
 import type { WindowState, AppId } from "./types";
 
 const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
@@ -35,6 +36,7 @@ const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?:
   tokenfactory: { icon: Coins, title: "Token Factory", subtitle: "Generation economics" },
   inference: { icon: Activity, title: "Inference", subtitle: "Model endpoints · live traffic" },
   cloud: { icon: Cloud, title: "Compute Cloud", subtitle: "On-demand GPU instances" },
+  photonic: { icon: Network, title: "Photonic Fabric", subtitle: "TFLN PIC · 64-Ch WDM" },
   route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
 };
 
@@ -91,6 +93,8 @@ function renderApp(w: WindowState) {
       return <InferenceApp />;
     case "cloud":
       return <ComputeCloudApp />;
+    case "photonic":
+      return <PhotonicFabricApp />;
     case "route":
       return <RouteApp win={w} />;
   }

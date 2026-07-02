@@ -107,8 +107,40 @@ export function ComputeCloudApp() {
 
   const remove = (id: string) => setInstances((p) => p.filter((i) => i.id !== id));
 
+  type ConfirmAction = { kind: "stop" | "start" | "delete"; id: string };
+  const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
+  const [sshFor, setSshFor] = useState<Instance | null>(null);
+  const [sshCopied, setSshCopied] = useState(false);
+
+  const runConfirm = () => {
+    if (!confirm) return;
+    if (confirm.kind === "delete") remove(confirm.id);
+    else toggleStop(confirm.id);
+    setConfirm(null);
+  };
+  const confirmMeta = () => {
+    if (!confirm) return null;
+    const inst = instances.find((i) => i.id === confirm.id);
+    if (!inst) return null;
+    if (confirm.kind === "stop") return {
+      title: "Stop instance?", body: `Stop ${inst.id} (${inst.type}). Running processes will terminate.`,
+      cta: "Stop", color: "#f97316",
+    };
+    if (confirm.kind === "start") return {
+      title: "Start instance?", body: `Start ${inst.id} (${inst.type}). Billing at $${inst.costHr.toFixed(2)}/hr will resume.`,
+      cta: "Start", color: TEAL,
+    };
+    return {
+      title: "Delete instance?", body: `Permanently delete ${inst.id}. This cannot be undone.`,
+      cta: "Delete", color: "#ef4444",
+    };
+  };
+  const meta = confirmMeta();
+  const sshCommand = sshFor ? `ssh -i ~/.lightrail/keys/${sshFor.id}.pem root@${sshFor.id}.nce.lightrail.cloud` : "";
+
+
   return (
-    <div className="h-full overflow-auto text-foreground" style={{ background: "#0A0E1A" }}>
+    <div className="h-full overflow-auto text-foreground relative" style={{ background: "#0A0E1A" }}>
       <div className="p-5 space-y-4">
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
@@ -152,19 +184,19 @@ export function ComputeCloudApp() {
                     <div className="flex gap-1.5">
                       {i.status === "Stopped" ? (
                         <>
-                          <button onClick={() => toggleStop(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border" style={{ borderColor: `${TEAL}66`, color: TEAL }}>
+                          <button onClick={() => setConfirm({ kind: "start", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border" style={{ borderColor: `${TEAL}66`, color: TEAL }}>
                             <Play className="w-3 h-3" /> Start
                           </button>
-                          <button onClick={() => remove(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-red-400/40 text-red-400 hover:bg-red-400/10">
+                          <button onClick={() => setConfirm({ kind: "delete", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-red-400/40 text-red-400 hover:bg-red-400/10">
                             <Trash2 className="w-3 h-3" /> Delete
                           </button>
                         </>
                       ) : (
                         <>
-                          <button className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-primary/40 hover:text-primary">
+                          <button onClick={() => { setSshFor(i); setSshCopied(false); }} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-primary/40 hover:text-primary">
                             <Terminal className="w-3 h-3" /> SSH
                           </button>
-                          <button onClick={() => toggleStop(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-red-400/50 hover:text-red-400">
+                          <button onClick={() => setConfirm({ kind: "stop", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-red-400/50 hover:text-red-400">
                             <Square className="w-3 h-3" /> Stop
                           </button>
                           <button className="inline-flex items-center text-[10px] font-mono px-1.5 py-1 rounded border border-border/60 text-foreground/70">
@@ -242,6 +274,80 @@ export function ComputeCloudApp() {
           </button>
         </div>
       </div>
+
+      {/* Confirm dialog */}
+      {confirm && meta && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setConfirm(null)}>
+          <div
+            className="w-[380px] rounded-lg border p-5 space-y-3"
+            style={{ background: "#0F1629", borderColor: `${meta.color}55`, boxShadow: `0 0 30px ${meta.color}22` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="font-mono text-sm font-bold" style={{ color: meta.color }}>{meta.title}</div>
+            <div className="font-mono text-[12px] text-foreground/80 leading-relaxed">{meta.body}</div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setConfirm(null)}
+                className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/70 hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={runConfirm}
+                className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black"
+                style={{ background: meta.color, boxShadow: `0 0 12px ${meta.color}66` }}
+              >
+                {meta.cta}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SSH modal */}
+      {sshFor && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setSshFor(null)}>
+          <div
+            className="w-[520px] rounded-lg border p-5 space-y-4"
+            style={{ background: "#0F1629", borderColor: `${TEAL}55`, boxShadow: `0 0 30px ${TEAL}22` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4" style={{ color: TEAL }} />
+                <div className="font-mono text-sm font-bold" style={{ color: TEAL }}>SSH · {sshFor.id}</div>
+              </div>
+              <button onClick={() => setSshFor(null)} className="text-foreground/50 hover:text-foreground text-lg leading-none">×</button>
+            </div>
+            <div className="font-mono text-[11px] text-foreground/60">
+              Endpoint: <span className="text-foreground/90">{sshFor.id}.nce.lightrail.cloud</span> · Port 22
+            </div>
+            <div>
+              <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Command</label>
+              <div className="mt-1 rounded border border-border/60 bg-[#0A0E1A] px-3 py-2 font-mono text-[11px] text-foreground/90 break-all">
+                {sshCommand}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  try { await navigator.clipboard.writeText(sshCommand); setSshCopied(true); } catch { /* ignore */ }
+                }}
+                className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/80 hover:border-primary/50 hover:text-primary"
+              >
+                {sshCopied ? "Copied ✓" : "Copy command"}
+              </button>
+              <button
+                onClick={() => setSshFor(null)}
+                className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black"
+                style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}55` }}
+              >
+                Connect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
