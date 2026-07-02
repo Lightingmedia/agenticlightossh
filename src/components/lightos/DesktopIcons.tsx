@@ -27,6 +27,7 @@ const PAGES: DesktopApp[][] = [
     { kind: "app", id: "terminal",     label: "Terminal",       icon: TerminalSquare },
     { kind: "app", id: "photonic",     label: "Photonic Fabric",icon: Network },
     { kind: "app", id: "nce",          label: "NCE Monitor",    icon: Gauge },
+    { kind: "app", id: "telemetry",    label: "Telemetry",      icon: LineChart },
     { kind: "route", id: "gpu",        label: "GPU Monitor",    icon: Cpu,         url: "/dashboard/gpu" },
     { kind: "route", id: "telemetry",  label: "Telemetry",      icon: LineChart,   url: "/dashboard/telemetry" },
     { kind: "route", id: "thermal",    label: "Thermal Control",icon: Thermometer, url: "/dashboard/thermal" },

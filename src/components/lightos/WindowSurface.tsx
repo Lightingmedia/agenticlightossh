@@ -102,6 +102,8 @@ function renderApp(w: WindowState) {
       return <PhotonicFabricApp />;
     case "nce":
       return <NCEMonitorApp />;
+    case "telemetry":
+      return <TelemetryApp />;
     case "route":
       return <RouteApp win={w} />;
   }
