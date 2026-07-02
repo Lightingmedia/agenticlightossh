@@ -41,11 +41,39 @@ serve(async (req) => {
     const customerEmail = authedUser.email;
     const userId = authedUser.id;
 
-    if (!priceId || typeof priceId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
-      return new Response(JSON.stringify({ error: "Invalid priceId" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Validate returnUrl against an allow-list of trusted origins to prevent
+    // open-redirect abuse via Stripe's post-checkout redirect.
+    const requestOrigin = req.headers.get("origin") ?? "";
+    const allowedOrigins = new Set(
+      [
+        requestOrigin,
+        "https://agentic.lightos.sh",
+        "https://agenticlightossh.lovable.app",
+      ].filter(Boolean),
+    );
+    let safeReturnUrl: string | null = null;
+    if (returnUrl) {
+      if (typeof returnUrl !== "string") {
+        return new Response(JSON.stringify({ error: "Invalid returnUrl" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      try {
+        const parsed = new URL(returnUrl);
+        if (!allowedOrigins.has(parsed.origin)) {
+          return new Response(JSON.stringify({ error: "Invalid returnUrl" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        safeReturnUrl = parsed.toString();
+      } catch {
+        return new Response(JSON.stringify({ error: "Invalid returnUrl" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const env = (environment || 'sandbox') as StripeEnv;
@@ -65,7 +93,7 @@ serve(async (req) => {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded",
-      return_url: returnUrl || `${req.headers.get("origin")}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: safeReturnUrl || `${requestOrigin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     };
 
     if (customerEmail) {

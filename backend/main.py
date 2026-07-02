@@ -25,27 +25,46 @@ Run locally:
     uvicorn main:app --reload --port 8000
 """
 import json
+import os
 from typing import Optional
 
-from fastapi import FastAPI, Query
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from auth import auth_dependency
 from compiler_sim import stream_compilation
 from fabrics import FABRIC_PRESETS, get_fabric
 from llm_serving import router as llm_serving_router
 from fleet import router as fleet_router
 from cluster import router as cluster_router
 
-app = FastAPI(title="LightOS API", version="0.3.0")
+# Global auth guard — every route requires a valid Supabase JWT except the
+# open paths (health/docs) declared inside auth_dependency. Mutating verbs
+# additionally require the `admin` role.
+app = FastAPI(
+    title="LightOS API",
+    version="0.4.0",
+    dependencies=[Depends(auth_dependency)],
+)
 
-# Allow any origin in dev (the Vite proxy handles this in prod)
+# Restrict CORS to trusted origins. Extend via ALLOWED_ORIGINS env var
+# (comma-separated) when deploying to additional hosts.
+_default_origins = [
+    "https://agentic.lightos.sh",
+    "https://agenticlightossh.lovable.app",
+    "https://id-preview--aa1ace82-0bc1-423b-9a10-22b5c78bde20.lovable.app",
+    "http://localhost:5173",
+    "http://localhost:8080",
+]
+_env_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_env_origins or _default_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "apikey"],
 )
 
 # ─── Routers ──────────────────────────────────────────────────────────────────
