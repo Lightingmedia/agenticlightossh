@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Database, Brain, GitMerge, FlaskConical, Package, TrendingUp, Play, Pause, Rocket, GitBranch } from "lucide-react";
+import { MLOpsWorkbench } from "./MLOpsWorkbench";
 
 type Stage = "data" | "training" | "eval" | "deploy";
 type Status = "running" | "paused" | "complete";
@@ -96,8 +97,11 @@ export function MLOpsApp() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground font-mono overflow-hidden">
-      <div className="p-4 border-b border-border/40 bg-card/20">
+    <div className="flex flex-col h-full bg-background text-foreground font-mono overflow-y-auto">
+      <div className="p-4">
+        <MLOpsWorkbench />
+      </div>
+      <div className="p-4 border-b border-t border-border/40 bg-card/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <GitMerge className="w-4 h-4 text-primary" />
