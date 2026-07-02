@@ -83,6 +83,10 @@ export function TopPanel() {
   return (
     <div className="absolute top-0 left-0 right-0 h-8 bg-background/80 backdrop-blur-md border-b border-border/40 flex items-center justify-between px-3 text-xs font-mono z-[100]">
       <div className="flex items-center gap-1" ref={menuRef}>
+        <div className="flex items-center gap-1.5 pr-3 mr-1 border-r border-border/40">
+          <span className="font-bold" style={{ color: "#00FFB2" }}>LightRail AI</span>
+          <span className="text-foreground/90 font-semibold">LightOS</span>
+        </div>
         <button
           onClick={() => openApp("control")}
           className="flex items-center gap-2 px-2 py-1 rounded hover:bg-foreground/10 text-foreground/90"
@@ -132,8 +136,25 @@ export function TopPanel() {
       <div className="flex items-center gap-3 text-muted-foreground">
         <Wifi className="w-3.5 h-3.5" />
         <Volume2 className="w-3.5 h-3.5" />
+        <button className="relative p-1 rounded hover:bg-foreground/10 text-foreground/80" aria-label="Notifications">
+          <Bell className="w-3.5 h-3.5" />
+          <span
+            className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center"
+            style={{ background: "#FF4D4D", color: "white" }}
+          >
+            3
+          </span>
+        </button>
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center border"
+          style={{ background: "#0F1629", borderColor: "#1E2D4A", color: "#00FFB2" }}
+          aria-label="User"
+        >
+          <User className="w-3 h-3" />
+        </div>
         <Power className="w-3.5 h-3.5" />
       </div>
     </div>
   );
 }
+
