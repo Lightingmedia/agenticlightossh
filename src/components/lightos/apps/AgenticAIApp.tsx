@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bot, Activity, GitBranch, Zap, CheckCircle2, AlertCircle, Loader2, Play, Square, Wrench, Database, Globe, Mail, Slack, MessageSquare } from "lucide-react";
+import { Bot, Activity, GitBranch, Zap, CheckCircle2, AlertCircle, Loader2, Play, Square, Wrench, Database, Globe, Mail, Slack, MessageSquare, Plus, MessageCircle, Maximize2, Trash2, Pause, Save, FolderOpen } from "lucide-react";
 
 type AgentStatus = "thinking" | "executing" | "idle" | "error";
 interface Agent {
