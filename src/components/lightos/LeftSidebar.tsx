@@ -33,10 +33,10 @@ const NAV: NavItem[] = [
   { label: "Datacenter", icon: Building2, appId: "datacenter" },
   { label: "Token Factory", icon: Database, appId: "tokenfactory" },
   { label: "Terminal", icon: TerminalSquare, appId: "terminal" },
-  { label: "Photonic Fabric", icon: Radio, route: { url: "/dashboard/photonic", title: "Photonic Fabric" } },
-  { label: "NCE Monitor", icon: Cpu, route: { url: "/dashboard/gpu", title: "NCE Monitor" } },
-  { label: "Telemetry", icon: Activity, route: { url: "/dashboard/telemetry", title: "Telemetry" } },
-  { label: "Thermal Control", icon: FlaskConical, route: { url: "/dashboard/thermal", title: "Thermal Control" } },
+  { label: "Photonic Fabric", icon: Radio, appId: "photonic" },
+  { label: "NCE Monitor", icon: Cpu, appId: "nce" },
+  { label: "Telemetry", icon: Activity, appId: "telemetry" },
+  { label: "Thermal Control", icon: FlaskConical, appId: "thermalctl" },
 ];
 
 export function LeftSidebar() {
@@ -76,7 +76,7 @@ export function LeftSidebar() {
               paddingLeft: active ? 13 : 16,
             }}
             onMouseEnter={(e) => {
-              if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              if (!active) e.currentTarget.style.background = "#151F35";
             }}
             onMouseLeave={(e) => {
               if (!active) e.currentTarget.style.background = "transparent";

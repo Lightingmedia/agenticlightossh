@@ -362,3 +362,24 @@
     text-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
   }
 }
+
+/* LightOS polish: cards, numeric fonts, window enter transition */
+@layer utilities {
+  .lightos-card {
+    background: #0F1629;
+    border: 1px solid #1E2D4A;
+    border-radius: 8px;
+  }
+  .num,
+  .lightos-num {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .lightos-window-enter {
+    animation: lightos-window-fade 150ms ease-out;
+  }
+  @keyframes lightos-window-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
