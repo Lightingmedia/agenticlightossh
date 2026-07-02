@@ -87,16 +87,150 @@ function StatusBadge({ status }: { status: JobStatus | LLMDeployment["status"] }
   return <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${map[status] ?? ""}`}>{status.toUpperCase()}</span>;
 }
 
-type Tab = "jobs" | "fabric" | "nodes" | "llm";
+type Tab = "overview" | "jobs" | "fabric" | "nodes" | "llm";
 const TABS: { id: Tab; label: string; icon: typeof Activity }[] = [
+  { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "jobs", label: "Job Queue", icon: Layers },
   { id: "fabric", label: "Fabric", icon: Network },
   { id: "nodes", label: "Nodes", icon: Server },
   { id: "llm", label: "LLM Serving", icon: Brain },
 ];
 
+const TEAL = "#00FFB2";
+const AMBER = "#FFB800";
+
+function heatColor(v: number) {
+  if (v <= 30) return "#1E2D4A";
+  if (v <= 60) return "#00875A";
+  if (v <= 85) return TEAL;
+  return AMBER;
+}
+
+const HEAT_TILES = Array.from({ length: 256 }, () => Math.floor(Math.random() * 100));
+
+const ALERTS = [
+  { level: "CRITICAL", color: "#ef4444", msg: "NCE-1 thermal threshold exceeded — 87°C", ago: "2 min ago" },
+  { level: "WARNING", color: AMBER, msg: "TFLN Channel 42 BER elevated — 1.2e-9", ago: "8 min ago" },
+  { level: "INFO", color: "#3b82f6", msg: "llama-3.3-70b loaded on nce.xlarge", ago: "14 min ago" },
+];
+
+const EVENTS = [
+  "[14:52:01] Kernel launched on NCE-0, tiles 0–31",
+  "[14:51:47] Agent 'research-01' resumed from NGM checkpoint",
+  "[14:51:33] TFLN channel 12 recalibrated, BER nominal",
+  "[14:51:18] LightLink auto-scaled to 400 Gbps",
+];
+
+function KpiCard({ title, value, sub, color = TEAL }: { title: string; value: string; sub: string; color?: string }) {
+  return (
+    <div className="rounded-lg border border-border/40 bg-card/40 p-4 border-l-4" style={{ borderLeftColor: TEAL }}>
+      <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">{title}</div>
+      <div className="mt-2 font-mono text-3xl font-bold" style={{ color }}>{value}</div>
+      <div className="mt-1 text-[11px] font-mono text-foreground/50">{sub}</div>
+    </div>
+  );
+}
+
+function OverviewPanel() {
+  return (
+    <div className="space-y-4">
+      {/* KPI ROW */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        <KpiCard title="NCE Utilization" value="73%" sub="256 tiles active" />
+        <KpiCard title="TFLN Channels" value="48 / 64" sub="Active WDM channels" />
+        <KpiCard title="NGM Memory" value="141 GB / 192 GB" sub="NCE Global Memory" color={AMBER} />
+        <KpiCard title="LightLink" value="387 Gbps" sub="Optical host throughput" />
+      </div>
+
+      {/* MIDDLE ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        <div className="lg:col-span-3 rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <div className="font-mono text-sm text-foreground/80">NCE Tile Heatmap</div>
+            <div className="text-[10px] font-mono text-foreground/40">X2 Node · 256 tiles</div>
+          </div>
+          <div className="grid gap-[2px]" style={{ gridTemplateColumns: "repeat(16, minmax(0, 1fr))" }}>
+            {HEAT_TILES.map((v, i) => (
+              <div key={i} title={`Tile ${i} · ${v}%`} className="aspect-square rounded-[2px]" style={{ background: heatColor(v) }} />
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-3 text-[10px] font-mono text-foreground/50">
+            {[["0–30%","#1E2D4A"],["31–60%","#00875A"],["61–85%",TEAL],["86–100%",AMBER]].map(([l,c]) => (
+              <div key={l} className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm" style={{ background: c }} />{l}</div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-mono text-sm text-foreground/80">Alerts</div>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/40">3</span>
+          </div>
+          <div className="space-y-2">
+            {ALERTS.map((a) => (
+              <div key={a.msg} className="rounded border border-border/40 bg-background/40 p-2 border-l-4" style={{ borderLeftColor: a.color }}>
+                <div className="text-[11px] font-mono">
+                  <span style={{ color: a.color }}>[{a.level}]</span>{" "}
+                  <span className="text-foreground/80">{a.msg}</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="text-[9px] font-mono text-foreground/40">{a.ago}</span>
+                  <div className="flex gap-1">
+                    <button className="text-[10px] font-mono px-2 py-0.5 rounded border border-border/60 text-foreground/60 hover:text-primary hover:border-primary/40 transition-colors">Acknowledge</button>
+                    <button className="text-[10px] font-mono px-2 py-0.5 rounded border border-border/60 text-foreground/60 hover:text-primary hover:border-primary/40 transition-colors">Resolve</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="font-mono text-sm text-foreground/80 mb-3">Active Workloads</div>
+          <div className="space-y-2 text-[12px] font-mono">
+            {[
+              { label: "Inference Endpoints", value: 4, dot: TEAL },
+              { label: "Agent Instances", value: 7, dot: TEAL },
+              { label: "Training Jobs", value: 1, dot: AMBER },
+            ].map((w) => (
+              <div key={w.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ background: w.dot, boxShadow: `0 0 6px ${w.dot}` }} />
+                  <span className="text-foreground/70">{w.label}</span>
+                </div>
+                <span className="text-foreground/90">{w.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="font-mono text-sm text-foreground/80 mb-3">System Info</div>
+          <div className="space-y-2 text-[12px] font-mono">
+            <div className="flex justify-between"><span className="text-foreground/50">Version</span><span className="text-foreground/80">v2.1.4 · NCE-Native</span></div>
+            <div className="flex justify-between items-center"><span className="text-foreground/50">SOC2</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded border border-emerald-400/40 bg-emerald-400/10 text-emerald-400">Compliant</span>
+            </div>
+            <div className="flex justify-between"><span className="text-foreground/50">Last audit</span><span className="text-foreground/80">June 15, 2026</span></div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="font-mono text-sm text-foreground/80 mb-3">System Events</div>
+          <div className="space-y-1 text-[11px] font-mono text-foreground/70 leading-relaxed">
+            {EVENTS.map((e) => <div key={e}>{e}</div>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ControlCenterApp() {
-  const [tab, setTab] = useState<Tab>("jobs");
+  const [tab, setTab] = useState<Tab>("overview");
   const [jobs, setJobs] = useState<Job[]>([
     { id: "j1", name: "llama3-70b-finetune", type: "training", status: "running", progress: 67, fabric: "mesh-20x64", ranks: 64, bwGbps: 312, startedAt: "09:14", eta: "2h 18m" },
     { id: "j2", name: "mixtral-8x7b-compile", type: "compile", status: "running", progress: 41, fabric: "butterfly-8x256", ranks: 8, bwGbps: 1480, startedAt: "10:02", eta: "44m" },
@@ -197,6 +331,7 @@ export function ControlCenterApp() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {tab === "overview" && <OverviewPanel />}
           {tab === "jobs" && jobs.map(job => (
             <div key={job.id} className="rounded-lg border border-border/40 bg-card/40 p-3">
               <div className="flex items-center justify-between mb-2">
