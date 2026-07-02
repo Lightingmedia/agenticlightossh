@@ -149,7 +149,7 @@ export function TopPanel() {
           </div>
         )}
       </div>
-      <div className="text-foreground/80">{fmt}</div>
+      <div className="text-foreground/80 lightos-num">{fmt}</div>
       <div className="flex items-center gap-3 text-muted-foreground">
         <div
           className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full lightos-num text-[10px]"
