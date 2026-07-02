@@ -56,7 +56,9 @@ export function WindowSurface() {
         return (
           <Window key={w.id} win={w}>
             <AppChrome icon={meta.icon} title={meta.title} subtitle={meta.subtitle}>
-              {renderApp(w)}
+              <div key={w.appId} className="lightos-window-enter h-full">
+                {renderApp(w)}
+              </div>
             </AppChrome>
           </Window>
         );
