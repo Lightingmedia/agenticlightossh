@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud, Activity } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Bot, GitMerge, Building2, Coins, Cloud, Activity, Network } from "lucide-react";
 import { useWindowManager } from "./WindowManager";
 import { Window } from "./Window";
 import { AppChrome } from "./AppChrome";
