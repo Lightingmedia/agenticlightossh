@@ -37,6 +37,7 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   cloud: { title: "Compute Cloud", w: 960, h: 640 },
   photonic: { title: "Photonic Fabric — TFLN PIC", w: 1180, h: 720 },
   nce: { title: "NCE Monitor", w: 1180, h: 760 },
+  telemetry: { title: "Telemetry", w: 1280, h: 780 },
   route: { title: "Application", w: 1180, h: 720 },
 };
 

@@ -20,7 +20,8 @@ import { InferenceCloudApp } from "./apps/InferenceCloudApp";
 import { ComputeCloudApp } from "./apps/ComputeCloudApp";
 import { PhotonicFabricApp } from "./apps/PhotonicFabricApp";
 import { NCEMonitorApp } from "./apps/NCEMonitorApp";
-import { Gauge as GaugeIcon } from "lucide-react";
+import { TelemetryApp } from "./apps/TelemetryApp";
+import { Gauge as GaugeIcon, LineChart as LineChartIcon } from "lucide-react";
 import type { WindowState, AppId } from "./types";
 
 const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
@@ -40,6 +41,7 @@ const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?:
   cloud: { icon: Cloud, title: "Compute Cloud", subtitle: "On-demand GPU instances" },
   photonic: { icon: Network, title: "Photonic Fabric", subtitle: "TFLN PIC · 64-Ch WDM" },
   nce: { icon: GaugeIcon, title: "NCE Monitor", subtitle: "X2 Node · 2 Dies · 256 Tiles" },
+  telemetry: { icon: LineChartIcon, title: "Telemetry", subtitle: "Metrics · Traces · Logs" },
   route: { icon: AppWindow, title: "App", subtitle: "Embedded view" },
 };
 
@@ -100,6 +102,8 @@ function renderApp(w: WindowState) {
       return <PhotonicFabricApp />;
     case "nce":
       return <NCEMonitorApp />;
+    case "telemetry":
+      return <TelemetryApp />;
     case "route":
       return <RouteApp win={w} />;
   }

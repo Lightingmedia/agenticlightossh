@@ -1,4 +1,4 @@
-import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity, Power, Network, Gauge } from "lucide-react";
+import { Settings, Folder, TerminalSquare, LayoutDashboard, Globe, Info, Shield, Box, AppWindow, Square, Volume2, VolumeX, Bot, GitMerge, Building2, Coins, Cloud, Activity, Power, Network, Gauge, LineChart as LineChartIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useWindowManager } from "./WindowManager";
 import { sfx } from "./sfx";
@@ -21,6 +21,7 @@ const APP_ICONS: Record<AppId, typeof Settings> = {
   cloud: Cloud,
   photonic: Network,
   nce: Gauge,
+  telemetry: LineChartIcon,
   route: AppWindow,
 };
 
