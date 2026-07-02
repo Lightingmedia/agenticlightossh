@@ -14,11 +14,17 @@ interface Endpoint {
   rps: number; p99: number; tiles: number;
 }
 
-const ENDPOINTS: Endpoint[] = [
+const INITIAL_ENDPOINTS: Endpoint[] = [
   { name: "llm-prod-01",   model: "llama-3.3-70b",     replicas: 3, status: "Running", rps: 142, p99: 280, tiles: 192 },
   { name: "embeddings-v2", model: "nomic-embed-1.5",   replicas: 2, status: "Running", rps: 890, p99: 12,  tiles: 32  },
   { name: "vision-api",    model: "llava-1.6",         replicas: 1, status: "Scaling", rps: 28,  p99: 640, tiles: 64  },
   { name: "coder-api",     model: "deepseek-coder-v3", replicas: 2, status: "Running", rps: 67,  p99: 195, tiles: 64  },
+];
+const ENDPOINTS = INITIAL_ENDPOINTS;
+
+const MODEL_OPTIONS = [
+  "llama-3.3-70b", "llama-3.1-8b", "nomic-embed-1.5",
+  "llava-1.6", "deepseek-coder-v3", "mistral-7b-instruct",
 ];
 
 function StatusPill({ s }: { s: Status }) {
