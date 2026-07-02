@@ -330,7 +330,7 @@ export function AgenticAIApp() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 px-4 pt-2 border-b border-border/40 bg-card/10">
-        {(["agents", "runs", "tools", "activity"] as const).map((t) => (
+        {(["instances", "agents", "runs", "tools", "activity"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
