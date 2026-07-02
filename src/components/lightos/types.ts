@@ -13,6 +13,7 @@ export type AppId =
   | "tokenfactory"
   | "inference"
   | "cloud"
+  | "photonic"
   | "route";
 
 export interface WindowState {
