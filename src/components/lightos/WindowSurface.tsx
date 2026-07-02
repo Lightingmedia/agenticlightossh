@@ -90,7 +90,7 @@ function renderApp(w: WindowState) {
     case "inference":
       return <InferenceApp />;
     case "cloud":
-      return <InferenceCloudApp />;
+      return <ComputeCloudApp />;
     case "route":
       return <RouteApp win={w} />;
   }
