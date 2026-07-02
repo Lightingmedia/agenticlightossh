@@ -19,6 +19,8 @@ import { InferenceApp } from "./apps/InferenceApp";
 import { InferenceCloudApp } from "./apps/InferenceCloudApp";
 import { ComputeCloudApp } from "./apps/ComputeCloudApp";
 import { PhotonicFabricApp } from "./apps/PhotonicFabricApp";
+import { NCEMonitorApp } from "./apps/NCEMonitorApp";
+import { Gauge as GaugeIcon } from "lucide-react";
 import type { WindowState, AppId } from "./types";
 
 const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
@@ -95,6 +97,8 @@ function renderApp(w: WindowState) {
       return <ComputeCloudApp />;
     case "photonic":
       return <PhotonicFabricApp />;
+    case "nce":
+      return <NCEMonitorApp />;
     case "route":
       return <RouteApp win={w} />;
   }

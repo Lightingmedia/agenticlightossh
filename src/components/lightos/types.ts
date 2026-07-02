@@ -14,6 +14,7 @@ export type AppId =
   | "inference"
   | "cloud"
   | "photonic"
+  | "nce"
   | "route";
 
 export interface WindowState {
