@@ -68,6 +68,7 @@ export function DatacenterApp() {
             </div>
           ))}
         </div>
+        </div>
       </div>
     </div>
   );
