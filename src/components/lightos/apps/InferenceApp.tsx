@@ -77,7 +77,22 @@ function Sparkline({
 }
 
 export function InferenceApp() {
-  const [selected, setSelected] = useState(ENDPOINTS[0].name);
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(INITIAL_ENDPOINTS);
+  const [selected, setSelected] = useState(INITIAL_ENDPOINTS[0].name);
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState<{ name: string; model: string; replicas: number; status: Status }>({
+    name: "", model: MODEL_OPTIONS[0], replicas: 1, status: "Running",
+  });
+  const createEndpoint = () => {
+    const name = form.name.trim();
+    if (!name) return;
+    setEndpoints((p) => [
+      ...p,
+      { name, model: form.model, replicas: form.replicas, status: form.status, rps: 0, p99: 0, tiles: form.replicas * 32 },
+    ]);
+    setShowNew(false);
+    setForm({ name: "", model: MODEL_OPTIONS[0], replicas: 1, status: "Running" });
+  };
   const [prompt, setPrompt] = useState("");
   const [temp, setTemp] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
