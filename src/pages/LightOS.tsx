@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { WindowManagerProvider, useWindowManager } from "@/components/lightos/WindowManager";
 import { PreferencesProvider, usePreferences } from "@/components/lightos/Preferences";
 import { TopPanel } from "@/components/lightos/TopPanel";
-import { Dock } from "@/components/lightos/Dock";
+import { LeftSidebar, LEFT_SIDEBAR_WIDTH } from "@/components/lightos/LeftSidebar";
 import { Taskbar, TASKBAR_HEIGHT } from "@/components/lightos/Taskbar";
 import { DesktopIcons } from "@/components/lightos/DesktopIcons";
 import { WindowSurface } from "@/components/lightos/WindowSurface";
@@ -17,8 +17,8 @@ function Desktop() {
     <div className="fixed inset-0 overflow-hidden text-foreground bg-background">
       <LiquidBackground />
       <TopPanel />
-      <Dock />
-      <div className="absolute top-8 left-16 right-0" style={{ bottom: TASKBAR_HEIGHT }}>
+      <LeftSidebar />
+      <div className="absolute top-8 right-0" style={{ left: LEFT_SIDEBAR_WIDTH, bottom: TASKBAR_HEIGHT }}>
         <DesktopIcons />
         <WindowSurface />
       </div>
@@ -26,6 +26,7 @@ function Desktop() {
     </div>
   );
 }
+
 
 function Boot() {
   const { splashEnabled } = usePreferences();
