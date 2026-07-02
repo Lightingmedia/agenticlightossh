@@ -264,7 +264,7 @@ export function InferenceApp() {
                   className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90 focus:outline-none focus:border-[color:var(--teal)]"
                   style={{ ["--teal" as any]: TEAL }}
                 >
-                  {ENDPOINTS.map((e) => <option key={e.name} value={e.name}>{e.name}</option>)}
+                  {endpoints.map((e) => <option key={e.name} value={e.name}>{e.name}</option>)}
                 </select>
               </div>
               <div>
