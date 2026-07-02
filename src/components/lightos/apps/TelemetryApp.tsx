@@ -244,32 +244,308 @@ function PlaceholderDashboard({ label }: { label: string }) {
   );
 }
 
-function ExplorePanel({ kind }: { kind: ExploreKey }) {
-  const titles: Record<ExploreKey, string> = {
-    metrics: "Metrics (PromQL)",
-    traces: "Traces",
-    logs: "Logs",
-  };
+/* ------------------------------------------------------------------ */
+/* Explore: Metrics (PromQL)                                          */
+/* ------------------------------------------------------------------ */
+
+const METRIC_PRESETS: { label: string; expr: string; kind: "nce" | "llm" }[] = [
+  { label: "NCE tile utilization",         expr: "rate(nce_tile_utilization[1m])",          kind: "nce" },
+  { label: "NCE junction temp",            expr: "avg(nce_junction_temp) by (die)",         kind: "nce" },
+  { label: "LLM tokens/sec",               expr: "sum(rate(llm_tokens_total[1m]))",         kind: "llm" },
+  { label: "LLM p99 latency",              expr: "histogram_quantile(0.99, llm_latency_ms)", kind: "llm" },
+];
+
+function genMetricSeries(seed: number, base: number, amp: number, noise: number) {
+  const len = 60;
+  const now = Date.now();
+  return Array.from({ length: len }).map((_, i) => ({
+    t: new Date(now - (len - 1 - i) * 15_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+    v: Math.max(0, Math.round(base + Math.sin((i + seed) / 4) * amp + (Math.random() - 0.5) * noise)),
+  }));
+}
+
+function MetricsExplore() {
+  const [expr, setExpr] = useState(METRIC_PRESETS[0].expr);
+  const [range, setRange] = useState("15m");
+  const [step, setStep] = useState("15s");
+  const [instance, setInstance] = useState("all");
+  const [ran, setRan] = useState(0);
+
+  const isLLM = expr.toLowerCase().includes("llm");
+  const seed = expr.length + ran;
+  const data = useMemo(
+    () => (isLLM
+      ? genMetricSeries(seed, 18000, 5500, 1200)
+      : genMetricSeries(seed, 72, 14, 6)),
+    [seed, isLLM],
+  );
+
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="font-mono text-xl text-foreground">{titles[kind]}</h2>
-      <div className="rounded-xl border border-border p-4 font-mono text-xs text-foreground/70" style={{ background: CHART_BG }}>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-foreground/50">&gt;</span>
-          <span className="text-[#00FF88]">
-            {kind === "metrics"
-              ? 'rate(nce_tile_utilization[1m])'
-              : kind === "traces"
-              ? 'service.name="inference-gateway"'
-              : 'level=error {job="lrca-runtime"}'}
-          </span>
+      <h2 className="font-mono text-xl text-foreground">Metrics (PromQL)</h2>
+
+      <div className="rounded-xl border border-border p-3 font-mono text-xs" style={{ background: CHART_BG }}>
+        <div className="flex items-center gap-2">
+          <span className="text-[#00FF88]">&gt;</span>
+          <input
+            value={expr}
+            onChange={(e) => setExpr(e.target.value)}
+            spellCheck={false}
+            className="flex-1 bg-transparent outline-none text-[#00FF88] font-mono text-xs"
+          />
+          <button
+            onClick={() => setRan((r) => r + 1)}
+            className="px-3 py-1 rounded border border-[#00FF88]/50 text-[#00FF88] hover:bg-[#00FF88]/10"
+          >
+            Run
+          </button>
         </div>
-        <div className="border-t border-border/60 pt-3 text-foreground/50">
-          Explore data by editing the query above and hitting run. Results appear here.
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {METRIC_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              onClick={() => { setExpr(p.expr); setRan((r) => r + 1); }}
+              className="px-2 py-0.5 rounded border border-border/60 text-foreground/70 hover:border-[#00FF88]/50 hover:text-[#00FF88] text-[10px]"
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 font-mono text-[11px]">
+        {[
+          { label: "$range", value: range, set: setRange, opts: ["5m", "15m", "1h", "6h"] },
+          { label: "$step", value: step, set: setStep, opts: ["5s", "15s", "1m"] },
+          { label: "$instance", value: instance, set: setInstance, opts: ["all", "nce-0", "nce-1", "llm-prod-01"] },
+        ].map((v) => (
+          <div key={v.label} className="rounded-lg border border-border p-2 flex items-center gap-2" style={{ background: CHART_BG }}>
+            <span className="text-foreground/50">{v.label}</span>
+            <select
+              value={v.value}
+              onChange={(e) => v.set(e.target.value)}
+              className="ml-auto bg-transparent border border-border/60 rounded px-1.5 py-0.5 text-foreground/90 outline-none"
+            >
+              {v.opts.map((o) => <option key={o} value={o} className="bg-[#0A0E1A]">{o}</option>)}
+            </select>
+          </div>
+        ))}
+      </div>
+
+      <ChartFrame title={isLLM ? "Result · LLM metric" : "Result · NCE metric"} subtitle={`step ${step} · range ${range}`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+            <CartesianGrid stroke={GRID} strokeDasharray="3 3" />
+            <XAxis dataKey="t" {...AXIS} minTickGap={40} />
+            <YAxis {...AXIS} />
+            <Tooltip {...TOOLTIP} />
+            <Line type="monotone" dataKey="v" stroke={TEAL} strokeWidth={2} dot={false} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartFrame>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Explore: Traces                                                    */
+/* ------------------------------------------------------------------ */
+
+interface TraceRow {
+  id: string; service: string; op: string; durMs: number; status: "OK" | "ERROR"; ts: string;
+}
+const TRACES: TraceRow[] = [
+  { id: "8f2a…c11", service: "inference-gateway", op: "POST /v1/completions", durMs: 284, status: "OK",    ts: "12:04:22" },
+  { id: "1c47…a09", service: "lrca-runtime",      op: "kernel.matmul",         durMs: 12,  status: "OK",    ts: "12:04:22" },
+  { id: "77bd…9e2", service: "inference-gateway", op: "POST /v1/chat",         durMs: 812, status: "ERROR", ts: "12:04:19" },
+  { id: "2fa1…03d", service: "agent-orchestrator",op: "tools.exec",            durMs: 145, status: "OK",    ts: "12:04:11" },
+  { id: "b09e…4a7", service: "tfln-driver",       op: "channel.reconfig",      durMs: 38,  status: "OK",    ts: "12:03:58" },
+];
+
+function TracesExplore() {
+  const [q, setQ] = useState('service.name="inference-gateway"');
+  const [status, setStatus] = useState<"all" | "OK" | "ERROR">("all");
+  const [selected, setSelected] = useState<TraceRow | null>(TRACES[0]);
+
+  const rows = TRACES.filter((r) =>
+    (status === "all" || r.status === status) &&
+    (q.trim() === "" || r.service.includes(q.replace(/^.*="?/, "").replace(/"$/, "")) || r.op.toLowerCase().includes(q.toLowerCase()))
+  );
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="font-mono text-xl text-foreground">Traces</h2>
+      <div className="rounded-xl border border-border p-3 flex items-center gap-2 font-mono text-xs" style={{ background: CHART_BG }}>
+        <span className="text-[#00FF88]">&gt;</span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="flex-1 bg-transparent outline-none text-[#00FF88]"
+          spellCheck={false}
+        />
+        <select value={status} onChange={(e) => setStatus(e.target.value as "all" | "OK" | "ERROR")} className="bg-transparent border border-border/60 rounded px-1.5 py-0.5 text-foreground/90 outline-none">
+          <option value="all"   className="bg-[#0A0E1A]">All status</option>
+          <option value="OK"    className="bg-[#0A0E1A]">OK</option>
+          <option value="ERROR" className="bg-[#0A0E1A]">ERROR</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-3">
+        <div className="rounded-xl border border-border overflow-hidden" style={{ background: CHART_BG }}>
+          <table className="w-full text-left text-[12px] font-mono">
+            <thead className="text-[10px] uppercase tracking-wider text-foreground/50">
+              <tr className="border-b border-border/60">
+                <th className="px-3 py-2 font-medium">Trace</th>
+                <th className="px-3 py-2 font-medium">Service</th>
+                <th className="px-3 py-2 font-medium">Operation</th>
+                <th className="px-3 py-2 font-medium">Duration</th>
+                <th className="px-3 py-2 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40 text-foreground/85">
+              {rows.map((r) => {
+                const active = selected?.id === r.id;
+                return (
+                  <tr
+                    key={r.id}
+                    onClick={() => setSelected(r)}
+                    className={`cursor-pointer ${active ? "bg-[#00FF88]/10" : "hover:bg-primary/5"}`}
+                  >
+                    <td className="px-3 py-2 text-[#00FF88]">{r.id}</td>
+                    <td className="px-3 py-2">{r.service}</td>
+                    <td className="px-3 py-2 text-foreground/70">{r.op}</td>
+                    <td className="px-3 py-2">{r.durMs} ms</td>
+                    <td className="px-3 py-2" style={{ color: r.status === "OK" ? TEAL : RED }}>{r.status}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <aside className="rounded-xl border border-border p-3 font-mono text-xs" style={{ background: CHART_BG }}>
+          <div className="text-[10px] uppercase tracking-wider text-foreground/50 mb-2">Selected trace</div>
+          {selected ? (
+            <div className="flex flex-col gap-1.5 text-foreground/80">
+              <div><span className="text-foreground/50">id: </span><span className="text-[#00FF88]">{selected.id}</span></div>
+              <div><span className="text-foreground/50">service: </span>{selected.service}</div>
+              <div><span className="text-foreground/50">op: </span>{selected.op}</div>
+              <div><span className="text-foreground/50">status: </span><span style={{ color: selected.status === "OK" ? TEAL : RED }}>{selected.status}</span></div>
+              <div><span className="text-foreground/50">duration: </span>{selected.durMs} ms</div>
+              <div><span className="text-foreground/50">ts: </span>{selected.ts}</div>
+              <div className="mt-2 border-t border-border/60 pt-2">
+                <div className="text-foreground/50 mb-1">Span timeline</div>
+                <div className="space-y-1">
+                  {["gateway.parse 4ms", "auth.verify 8ms", "route.plan 12ms", "runtime.exec 240ms", "response.encode 20ms"].map((s) => (
+                    <div key={s} className="flex items-center gap-2">
+                      <span className="w-1 h-3 bg-[#00FF88]" />
+                      <span>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-foreground/50">Select a trace to inspect.</div>
+          )}
+        </aside>
       </div>
     </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Explore: Logs                                                      */
+/* ------------------------------------------------------------------ */
+
+type Level = "INFO" | "WARN" | "ERROR" | "DEBUG";
+interface LogRow { ts: string; level: Level; job: string; msg: string; }
+const LOGS: LogRow[] = [
+  { ts: "12:04:22.104", level: "INFO",  job: "lrca-runtime",       msg: "kernel matmul_v3 dispatched to nce-0 tile 42" },
+  { ts: "12:04:19.882", level: "ERROR", job: "inference-gateway",  msg: "upstream timeout after 800ms (model=lightrail-8b)" },
+  { ts: "12:04:14.550", level: "WARN",  job: "tfln-driver",        msg: "channel 27 BER above nominal (2.1e-10)" },
+  { ts: "12:04:10.021", level: "INFO",  job: "agent-orchestrator", msg: "tool exec succeeded (name=code_search, ms=145)" },
+  { ts: "12:04:05.443", level: "DEBUG", job: "scheduler",          msg: "recomputed workload split: {native:0.48, cuda:0.41}" },
+  { ts: "12:03:58.998", level: "INFO",  job: "tfln-driver",        msg: "reconfigured 4 channels in 38ms" },
+];
+const LEVEL_COLOR: Record<Level, string> = { INFO: TEAL, WARN: AMBER, ERROR: RED, DEBUG: "#7A8AAA" };
+
+function LogsExplore() {
+  const [q, setQ] = useState("");
+  const [level, setLevel] = useState<"all" | Level>("all");
+  const [selected, setSelected] = useState<LogRow | null>(null);
+
+  const rows = LOGS.filter((r) =>
+    (level === "all" || r.level === level) &&
+    (q.trim() === "" || r.msg.toLowerCase().includes(q.toLowerCase()) || r.job.includes(q))
+  );
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="font-mono text-xl text-foreground">Logs</h2>
+
+      <div className="rounded-xl border border-border p-3 flex items-center gap-2 font-mono text-xs" style={{ background: CHART_BG }}>
+        <span className="text-[#00FF88]">&gt;</span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder='search logs, e.g. {job="lrca-runtime"} kernel'
+          className="flex-1 bg-transparent outline-none text-[#00FF88] placeholder:text-foreground/40"
+          spellCheck={false}
+        />
+        <select value={level} onChange={(e) => setLevel(e.target.value as "all" | Level)} className="bg-transparent border border-border/60 rounded px-1.5 py-0.5 text-foreground/90 outline-none">
+          {(["all", "INFO", "WARN", "ERROR", "DEBUG"] as const).map((l) => (
+            <option key={l} value={l} className="bg-[#0A0E1A]">{l === "all" ? "All levels" : l}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-3">
+        <div className="rounded-xl border border-border overflow-hidden font-mono text-[12px]" style={{ background: CHART_BG }}>
+          <div className="divide-y divide-border/40">
+            {rows.map((r, i) => {
+              const active = selected === r;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setSelected(r)}
+                  className={`w-full text-left px-3 py-1.5 flex gap-3 items-start ${active ? "bg-[#00FF88]/10" : "hover:bg-primary/5"}`}
+                >
+                  <span className="text-foreground/50 w-24 shrink-0">{r.ts}</span>
+                  <span className="w-14 shrink-0" style={{ color: LEVEL_COLOR[r.level] }}>{r.level}</span>
+                  <span className="w-40 shrink-0 text-foreground/70">{r.job}</span>
+                  <span className="text-foreground/85 truncate">{r.msg}</span>
+                </button>
+              );
+            })}
+            {rows.length === 0 && (
+              <div className="px-3 py-4 text-foreground/50">No matching log lines.</div>
+            )}
+          </div>
+        </div>
+
+        <aside className="rounded-xl border border-border p-3 font-mono text-xs" style={{ background: CHART_BG }}>
+          <div className="text-[10px] uppercase tracking-wider text-foreground/50 mb-2">Event details</div>
+          {selected ? (
+            <div className="flex flex-col gap-1.5 text-foreground/80">
+              <div><span className="text-foreground/50">ts: </span>{selected.ts}</div>
+              <div><span className="text-foreground/50">level: </span><span style={{ color: LEVEL_COLOR[selected.level] }}>{selected.level}</span></div>
+              <div><span className="text-foreground/50">job: </span>{selected.job}</div>
+              <div className="mt-2 border-t border-border/60 pt-2 whitespace-pre-wrap text-foreground/90">{selected.msg}</div>
+            </div>
+          ) : (
+            <div className="text-foreground/50">Select a log line to inspect.</div>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function ExplorePanel({ kind }: { kind: ExploreKey }) {
+  if (kind === "metrics") return <MetricsExplore />;
+  if (kind === "traces")  return <TracesExplore />;
+  return <LogsExplore />;
 }
 
 export function TelemetryApp() {
