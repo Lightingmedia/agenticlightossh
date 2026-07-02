@@ -184,19 +184,19 @@ export function ComputeCloudApp() {
                     <div className="flex gap-1.5">
                       {i.status === "Stopped" ? (
                         <>
-                          <button onClick={() => toggleStop(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border" style={{ borderColor: `${TEAL}66`, color: TEAL }}>
+                          <button onClick={() => setConfirm({ kind: "start", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border" style={{ borderColor: `${TEAL}66`, color: TEAL }}>
                             <Play className="w-3 h-3" /> Start
                           </button>
-                          <button onClick={() => remove(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-red-400/40 text-red-400 hover:bg-red-400/10">
+                          <button onClick={() => setConfirm({ kind: "delete", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-red-400/40 text-red-400 hover:bg-red-400/10">
                             <Trash2 className="w-3 h-3" /> Delete
                           </button>
                         </>
                       ) : (
                         <>
-                          <button className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-primary/40 hover:text-primary">
+                          <button onClick={() => { setSshFor(i); setSshCopied(false); }} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-primary/40 hover:text-primary">
                             <Terminal className="w-3 h-3" /> SSH
                           </button>
-                          <button onClick={() => toggleStop(i.id)} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-red-400/50 hover:text-red-400">
+                          <button onClick={() => setConfirm({ kind: "stop", id: i.id })} className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded border border-border/60 text-foreground/70 hover:border-red-400/50 hover:text-red-400">
                             <Square className="w-3 h-3" /> Stop
                           </button>
                           <button className="inline-flex items-center text-[10px] font-mono px-1.5 py-1 rounded border border-border/60 text-foreground/70">
