@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Wifi, Volume2, Power, Activity, AppWindow } from "lucide-react";
+import { Wifi, Volume2, Power, Activity, AppWindow, Bell, User } from "lucide-react";
+
 import { useWindowManager } from "./WindowManager";
 
 interface RouteEntry {
