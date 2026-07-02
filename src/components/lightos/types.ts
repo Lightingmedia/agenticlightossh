@@ -15,6 +15,7 @@ export type AppId =
   | "cloud"
   | "photonic"
   | "nce"
+  | "telemetry"
   | "route";
 
 export interface WindowState {
