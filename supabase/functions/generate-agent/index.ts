@@ -3,6 +3,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.21.0"
+import { createClient } from "npm:@supabase/supabase-js@2"
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -10,7 +11,26 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+    )
+    const { data: userData, error: authErr } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (authErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     const { requirement } = await req.json()
+
+
 
     if (!requirement || typeof requirement !== 'string' || requirement.length > 2000) {
       return new Response(

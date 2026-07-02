@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
   SidebarProvider, SidebarTrigger, Sidebar, SidebarContent,
@@ -64,7 +64,7 @@ function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
 }
 
 const AdminLayout = () => {
-  const { user, loading, signOut } = useAdminAuth();
+  const { user, isAdmin, loading, signOut } = useAdminAuth();
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -73,6 +73,8 @@ const AdminLayout = () => {
   );
 
   if (!user) return null;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+
 
   return (
     <SidebarProvider>
