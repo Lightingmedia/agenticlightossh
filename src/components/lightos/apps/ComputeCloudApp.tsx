@@ -107,6 +107,38 @@ export function ComputeCloudApp() {
 
   const remove = (id: string) => setInstances((p) => p.filter((i) => i.id !== id));
 
+  type ConfirmAction = { kind: "stop" | "start" | "delete"; id: string };
+  const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
+  const [sshFor, setSshFor] = useState<Instance | null>(null);
+  const [sshCopied, setSshCopied] = useState(false);
+
+  const runConfirm = () => {
+    if (!confirm) return;
+    if (confirm.kind === "delete") remove(confirm.id);
+    else toggleStop(confirm.id);
+    setConfirm(null);
+  };
+  const confirmMeta = () => {
+    if (!confirm) return null;
+    const inst = instances.find((i) => i.id === confirm.id);
+    if (!inst) return null;
+    if (confirm.kind === "stop") return {
+      title: "Stop instance?", body: `Stop ${inst.id} (${inst.type}). Running processes will terminate.`,
+      cta: "Stop", color: "#f97316",
+    };
+    if (confirm.kind === "start") return {
+      title: "Start instance?", body: `Start ${inst.id} (${inst.type}). Billing at $${inst.costHr.toFixed(2)}/hr will resume.`,
+      cta: "Start", color: TEAL,
+    };
+    return {
+      title: "Delete instance?", body: `Permanently delete ${inst.id}. This cannot be undone.`,
+      cta: "Delete", color: "#ef4444",
+    };
+  };
+  const meta = confirmMeta();
+  const sshCommand = sshFor ? `ssh -i ~/.lightrail/keys/${sshFor.id}.pem root@${sshFor.id}.nce.lightrail.cloud` : "";
+
+
   return (
     <div className="h-full overflow-auto text-foreground" style={{ background: "#0A0E1A" }}>
       <div className="p-5 space-y-4">
