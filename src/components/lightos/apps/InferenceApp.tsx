@@ -222,7 +222,7 @@ export function InferenceApp() {
               </tr>
             </thead>
             <tbody>
-              {ENDPOINTS.map((e, i) => (
+              {endpoints.map((e, i) => (
                 <tr key={e.name} className={`border-t border-border/30 ${i % 2 ? "bg-white/[0.015]" : ""}`}>
                   <td className="px-3 py-2 font-mono text-[12px] text-foreground/90">{e.name}</td>
                   <td className="px-3 py-2 font-mono text-[12px] text-foreground/70">{e.model}</td>
