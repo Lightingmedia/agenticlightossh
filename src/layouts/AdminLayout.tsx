@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import {
   SidebarProvider, SidebarTrigger, Sidebar, SidebarContent,
