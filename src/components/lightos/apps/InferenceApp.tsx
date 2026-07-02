@@ -129,12 +129,87 @@ export function InferenceApp() {
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-lg text-foreground/90">Inference Endpoints</h2>
           <button
+            onClick={() => setShowNew(true)}
             className="inline-flex items-center gap-1.5 text-[12px] font-mono font-bold px-3 py-1.5 rounded-md text-black"
             style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}66` }}
           >
             <Plus className="w-4 h-4" /> New Endpoint
           </button>
         </div>
+
+        {showNew && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setShowNew(false)}>
+            <div
+              className="w-[420px] rounded-lg border p-5 space-y-4"
+              style={{ background: "#0F1629", borderColor: `${TEAL}55`, boxShadow: `0 0 40px ${TEAL}22` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-sm font-bold" style={{ color: TEAL }}>New Endpoint</div>
+                <button onClick={() => setShowNew(false)} className="text-foreground/50 hover:text-foreground text-lg leading-none">×</button>
+              </div>
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Name</label>
+                <input
+                  autoFocus
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="my-endpoint-01"
+                  className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90 focus:outline-none"
+                  onFocus={(e) => (e.currentTarget.style.borderColor = TEAL)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Model</label>
+                <select
+                  value={form.model}
+                  onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+                  className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                >
+                  {MODEL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Replicas</label>
+                  <input
+                    type="number" min={1} max={16} value={form.replicas}
+                    onChange={(e) => setForm((f) => ({ ...f, replicas: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Initial Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as Status }))}
+                    className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                  >
+                    <option value="Running">Running</option>
+                    <option value="Scaling">Scaling</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowNew(false)}
+                  className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/70 hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createEndpoint}
+                  disabled={!form.name.trim()}
+                  className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black disabled:opacity-40"
+                  style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}55` }}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="rounded-lg border border-border/40 overflow-hidden" style={{ background: "#0F1629" }}>
