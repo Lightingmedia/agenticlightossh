@@ -1,4 +1,5 @@
 import { Building2, Zap, Thermometer, Droplets, Wind, Gauge } from "lucide-react";
+import { DatacenterPittsburg } from "./DatacenterPittsburg";
 
 const HALLS = [
   { id: "DC-01-A", racks: 48, util: 87, powerKW: 312, pue: 1.18, tempC: 24, status: "nominal" },
@@ -32,7 +33,9 @@ export function DatacenterApp() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto">
+        <DatacenterPittsburg />
+        <div className="p-4">
         <div className="text-[10px] uppercase tracking-widest text-foreground/40 mb-2">Halls & Operations</div>
         <div className="space-y-2">
           {HALLS.map((h) => (
@@ -64,6 +67,7 @@ export function DatacenterApp() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>
