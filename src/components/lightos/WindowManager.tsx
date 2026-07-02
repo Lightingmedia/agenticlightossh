@@ -174,6 +174,16 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
     setWindows((ws) => ws.map((w) => (w.id === id ? { ...w, ...patch } : w)));
   }, []);
 
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const last = localStorage.getItem(LAST_APP_KEY) as AppId | null;
+      if (last && APP_META[last]) openApp(last);
+    } catch { /* ignore */ }
+  }, [openApp]);
+
   return (
     <WindowCtx.Provider
       value={{
