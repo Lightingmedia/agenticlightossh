@@ -230,7 +230,7 @@ function OverviewPanel() {
 }
 
 export function ControlCenterApp() {
-  const [tab, setTab] = useState<Tab>("jobs");
+  const [tab, setTab] = useState<Tab>("overview");
   const [jobs, setJobs] = useState<Job[]>([
     { id: "j1", name: "llama3-70b-finetune", type: "training", status: "running", progress: 67, fabric: "mesh-20x64", ranks: 64, bwGbps: 312, startedAt: "09:14", eta: "2h 18m" },
     { id: "j2", name: "mixtral-8x7b-compile", type: "compile", status: "running", progress: 41, fabric: "butterfly-8x256", ranks: 8, bwGbps: 1480, startedAt: "10:02", eta: "44m" },
