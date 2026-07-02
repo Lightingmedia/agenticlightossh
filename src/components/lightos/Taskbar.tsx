@@ -19,6 +19,7 @@ const APP_ICONS: Record<AppId, typeof Settings> = {
   tokenfactory: Coins,
   inference: Activity,
   cloud: Cloud,
+  photonic: Network,
   route: AppWindow,
 };
 
