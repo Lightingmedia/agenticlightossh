@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Copy, Check, Send, ArrowRight, Zap, Cpu, Activity, Terminal as TerminalIcon } from "lucide-react";
+import { TokenFactoryConsole } from "./TokenFactoryConsole";
 
 type Model = {
   id: string;
@@ -256,6 +257,8 @@ export function TokenFactoryApp() {
           Mint tokens at wafer-scale speed. Photonic-routed inference, billed by the million.
           Grab your key — start streaming in seconds.
         </p>
+        {/* API Keys · Usage · Program Credits console */}
+        <TokenFactoryConsole />
 
         {/* Usage + API key card */}
         <div className="rounded-xl border border-[hsl(var(--terminal-border))] bg-[hsl(var(--terminal-bg))] p-1 mb-10">
