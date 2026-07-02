@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
+
+const LAST_APP_KEY = "lightos:last-app";
 import type { AppId, WindowState } from "./types";
 
 interface OpenRouteOpts {
@@ -80,6 +82,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openApp = useCallback((appId: AppId) => {
+    try { localStorage.setItem(LAST_APP_KEY, appId); } catch { /* ignore */ }
     setWindows((ws) => {
       const existing = ws.find((w) => w.appId === appId);
       if (existing && appId !== "route") {
@@ -170,6 +173,16 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   const updateWindow = useCallback((id: string, patch: Partial<WindowState>) => {
     setWindows((ws) => ws.map((w) => (w.id === id ? { ...w, ...patch } : w)));
   }, []);
+
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const last = localStorage.getItem(LAST_APP_KEY) as AppId | null;
+      if (last && APP_META[last]) openApp(last);
+    } catch { /* ignore */ }
+  }, [openApp]);
 
   return (
     <WindowCtx.Provider
