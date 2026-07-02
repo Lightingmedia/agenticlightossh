@@ -93,6 +93,8 @@ function renderApp(w: WindowState) {
       return <InferenceApp />;
     case "cloud":
       return <ComputeCloudApp />;
+    case "photonic":
+      return <PhotonicFabricApp />;
     case "route":
       return <RouteApp win={w} />;
   }
