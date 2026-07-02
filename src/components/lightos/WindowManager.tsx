@@ -35,6 +35,7 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
   tokenfactory: { title: "Token Factory", w: 880, h: 640 },
   inference: { title: "Inference Endpoints", w: 1280, h: 760 },
   cloud: { title: "Compute Cloud", w: 960, h: 640 },
+  photonic: { title: "Photonic Fabric — TFLN PIC", w: 1180, h: 720 },
   route: { title: "Application", w: 1180, h: 720 },
 };
 
