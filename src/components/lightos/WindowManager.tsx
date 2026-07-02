@@ -82,6 +82,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openApp = useCallback((appId: AppId) => {
+    try { localStorage.setItem(LAST_APP_KEY, appId); } catch { /* ignore */ }
     setWindows((ws) => {
       const existing = ws.find((w) => w.appId === appId);
       if (existing && appId !== "route") {
