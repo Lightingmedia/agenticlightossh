@@ -17,6 +17,7 @@ import { DatacenterApp } from "./apps/DatacenterApp";
 import { TokenFactoryApp } from "./apps/TokenFactoryApp";
 import { InferenceApp } from "./apps/InferenceApp";
 import { InferenceCloudApp } from "./apps/InferenceCloudApp";
+import { ComputeCloudApp } from "./apps/ComputeCloudApp";
 import type { WindowState, AppId } from "./types";
 
 const APP_META: Record<AppId, { icon: typeof Settings; title: string; subtitle?: string }> = {
