@@ -54,8 +54,16 @@ const ROUTE_GROUPS: { name: string; routes: RouteEntry[] }[] = [
 export function TopPanel() {
   const [time, setTime] = useState(new Date());
   const [open, setOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
   const { openApp, openRoute } = useWindowManager();
   const menuRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  const ALERTS = [
+    { level: "critical", title: "Tile T-47 offline", meta: "NCE-0 · 2 min ago", color: "#FF4D4D" },
+    { level: "warning", title: "PSU inlet temp 74°C", meta: "Rack-01 · 8 min ago", color: "#FFB800" },
+    { level: "info", title: "Auto-scale added 4 tiles", meta: "llm-prod-01 · 12 min ago", color: "#00FFB2" },
+  ];
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -70,6 +78,15 @@ export function TopPanel() {
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
+
+  useEffect(() => {
+    if (!bellOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBellOpen(false);
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [bellOpen]);
 
   const fmt = time.toLocaleString("en-US", {
     weekday: "short",
