@@ -140,7 +140,7 @@ export function ComputeCloudApp() {
 
 
   return (
-    <div className="h-full overflow-auto text-foreground" style={{ background: "#0A0E1A" }}>
+    <div className="h-full overflow-auto text-foreground relative" style={{ background: "#0A0E1A" }}>
       <div className="p-5 space-y-4">
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3">
