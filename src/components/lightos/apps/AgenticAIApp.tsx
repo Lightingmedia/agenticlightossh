@@ -346,8 +346,9 @@ export function AgenticAIApp() {
       </div>
 
       <div className="flex-1 overflow-hidden flex">
+        {tab === "instances" && <div className="flex-1 overflow-hidden"><InstancesView /></div>}
         {/* Main panel */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {tab !== "instances" && <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {tab === "agents" && agents.map((a) => (
             <div key={a.id} className="rounded-lg border border-border/40 bg-card/40 p-3 hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between mb-2">
