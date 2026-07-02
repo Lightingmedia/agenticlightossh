@@ -11,7 +11,7 @@ export type AppKey =
 
 type IconType = ComponentType<LucideProps>;
 
-const NAV: { key: AppKey; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
+const NAV: { key: AppKey; label: string; Icon: IconType }[] = [
   { key: "control", label: "Control Center", Icon: LayoutGrid },
   { key: "agentic", label: "Agentic AI", Icon: Brain },
   { key: "mlops", label: "MLOps", Icon: LineChart },
