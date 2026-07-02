@@ -12,9 +12,9 @@ export function SettingsApp() {
   ];
 
   const hw = [
-    { icon: Cpu, label: "Processor", value: "LightRail Fabric Controller Gen 2" },
+    { icon: Cpu, label: "Processor", value: "LightRail RISC-V Fabric Controller (RV64GC)" },
     { icon: MemoryStick, label: "Memory", value: "1.5 TB HBM3e" },
-    { icon: Monitor, label: "Graphics", value: "LightRail AI Labs NCE-700" },
+    { icon: Monitor, label: "AI Accelerator", value: "LightRail RISC-V NCE Fabric" },
     { icon: HardDrive, label: "Disk Capacity", value: "128 TB NVMe-oF" },
   ];
 
@@ -42,7 +42,7 @@ export function SettingsApp() {
           <div>
             <h1 className="text-2xl font-mono font-bold">LightOS AI Appliance</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Ubuntu 24.04 LTS Base · Wayland · Kernel 6.8-custom
+              RISC-V64 Appliance Image · Wayland · Kernel 6.8-lightrail-rv64
             </p>
           </div>
         </div>

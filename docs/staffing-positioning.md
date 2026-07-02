@@ -55,7 +55,7 @@
 
 | Role | Responsibilities |
 |------|----------------|
-| Senior Kernel Engineer | Kernel 6.8-lightrail fork, dm-verity setup, TPM driver integration, IMA |
+| Senior Kernel Engineer | Kernel 6.8-lightrail-rv64 fork, dm-verity setup, TPM driver integration, IMA |
 | Senior Systems Engineer (C/Rust) | lrd daemon v0.1: enrollment service, OTA engine, AppArmor loader |
 | Senior Fullstack Engineer | EST server, Fleet CA tooling, PTY WebSocket terminal |
 | QA / Infrastructure Engineer | Image build pipeline, QEMU boot CI, dm-verity test suite |

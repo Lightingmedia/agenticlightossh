@@ -69,7 +69,7 @@ const STEP_LOGS: Record<string, { type: string; text: string; delay: number }[]>
   install: [
     { type: "cmd",  text: "curl -fsSL https://agentic.lightos.sh | bash", delay: 0 },
     { type: "info", text: "  ▸  Detecting environment…", delay: 600 },
-    { type: "ok",   text: "  ✓  Platform: linux (x86_64)", delay: 1100 },
+    { type: "ok",   text: "  ✓  Platform: linux (riscv64)", delay: 1100 },
     { type: "ok",   text: "  ✓  Python 3.12.2 found", delay: 1500 },
     { type: "info", text: "  ▸  Installing LightOS CLI…", delay: 1900 },
     { type: "ok",   text: "  ✓  LightOS v0.2.0 installed", delay: 2600 },

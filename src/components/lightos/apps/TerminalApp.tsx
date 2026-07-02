@@ -58,7 +58,7 @@ const builtins: Record<string, Builtin> = {
   help: () => ({
     stdout:
       "Builtins: help clear echo pwd cd ls cat head tail wc grep chmod chown touch mkdir rm cp mv\n" +
-      "          whoami date hostname uname neofetch env export history ps top htop gpu fabric lightctl\n" +
+      "          whoami date hostname uname neofetch env export history ps top htop npu gpu fabric lightctl\n" +
       "          ifconfig ip ping ssh df free uptime systemctl fetch curl exit true false\n" +
       "Operators: |  >  >>  <  &&  ||  ;   ($? expands to last exit code)\n" +
       "Quoting:   'single' \"double\"   Tab completes. Ctrl+R searches history.\n" +
@@ -74,7 +74,7 @@ const builtins: Record<string, Builtin> = {
   hostname: () => ({ stdout: PROMPT_HOST + "\n", code: 0 }),
   uname: (a) => ({
     stdout: a.includes("-a")
-      ? "Linux lightos-main 6.8.0-lightrail #1 SMP PREEMPT_DYNAMIC x86_64 LightOS\n"
+      ? "Linux lightos-main 6.8.0-lightrail-rv64 #1 SMP PREEMPT_DYNAMIC riscv64 LightOS\n"
       : "Linux\n",
     code: 0,
   }),
@@ -380,22 +380,22 @@ const builtins: Record<string, Builtin> = {
       [
         `${C.green}      .:^!?JJJ?!^:.${C.reset}        ${C.bold}root@lightos-main${C.reset}`,
         `${C.green}    .^7?JJJJJJJJJJ?7^.${C.reset}      ${C.gray}-----------------${C.reset}`,
-        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     OS: LightOS 1.0 Aurora`,
-        `${C.green}  !JJJJJ${C.cyan}LIGHTRAIL${C.green}JJJJ!${C.reset}    Kernel: 6.8.0-lightrail`,
-        `${C.green}  !JJJJJJJJJJJJJJJJJJJ!${C.reset}    CPU: Fabric Controller Gen 2`,
-        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     GPU: LightRail NCE-700 x8`,
+        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     OS: LightOS 1.0 Aurora (RISC-V)`,
+        `${C.green}  !JJJJJ${C.cyan}LIGHTRAIL${C.green}JJJJ!${C.reset}    Kernel: 6.8.0-lightrail-rv64`,
+        `${C.green}  !JJJJJJJJJJJJJJJJJJJ!${C.reset}    CPU: LightRail RV64GC Fabric Controller`,
+        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     Accelerator: LightRail RISC-V NCE x8`,
         `${C.green}    .^7?JJJJJJJJJJ?7^.${C.reset}      Memory: 1.5 TB HBM3e`,
         `${C.green}      .:^!?JJJ?!^:.${C.reset}        Disk: 128 TB NVMe-oF`,
       ].join("\n") + "\n",
     code: 0,
   }),
   gpu: () => {
-    let out = `${C.bold}LightRail NCE-700 — 8 accelerators${C.reset}\n`;
+    let out = `${C.bold}LightRail RISC-V NCE — 8 accelerators${C.reset}\n`;
     for (let i = 0; i < 8; i++) {
       const u = (60 + Math.random() * 35).toFixed(0);
       const t = (55 + Math.random() * 20).toFixed(0);
       const m = (180 + Math.random() * 12).toFixed(0);
-      out += `  GPU ${i}  util ${C.green}${u.padStart(3)}%${C.reset}  temp ${C.yellow}${t}°C${C.reset}  mem ${m} GB\n`;
+      out += `  NCE ${i}  util ${C.green}${u.padStart(3)}%${C.reset}  temp ${C.yellow}${t}°C${C.reset}  mem ${m} GB\n`;
     }
     return { stdout: out, code: 0 };
   },
@@ -549,6 +549,7 @@ const builtins: Record<string, Builtin> = {
   },
 };
 builtins.curl = builtins.fetch;
+builtins.npu = builtins.gpu;
 
 // --------------------------- history ---------------------------
 
@@ -837,9 +838,9 @@ export function TerminalApp() {
 
     const banner = [
       "",
-      `${C.green}  ╦  ┬┌─┐┬ ┬┌┬┐╔═╗╔═╗${C.reset}     LightOS 1.0 "Aurora"`,
-      `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     Ubuntu 24.04 LTS · Kernel 6.8-lightrail`,
-      `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     Photonic AI Fabric · NCE-700`,
+      `${C.green}  ╦  ┬┌─┐┬ ┬┌┬┐╔═╗╔═╗${C.reset}     LightOS 1.0 "Aurora" · RISC-V64`,
+      `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     LightOS RV64 Appliance · Kernel 6.8-lightrail-rv64`,
+      `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     RISC-V AI Fabric · RV64GC/NCE`,
       "",
       `${C.gray}Type ${C.reset}help${C.gray} · Tab completes · Ctrl+R history search · Esc → vi-normal (hjkl, w/b, 0/$, x, i/a/A/I).${C.reset}`,
       "",
