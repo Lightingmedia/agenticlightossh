@@ -268,7 +268,7 @@ export function DesktopIcons() {
                     const isFocused = focused?.page === pi && focused?.index === i;
                     return (
                       <button
-                        key={app.id}
+                        key={`${app.kind}-${app.id}`}
                         ref={(el) => { tileRefs.current[`${pi}:${i}`] = el; }}
                         onMouseEnter={() => sfx.hover()}
                         onDoubleClick={() => launch(app)}
