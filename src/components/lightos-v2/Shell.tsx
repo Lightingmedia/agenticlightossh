@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import {
   LayoutGrid, Brain, LineChart, Zap, Cloud, Building2,
   Database, TerminalSquare, Radio, Cpu, BarChart3, FlaskConical,
-  Bell,
+  Bell, type LucideProps,
 } from "lucide-react";
 
 export type AppKey =
   | "control" | "agentic" | "mlops" | "inference" | "compute" | "datacenter"
   | "tokens" | "terminal" | "photonic" | "nce" | "telemetry" | "thermal";
+
+type IconType = ComponentType<LucideProps>;
 
 const NAV: { key: AppKey; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { key: "control", label: "Control Center", Icon: LayoutGrid },
