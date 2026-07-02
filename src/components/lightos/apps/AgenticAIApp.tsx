@@ -443,10 +443,10 @@ export function AgenticAIApp() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Side: live activity log always visible */}
-        {tab !== "activity" && (
+        {tab !== "activity" && tab !== "instances" && (
           <div className="w-72 border-l border-border/40 bg-card/20 flex flex-col">
             <div className="px-3 py-2 border-b border-border/40 text-[10px] uppercase tracking-widest text-foreground/50 flex items-center gap-2">
               <Activity className="w-3 h-3 text-emerald-400 animate-pulse" /> Live Activity
