@@ -14,11 +14,17 @@ interface Endpoint {
   rps: number; p99: number; tiles: number;
 }
 
-const ENDPOINTS: Endpoint[] = [
+const INITIAL_ENDPOINTS: Endpoint[] = [
   { name: "llm-prod-01",   model: "llama-3.3-70b",     replicas: 3, status: "Running", rps: 142, p99: 280, tiles: 192 },
   { name: "embeddings-v2", model: "nomic-embed-1.5",   replicas: 2, status: "Running", rps: 890, p99: 12,  tiles: 32  },
   { name: "vision-api",    model: "llava-1.6",         replicas: 1, status: "Scaling", rps: 28,  p99: 640, tiles: 64  },
   { name: "coder-api",     model: "deepseek-coder-v3", replicas: 2, status: "Running", rps: 67,  p99: 195, tiles: 64  },
+];
+const ENDPOINTS = INITIAL_ENDPOINTS;
+
+const MODEL_OPTIONS = [
+  "llama-3.3-70b", "llama-3.1-8b", "nomic-embed-1.5",
+  "llava-1.6", "deepseek-coder-v3", "mistral-7b-instruct",
 ];
 
 function StatusPill({ s }: { s: Status }) {
@@ -71,7 +77,22 @@ function Sparkline({
 }
 
 export function InferenceApp() {
-  const [selected, setSelected] = useState(ENDPOINTS[0].name);
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(INITIAL_ENDPOINTS);
+  const [selected, setSelected] = useState(INITIAL_ENDPOINTS[0].name);
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState<{ name: string; model: string; replicas: number; status: Status }>({
+    name: "", model: MODEL_OPTIONS[0], replicas: 1, status: "Running",
+  });
+  const createEndpoint = () => {
+    const name = form.name.trim();
+    if (!name) return;
+    setEndpoints((p) => [
+      ...p,
+      { name, model: form.model, replicas: form.replicas, status: form.status, rps: 0, p99: 0, tiles: form.replicas * 32 },
+    ]);
+    setShowNew(false);
+    setForm({ name: "", model: MODEL_OPTIONS[0], replicas: 1, status: "Running" });
+  };
   const [prompt, setPrompt] = useState("");
   const [temp, setTemp] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
@@ -108,12 +129,87 @@ export function InferenceApp() {
         <div className="flex items-center justify-between">
           <h2 className="font-mono text-lg text-foreground/90">Inference Endpoints</h2>
           <button
+            onClick={() => setShowNew(true)}
             className="inline-flex items-center gap-1.5 text-[12px] font-mono font-bold px-3 py-1.5 rounded-md text-black"
             style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}66` }}
           >
             <Plus className="w-4 h-4" /> New Endpoint
           </button>
         </div>
+
+        {showNew && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setShowNew(false)}>
+            <div
+              className="w-[420px] rounded-lg border p-5 space-y-4"
+              style={{ background: "#0F1629", borderColor: `${TEAL}55`, boxShadow: `0 0 40px ${TEAL}22` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-sm font-bold" style={{ color: TEAL }}>New Endpoint</div>
+                <button onClick={() => setShowNew(false)} className="text-foreground/50 hover:text-foreground text-lg leading-none">×</button>
+              </div>
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Name</label>
+                <input
+                  autoFocus
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="my-endpoint-01"
+                  className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90 focus:outline-none"
+                  onFocus={(e) => (e.currentTarget.style.borderColor = TEAL)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Model</label>
+                <select
+                  value={form.model}
+                  onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+                  className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                >
+                  {MODEL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Replicas</label>
+                  <input
+                    type="number" min={1} max={16} value={form.replicas}
+                    onChange={(e) => setForm((f) => ({ ...f, replicas: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-foreground/50">Initial Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as Status }))}
+                    className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90"
+                  >
+                    <option value="Running">Running</option>
+                    <option value="Scaling">Scaling</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowNew(false)}
+                  className="flex-1 text-[12px] font-mono py-2 rounded-md border border-border/60 text-foreground/70 hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createEndpoint}
+                  disabled={!form.name.trim()}
+                  className="flex-1 text-[12px] font-mono font-bold py-2 rounded-md text-black disabled:opacity-40"
+                  style={{ background: TEAL, boxShadow: `0 0 12px ${TEAL}55` }}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="rounded-lg border border-border/40 overflow-hidden" style={{ background: "#0F1629" }}>
@@ -126,7 +222,7 @@ export function InferenceApp() {
               </tr>
             </thead>
             <tbody>
-              {ENDPOINTS.map((e, i) => (
+              {endpoints.map((e, i) => (
                 <tr key={e.name} className={`border-t border-border/30 ${i % 2 ? "bg-white/[0.015]" : ""}`}>
                   <td className="px-3 py-2 font-mono text-[12px] text-foreground/90">{e.name}</td>
                   <td className="px-3 py-2 font-mono text-[12px] text-foreground/70">{e.model}</td>
@@ -168,7 +264,7 @@ export function InferenceApp() {
                   className="mt-1 w-full font-mono text-[12px] bg-[#0A0E1A] border border-border/60 rounded px-2 py-1.5 text-foreground/90 focus:outline-none focus:border-[color:var(--teal)]"
                   style={{ ["--teal" as any]: TEAL }}
                 >
-                  {ENDPOINTS.map((e) => <option key={e.name} value={e.name}>{e.name}</option>)}
+                  {endpoints.map((e) => <option key={e.name} value={e.name}>{e.name}</option>)}
                 </select>
               </div>
               <div>
