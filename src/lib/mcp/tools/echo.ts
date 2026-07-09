@@ -7,5 +7,10 @@ export default defineTool({
   description: "Echo the input text back to the caller. Useful for verifying MCP connectivity.",
   inputSchema: { text: z.string().min(1).describe("Text to echo back.") },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ text }) => ({ content: [{ type: "text", text }] }),
+  handler: ({ text }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    return { content: [{ type: "text", text }] };
+  },
 });

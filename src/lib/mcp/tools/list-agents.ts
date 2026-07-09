@@ -21,7 +21,10 @@ export default defineTool({
       .describe("Filter by agent status. Defaults to 'any'."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ status }) => {
+  handler: ({ status }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
     const filtered = !status || status === "any" ? AGENTS : AGENTS.filter((a) => a.status === status);
     return {
       content: [{ type: "text", text: JSON.stringify(filtered, null, 2) }],
