@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+// Only allow same-origin relative paths as `next` targets.
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,17 +23,25 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = safeNext(searchParams.get("next"));
   const { toast } = useToast();
+
+  const goPostAuth = () => {
+    if (nextPath) window.location.href = nextPath;
+    else navigate("/dashboard");
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) navigate("/dashboard");
+      if (session) goPostAuth();
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/dashboard");
+      if (session) goPostAuth();
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextPath]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +56,10 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { full_name: name }, emailRedirectTo: window.location.origin }
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: nextPath ? `${window.location.origin}${nextPath}` : window.location.origin,
+      }
     });
     setLoading(false);
     if (error) toast({ title: "Signup failed", description: error.message, variant: "destructive" });
@@ -62,7 +80,7 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     const { lovable } = await import("@/integrations/lovable");
     await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/dashboard`,
+      redirect_uri: nextPath ? `${window.location.origin}${nextPath}` : `${window.location.origin}/dashboard`,
     });
   };
 

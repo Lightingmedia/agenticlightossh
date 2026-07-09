@@ -3,7 +3,7 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/echo.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
@@ -14,7 +14,12 @@ var echo_default = defineTool({
   description: "Echo the input text back to the caller. Useful for verifying MCP connectivity.",
   inputSchema: { text: z.string().min(1).describe("Text to echo back.") },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ text }) => ({ content: [{ type: "text", text }] })
+  handler: ({ text }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    return { content: [{ type: "text", text }] };
+  }
 });
 
 // src/lib/mcp/tools/list-agents.ts
@@ -36,7 +41,10 @@ var list_agents_default = defineTool2({
     status: z2.enum(["executing", "thinking", "idle", "error", "any"]).optional().describe("Filter by agent status. Defaults to 'any'.")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ status }) => {
+  handler: ({ status }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
     const filtered = !status || status === "any" ? AGENTS : AGENTS.filter((a) => a.status === status);
     return {
       content: [{ type: "text", text: JSON.stringify(filtered, null, 2) }],
@@ -56,7 +64,10 @@ var get_fabric_telemetry_default = defineTool3({
     windowSeconds: z3.number().int().describe("Sampling window in seconds. Typical range 10-300.")
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: ({ windowSeconds }) => {
+  handler: ({ windowSeconds }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
     const w = Math.max(1, Math.min(600, windowSeconds));
     const snapshot = {
       windowSeconds: w,
@@ -66,7 +77,8 @@ var get_fabric_telemetry_default = defineTool3({
       p50LatencyUs: +(4 + Math.random() * 2).toFixed(2),
       p99LatencyUs: +(9 + Math.random() * 4).toFixed(2),
       avgTempC: +(62 + Math.random() * 8).toFixed(1),
-      hotspots: Math.floor(Math.random() * 4)
+      hotspots: Math.floor(Math.random() * 4),
+      requestedBy: ctx.getUserEmail() ?? ctx.getUserId()
     };
     return {
       content: [{ type: "text", text: JSON.stringify(snapshot, null, 2) }],
@@ -76,11 +88,16 @@ var get_fabric_telemetry_default = defineTool3({
 });
 
 // src/lib/mcp/index.ts
+var projectRef = "cawwhnuezkrsexjvetjj";
 var mcp_default = defineMcp({
   name: "lightos-mcp",
   title: "LightOS / LightRail MCP",
-  version: "0.1.0",
-  instructions: "Tools for the LightOS photonic AI datacenter platform. Use `echo` to verify connectivity, `list_agents` to enumerate running datacenter agents, and `get_fabric_telemetry` to sample photonic fabric metrics.",
+  version: "0.2.0",
+  instructions: "Tools for the LightOS photonic AI datacenter platform. All tools require an authenticated LightOS user (Supabase OAuth). Use `echo` to verify connectivity, `list_agents` to enumerate running datacenter agents, and `get_fabric_telemetry` to sample photonic fabric metrics.",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
   tools: [echo_default, list_agents_default, get_fabric_telemetry_default]
 });
 
