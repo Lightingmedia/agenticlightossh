@@ -48,6 +48,7 @@ import LightOS from "./pages/LightOS";
 import PowerGovernor from "./pages/PowerGovernor";
 import AcceleratorRuntime from "./pages/AcceleratorRuntime";
 import OAuthConsent from "./pages/OAuthConsent";
+import MtmcConsole from "./pages/MtmcConsole";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+          <Route path="/mtmc" element={<MtmcConsole />} />
+
 
 
           {/* Admin Routes */}
