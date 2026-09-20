@@ -1,3 +1,5 @@
+// ============= Full file contents =============
+
 import { useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Copy, Check, ArrowRight, Layers, Terminal } from "lucide-react";
@@ -56,25 +58,26 @@ const Hero = () => {
             className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-border bg-card/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-sm text-muted-foreground font-mono">
-              Agentic LightOS v0.2 — Photonic-Native AI
+              NVIDIA Inception Member — CUDA-Native Agentic Orchestration
             </span>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono leading-tight mb-6">
-            <span className="text-foreground">One Command to </span>
-            <span className="text-gradient glow-text">Onboard.</span>
+            <span className="text-foreground">Focus on </span>
+            <span className="text-gradient glow-text">CUDA.</span>
             <br />
-            <span className="text-foreground">Deploy </span>
-            <span className="text-gradient glow-text">Agents.</span>
+            <span className="text-foreground">Skip the </span>
+            <span className="text-gradient glow-text">Orchestration.</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            The unified photonic-native AI platform. Topology-aware routing, 64-channel WDM scheduling,
-            and framework adapters for PyTorch &amp; JAX — installed in seconds.
+            Aurora Fabric OS is an agentic operating system that manages datacenter GPU
+            compute and fabric allocation through conversational control — eliminating
+            infrastructure friction so you can focus purely on building AI.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -151,7 +154,7 @@ const Hero = () => {
           {/* Sub-caption */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
             className="text-xs text-muted-foreground mt-4 font-mono">
-            Requires Python 3.10+ · macOS, Linux, WSL2 · Free forever for open-source
+            Works with your existing NVIDIA GPU clusters · Deploys via the NVIDIA NGC catalog · No YAML required
           </motion.p>
         </div>
 
