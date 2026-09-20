@@ -58,26 +58,27 @@ const Hero = () => {
             className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-border bg-card/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-sm text-muted-foreground font-mono">
-              NVIDIA Inception Member — CUDA-Native Agentic Orchestration
+              One Conversational Layer — Every Accelerator Stack
             </span>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono leading-tight mb-6">
-            <span className="text-foreground">Focus on </span>
-            <span className="text-gradient glow-text">CUDA.</span>
+            <span className="text-foreground">Any Silicon. </span>
+            <span className="text-gradient glow-text">Any Stack.</span>
             <br />
-            <span className="text-foreground">Skip the </span>
-            <span className="text-gradient glow-text">Orchestration.</span>
+            <span className="text-foreground">One </span>
+            <span className="text-gradient glow-text">Conversation.</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            Aurora Fabric OS is an agentic operating system that manages datacenter GPU
-            compute and fabric allocation through conversational control — eliminating
-            infrastructure friction so you can focus purely on building AI.
+            Aurora Fabric OS is an agentic operating system that speaks fluently to
+            every accelerator stack — CUDA, ROCm, TPU/XLA, oneAPI and beyond — managing
+            datacenter compute and fabric allocation through seamless conversational
+            control, so you can focus purely on building AI.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -154,7 +155,7 @@ const Hero = () => {
           {/* Sub-caption */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
             className="text-xs text-muted-foreground mt-4 font-mono">
-            Works with your existing NVIDIA GPU clusters · Deploys via the NVIDIA NGC catalog · No YAML required
+            Seamless integration with your existing clusters — any vendor, any runtime · No YAML required
           </motion.p>
         </div>
 

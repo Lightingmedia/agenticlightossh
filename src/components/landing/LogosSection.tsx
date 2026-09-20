@@ -4,11 +4,13 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 const ecosystem = [
-  { name: "NVIDIA Inception", text: "NVIDIA Inception" },
-  { name: "NGC Catalog", text: "NGC Catalog" },
   { name: "CUDA", text: "CUDA" },
-  { name: "NVIDIA GPU Cloud", text: "NVIDIA GPU Cloud" },
-  { name: "Nsight", text: "Nsight Tools" },
+  { name: "ROCm", text: "ROCm" },
+  { name: "TPU / XLA", text: "TPU / XLA" },
+  { name: "oneAPI / SYCL", text: "oneAPI / SYCL" },
+  { name: "Habana Gaudi", text: "Habana Gaudi" },
+  { name: "Vulkan Compute", text: "Vulkan Compute" },
+  { name: "Metal", text: "Metal" },
   { name: "PyTorch", text: "PyTorch" },
 ];
 
@@ -31,7 +33,7 @@ const LogosSection = () => {
           className="text-center mb-10"
         >
           <span className="text-sm text-muted-foreground uppercase tracking-wider">
-            Built inside the NVIDIA ecosystem
+            Speaks every accelerator stack — seamlessly
           </span>
         </motion.div>
 
