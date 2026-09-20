@@ -1,13 +1,15 @@
+// ============= Full file contents =============
+
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-const logos = [
-  { name: "Anthropic", text: "Anthropic" },
-  { name: "Mistral", text: "Mistral" },
-  { name: "Cohere", text: "Cohere" },
-  { name: "Meta AI", text: "Meta AI" },
-  { name: "Stability", text: "Stability" },
-  { name: "Replicate", text: "Replicate" },
+const ecosystem = [
+  { name: "NVIDIA Inception", text: "NVIDIA Inception" },
+  { name: "NGC Catalog", text: "NGC Catalog" },
+  { name: "CUDA", text: "CUDA" },
+  { name: "NVIDIA GPU Cloud", text: "NVIDIA GPU Cloud" },
+  { name: "Nsight", text: "Nsight Tools" },
+  { name: "PyTorch", text: "PyTorch" },
 ];
 
 const LogosSection = () => {
@@ -29,7 +31,7 @@ const LogosSection = () => {
           className="text-center mb-10"
         >
           <span className="text-sm text-muted-foreground uppercase tracking-wider">
-            Powering teams at leading AI companies
+            Built inside the NVIDIA ecosystem
           </span>
         </motion.div>
 
@@ -37,7 +39,7 @@ const LogosSection = () => {
           style={{ x }}
           className="flex flex-wrap justify-center items-center gap-10 md:gap-16"
         >
-          {logos.map((logo, index) => (
+          {ecosystem.map((logo, index) => (
             <motion.div
               key={logo.name}
               initial={{ opacity: 0, y: 20 }}

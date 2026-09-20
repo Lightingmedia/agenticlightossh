@@ -1,50 +1,52 @@
+// ============= Full file contents =============
+
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Server, Bot, Activity, Lock, Coins, Workflow } from "lucide-react";
+import { MessageSquare, Cpu, GitBranch, Package, Activity, ShieldCheck } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/ui/parallax-section";
 
 const features = [
   {
-    icon: Server,
-    title: "Hybrid Compute Fabric",
+    icon: MessageSquare,
+    title: "Conversational Control",
     description:
-      "Seamlessly blend your local GPUs with cloud infrastructure. Automatic workload distribution based on cost, latency, and availability.",
-    tag: "Infrastructure",
+      "Zero-code natural language execution. Allocate, schedule, and heal GPU workloads by simply asking — no YAML, no cluster DSL, no orchestration code.",
+    tag: "Zero-Code",
   },
   {
-    icon: Bot,
-    title: "Autonomous Agents",
+    icon: Cpu,
+    title: "CUDA Translation Layer",
     description:
-      "Deploy intelligent agents that monitor, scale, and heal your AI workloads. No manual intervention required.",
-    tag: "Automation",
+      "A software CUDA translation layer that plugs directly into NVIDIA's ecosystem, optimizing your existing GPU clusters without rewriting kernels.",
+    tag: "NVIDIA",
+  },
+  {
+    icon: GitBranch,
+    title: "Dynamic Fabric Allocation",
+    description:
+      "Workloads flow to wherever capacity exists. Dynamic fabric allocation pushes cluster utilization to 70–85% — where legacy schedulers stall at 50–60%.",
+    tag: "Utilization",
+  },
+  {
+    icon: Package,
+    title: "NVIDIA NGC Deployment",
+    description:
+      "Deploy through the NVIDIA NGC catalog with one click. Containers, drivers, and frameworks pre-validated for high-density GPU infrastructure.",
+    tag: "NGC",
   },
   {
     icon: Activity,
-    title: "Live Inference Metrics",
+    title: "Kernel-Level Telemetry",
     description:
-      "Real-time visibility into every inference call. Track latency, throughput, and model performance across your entire fleet.",
+      "Real-time visibility into every CUDA stream and inference call. Track latency, throughput, and thermal behavior across the entire fabric.",
     tag: "Observability",
   },
   {
-    icon: Lock,
-    title: "Zero-Trust Security",
+    icon: ShieldCheck,
+    title: "Zero-Trust for GPU Fleets",
     description:
-      "End-to-end encryption with SOC2 compliance. Keep sensitive data on-premise while leveraging cloud scale.",
+      "End-to-end encryption with SOC2 compliance. Keep sensitive training data on-premise while burst-elastic compute scales in the cloud.",
     tag: "Security",
-  },
-  {
-    icon: Coins,
-    title: "Usage-Based Billing",
-    description:
-      "Pay only for what you use. Detailed cost breakdowns by model, team, and workload with budget alerts.",
-    tag: "Cost Control",
-  },
-  {
-    icon: Workflow,
-    title: "Pipeline Orchestration",
-    description:
-      "Chain models, agents, and data sources into production-ready pipelines. Built-in versioning and rollback.",
-    tag: "Workflows",
   },
 ];
 
@@ -71,16 +73,18 @@ const FeaturesSection = () => {
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-              Core Capabilities
+              Built for CUDA Teams
             </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold font-mono mb-4">
-            <span className="text-foreground">Everything You Need to</span>
+            <span className="text-foreground">GPU Orchestration,</span>
             <br />
-            <span className="text-gradient">Scale AI Infrastructure</span>
+            <span className="text-gradient">Without the Friction</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            From local development to global deployment, LightOS handles the complexity so you can focus on building.
+            Aurora Fabric OS transforms complex GPU orchestration into an intuitive,
+            autonomous conversational layer — from a single node to high-density
+            datacenter clusters.
           </p>
         </ScrollReveal>
 
