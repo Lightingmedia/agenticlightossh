@@ -1,6 +1,7 @@
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import LogosSection from "@/components/landing/LogosSection";
+import UtilizationSection from "@/components/landing/UtilizationSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import OnboardSection from "@/components/landing/OnboardSection";
 import WorkflowAnimation from "@/components/landing/WorkflowAnimation";
@@ -16,6 +17,7 @@ const Index = () => {
       <main>
         <Hero />
         <LogosSection />
+        <UtilizationSection />
         <FeaturesSection />
         <OnboardSection />
         <WorkflowAnimation />

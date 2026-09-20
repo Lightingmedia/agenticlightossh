@@ -39,11 +39,11 @@ const CTASection = () => {
         <motion.div style={{ scale }}>
           <ScrollReveal className="text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold font-mono mb-6">
-              <span className="text-foreground">Ready to Unify Your </span>
-              <span className="text-gradient glow-text">AI Stack?</span>
+              <span className="text-foreground">Stop Wasting Your </span>
+              <span className="text-gradient glow-text">GPU Cluster</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Join hundreds of teams running production AI workloads with LightOS.
+              Put every CUDA core to work with conversational orchestration.
               Get started in minutes, scale to millions of requests.
             </p>
 
