@@ -43,8 +43,8 @@ const CTASection = () => {
               <span className="text-gradient glow-text">GPU Cluster</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Put every CUDA core to work with conversational orchestration.
-              Get started in minutes, scale to millions of requests.
+              Put every accelerator to work — any vendor, any runtime — with one
+              conversational layer. Get started in minutes, scale to millions of requests.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

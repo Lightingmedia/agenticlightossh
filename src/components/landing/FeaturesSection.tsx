@@ -15,30 +15,30 @@ const features = [
   },
   {
     icon: Cpu,
-    title: "CUDA Translation Layer",
+    title: "Universal Runtime Translation",
     description:
-      "A software CUDA translation layer that plugs directly into NVIDIA's ecosystem, optimizing your existing GPU clusters without rewriting kernels.",
-    tag: "NVIDIA",
+      "What makes LightOS unique: a software translation layer that natively speaks CUDA, ROCm, TPU/XLA, oneAPI/SYCL and more — optimizing every cluster without rewriting a single kernel.",
+    tag: "Universal",
   },
   {
     icon: GitBranch,
     title: "Dynamic Fabric Allocation",
     description:
-      "Workloads flow to wherever capacity exists. Dynamic fabric allocation pushes cluster utilization to 70–85% — where legacy schedulers stall at 50–60%.",
+      "Workloads flow to wherever capacity exists — across vendors and runtimes. Dynamic fabric allocation pushes cluster utilization to 70–85%, where legacy schedulers stall at 50–60%.",
     tag: "Utilization",
   },
   {
     icon: Package,
-    title: "NVIDIA NGC Deployment",
+    title: "Seamless Integration",
     description:
-      "Deploy through the NVIDIA NGC catalog with one click. Containers, drivers, and frameworks pre-validated for high-density GPU infrastructure.",
-    tag: "NGC",
+      "Drop into existing fleets in minutes — one-click catalog deploys, pre-validated containers, drivers and frameworks for any high-density accelerator infrastructure.",
+    tag: "Zero Friction",
   },
   {
     icon: Activity,
     title: "Kernel-Level Telemetry",
     description:
-      "Real-time visibility into every CUDA stream and inference call. Track latency, throughput, and thermal behavior across the entire fabric.",
+      "Real-time visibility into every compute stream and inference call, on any accelerator. Track latency, throughput, and thermal behavior across the entire fabric.",
     tag: "Observability",
   },
   {
@@ -73,18 +73,18 @@ const FeaturesSection = () => {
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-              Built for CUDA Teams
+              One Layer. Every Accelerator.
             </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold font-mono mb-4">
-            <span className="text-foreground">GPU Orchestration,</span>
+            <span className="text-foreground">Compute Orchestration,</span>
             <br />
             <span className="text-gradient">Without the Friction</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Aurora Fabric OS transforms complex GPU orchestration into an intuitive,
-            autonomous conversational layer — from a single node to high-density
-            datacenter clusters.
+            Aurora Fabric OS transforms complex accelerator orchestration into an
+            intuitive, autonomous conversational layer — from a single node to
+            heterogeneous, high-density datacenter clusters.
           </p>
         </ScrollReveal>
 

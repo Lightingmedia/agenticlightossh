@@ -14,7 +14,7 @@ const Header = () => {
       <div className="bg-secondary/80 backdrop-blur-sm border-b border-border py-2 px-4">
         <div className="container mx-auto flex items-center justify-center gap-2 text-sm">
           <span className="text-primary">⚡</span>
-          <span className="font-mono text-muted-foreground">Aurora Fabric OS — zero-code GPU orchestration for CUDA fleets is live.</span>
+          <span className="font-mono text-muted-foreground">Aurora Fabric OS — zero-code orchestration for any accelerator fleet is live.</span>
           <Link to="/onboard" className="text-primary hover:underline font-mono">
             Run lightos onboard →
           </Link>
