@@ -20,7 +20,7 @@
 │      ↓                                                        │
 │  GRUB2 (MOK signed, measures kernel + initrd into TPM PCR[4]) │
 │      ↓                                                        │
-│  Kernel 6.8-lightrail (IMA appraisal enabled)                 │
+│  Kernel 6.8-lightrail-rv64 (IMA appraisal enabled)                 │
 │      ↓                                                        │
 │  initrd: dm-verity mount of rootfs (PCR[9] = verity hash)     │
 │      ↓                                                        │

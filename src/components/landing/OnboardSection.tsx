@@ -9,7 +9,7 @@ import { ScrollReveal } from "@/components/ui/parallax-section";
 const ONBOARD_LINES = [
   { delay: 0,    type: "cmd",     text: "curl -fsSL https://agentic.lightos.sh | bash" },
   { delay: 900,  type: "info",    text: "  ▸  Detecting environment…" },
-  { delay: 1400, type: "ok",      text: "  ✓  Platform: linux (x86_64)" },
+  { delay: 1400, type: "ok",      text: "  ✓  Platform: linux (riscv64)" },
   { delay: 1800, type: "ok",      text: "  ✓  Python 3.12.2" },
   { delay: 2200, type: "ok",      text: "  ✓  LightOS CLI installed" },
   { delay: 2700, type: "banner",  text: "  ╔══════════════════════════════╗" },

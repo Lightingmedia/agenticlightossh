@@ -24,25 +24,25 @@ export const VFS: DirNode = dir({
   }),
   etc: dir({
     "lightos.conf": file(
-      "[fabric]\ncontroller = LightRail Gen 2\nlinks = 64\nwdm_channels = 16\n\n[ai]\naccelerator = NCE-700\nmemory = 1536GB HBM3e\n",
+      "[fabric]\ncontroller = LightRail RISC-V Fabric Controller\nlinks = 64\nwdm_channels = 16\n\n[ai]\naccelerator = LightRail RISC-V NCE Fabric\nmemory = 1536GB HBM3e\n",
     ),
     hostname: file("lightos-main\n"),
     "os-release": file(
-      'NAME="LightOS"\nVERSION="1.0 (Aurora)"\nID=lightos\nID_LIKE=ubuntu\nPRETTY_NAME="LightOS 1.0 — AI Appliance"\n',
+      'NAME="LightOS"\nVERSION="1.0 (Aurora)"\nID=lightos\nID_LIKE=ubuntu\nARCHITECTURE=riscv64\nPRETTY_NAME="LightOS 1.0 — RISC-V AI Appliance"\n',
     ),
   }),
   var: dir({
     log: dir({
       "fabric.log": file(
-        "[10:24:01] fabric controller online\n[10:24:02] 64 optical links up\n[10:24:03] WDM negotiated 16ch @ 200G\n[10:24:11] NCE-700 firmware 1.4.2 loaded\n",
+        "[10:24:01] fabric controller online\n[10:24:02] 64 optical links up\n[10:24:03] WDM negotiated 16ch @ 200G\n[10:24:11] RISC-V NCE firmware 1.4.2 loaded\n",
       ),
       "kernel.log": file(
-        "[ 0.000000] Linux version 6.8.0-lightrail\n[ 0.214] PCIe Gen5 link up x16\n[ 0.512] iommu: enabled\n[ 1.012] hugepages: 1024 x 2M\n",
+        "[ 0.000000] Linux version 6.8.0-lightrail-rv64\n[ 0.214] riscv: ISA extensions rv64imafdcv detected\n[ 0.512] riscv-iommu: enabled\n[ 1.012] hugepages: 1024 x 2M\n",
       ),
     }),
   }),
   proc: dir({
-    cpuinfo: file("model name : LightRail Fabric Controller Gen 2\ncores : 64\n"),
+    cpuinfo: file("model name : LightRail RISC-V Fabric Controller (RV64GC)\ncores : 64\n"),
     meminfo: file("MemTotal: 1572864000 kB\nHugePages_Total: 1024\n"),
   }),
   usr: dir({

@@ -39,7 +39,7 @@
 
 ### Deliverables
 
-- Ubuntu 24.04 LTS base image with custom kernel 6.8-lightrail
+- Ubuntu 24.04 LTS riscv64 base image with custom kernel 6.8-lightrail-rv64
 - dm-verity rootfs + A/B partition layout
 - Secure Boot (UEFI MOK signing pipeline)
 - TPM 2.0 measured boot + PCR register validation
