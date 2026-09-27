@@ -89,7 +89,9 @@ export function Window({ win, children }: Props) {
         onPointerUp={(e) => {
           const el = e.currentTarget as HTMLElement;
           if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+          setDragging(false);
         }}
+        onPointerCancel={() => setDragging(false)}
         onDoubleClick={() => toggleMaximize(win.id)}
         className="flex items-center justify-between px-3 h-9 bg-muted/40 border-b border-border/60 cursor-grab active:cursor-grabbing select-none"
       >
