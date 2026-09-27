@@ -300,39 +300,31 @@ function StageCard({
         </div>
       </div>
 
-      {/* Opcodes strip */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ overflow: "hidden", position: "relative" }}
-          >
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              {stage.opcodes.map((op, i) => (
-                <motion.span
-                  key={op}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  style={{
-                    fontSize: 9, fontFamily: "monospace", fontWeight: 700,
-                    color: stage.color,
-                    background: `${stage.color}15`,
-                    border: `1px solid ${stage.color}30`,
-                    padding: "2px 7px", borderRadius: 4,
-                  }}
-                >{op}</motion.span>
-              ))}
-            </div>
-            <div style={{ marginTop: 8, fontSize: 10, fontFamily: "monospace", color: "#6b7280", lineHeight: 1.5 }}>
-              {stage.detail}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Opcodes strip — fixed height so cycling never changes page layout */}
+      <motion.div
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        style={{ overflow: "hidden", position: "relative", height: 76 }}
+        aria-hidden={!isActive}
+      >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          {stage.opcodes.map((op) => (
+            <span
+              key={op}
+              style={{
+                fontSize: 9, fontFamily: "monospace", fontWeight: 700,
+                color: stage.color,
+                background: `${stage.color}15`,
+                border: `1px solid ${stage.color}30`,
+                padding: "2px 7px", borderRadius: 4,
+              }}
+            >{op}</span>
+          ))}
+        </div>
+        <div style={{ marginTop: 8, fontSize: 10, fontFamily: "monospace", color: "#6b7280", lineHeight: 1.5 }}>
+          {stage.detail}
+        </div>
+      </motion.div>
     </motion.button>
   );
 }
@@ -676,14 +668,13 @@ const WorkflowAnimation = () => {
               <div style={{ padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontFamily: "monospace", fontSize: 10, color: "#374151" }}>
                 compiler output
               </div>
-              <div style={{ padding: 14, fontFamily: "monospace", fontSize: 10, color: "#4b5563", lineHeight: 1.8 }}>
+              <div style={{ padding: 14, fontFamily: "monospace", fontSize: 10, color: "#4b5563", lineHeight: 1.8, height: 116, overflow: "hidden" }}>
                 <AnimatePresence mode="wait">
-                  <motion.div key={activeStage} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                  <motion.div key={activeStage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
                     <div style={{ color: "#6b7280" }}>~ <span style={{ color: "#06b6d4" }}>lightos compile</span></div>
                     <div style={{ color: STAGES[activeStage].color }}>[{activeStage + 1}/6] {STAGES[activeStage].label}</div>
                     <div>  ▸  {STAGES[activeStage].sub}</div>
-                    {doneStages.has(activeStage) && <div style={{ color: "#22c55e" }}>  ✓  {STAGES[activeStage].metric}</div>}
-                    <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} style={{ color: STAGES[activeStage].color }}>▌</motion.span>
+                    <div style={{ color: "#22c55e", visibility: doneStages.has(activeStage) ? "visible" : "hidden" }}>  ✓  {STAGES[activeStage].metric}</div>
                   </motion.div>
                 </AnimatePresence>
               </div>

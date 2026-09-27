@@ -17,6 +17,7 @@ export function Window({ win, children }: Props) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize, updateWindow } =
     useWindowManager();
   const dragOrigin = useRef({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
   const [vp, setVp] = useState(() => ({
     w: typeof window !== "undefined" ? window.innerWidth : 1280,
     h: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -54,7 +55,11 @@ export function Window({ win, children }: Props) {
       dragListener={false}
       onMouseDown={() => focusWindow(win.id)}
       animate={style}
-      transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.6 }}
+      transition={
+        dragging
+          ? { duration: 0 }
+          : { type: "spring", stiffness: 500, damping: 40, mass: 0.6 }
+      }
       style={{
         position: "absolute",
         zIndex: win.zIndex,
@@ -69,6 +74,7 @@ export function Window({ win, children }: Props) {
           if ((e.target as HTMLElement).closest("button")) return;
           dragOrigin.current = { x: e.clientX - win.x, y: e.clientY - win.y };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          setDragging(true);
         }}
         onPointerMove={(e) => {
           if (win.maximized) return;
@@ -83,7 +89,9 @@ export function Window({ win, children }: Props) {
         onPointerUp={(e) => {
           const el = e.currentTarget as HTMLElement;
           if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+          setDragging(false);
         }}
+        onPointerCancel={() => setDragging(false)}
         onDoubleClick={() => toggleMaximize(win.id)}
         className="flex items-center justify-between px-3 h-9 bg-muted/40 border-b border-border/60 cursor-grab active:cursor-grabbing select-none"
       >

@@ -69,10 +69,10 @@ export const ScrollReveal = ({
 }: ScrollRevealProps) => {
   const getInitialPosition = () => {
     switch (direction) {
-      case "up": return { y: 60, x: 0 };
-      case "down": return { y: -60, x: 0 };
-      case "left": return { y: 0, x: 60 };
-      case "right": return { y: 0, x: -60 };
+      case "up": return { y: 16, x: 0 };
+      case "down": return { y: -16, x: 0 };
+      case "left": return { y: 0, x: 16 };
+      case "right": return { y: 0, x: -16 };
     }
   };
 
@@ -82,8 +82,8 @@ export const ScrollReveal = ({
     <motion.div
       initial={{ opacity: 0, ...initial }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.7, delay, ease: [0.25, 0.1, 0.25, 1] }}
+      viewport={{ once: true, margin: "-20px" }}
+      transition={{ duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={className}
     >
       {children}
@@ -132,8 +132,8 @@ export const StaggerItem = ({
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 30 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } },
+        hidden: { opacity: 0, y: 12 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] } },
       }}
       className={className}
     >

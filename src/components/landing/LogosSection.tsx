@@ -1,7 +1,6 @@
 // ============= Full file contents =============
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 
 const ecosystem = [
   { name: "CUDA", text: "CUDA" },
@@ -15,16 +14,8 @@ const ecosystem = [
 ];
 
 const LogosSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-  });
-
-  const x = useTransform(scrollYProgress, [0, 1], [-50, 50]);
-
   return (
-    <section ref={containerRef} className="py-16 border-y border-border bg-card/30 overflow-hidden">
+    <section className="py-16 border-y border-border bg-card/30 overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0 }}
@@ -37,10 +28,7 @@ const LogosSection = () => {
           </span>
         </motion.div>
 
-        <motion.div
-          style={{ x }}
-          className="flex flex-wrap justify-center items-center gap-10 md:gap-16"
-        >
+        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
           {ecosystem.map((logo, index) => (
             <motion.div
               key={logo.name}
@@ -54,7 +42,7 @@ const LogosSection = () => {
               {logo.text}
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

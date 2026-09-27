@@ -16,9 +16,10 @@ const Hero = () => {
     target: containerRef,
     offset: ["start start", "end start"]
   });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 40]);
+  const orbY1 = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const orbY2 = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.15]);
 
   const installCommands = {
     mac: "curl -fsSL https://agentic.lightos.sh | bash",
@@ -35,22 +36,20 @@ const Hero = () => {
 
   return <section ref={containerRef} className="relative min-h-screen pt-36 pb-20 overflow-hidden">
       {/* Parallax Background Grid */}
-      <motion.div className="absolute inset-0 grid-pattern opacity-20" style={{
-      y: useTransform(scrollYProgress, [0, 1], [0, 100])
+      <motion.div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" style={{
+      y: gridY
     }} />
 
       {/* Parallax Gradient Orbs */}
-      <motion.div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-transparent blur-3xl" style={{
-      y: useTransform(scrollYProgress, [0, 1], [0, 200])
+      <motion.div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-transparent blur-3xl pointer-events-none" style={{
+      y: orbY1
     }} />
-      <motion.div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-3xl" style={{
-      y: useTransform(scrollYProgress, [0, 1], [0, 150])
+      <motion.div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-3xl pointer-events-none" style={{
+      y: orbY2
     }} />
 
       <motion.div className="container mx-auto px-4 relative z-10" style={{
-      y,
-      opacity,
-      scale
+      opacity
     }}>
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
