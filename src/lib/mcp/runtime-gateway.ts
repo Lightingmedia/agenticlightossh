@@ -43,7 +43,6 @@ export async function callRuntimeGateway(
       "X-LightOS-User-Email": ctx.getUserEmail() ?? "unknown",
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
-    signal: ctx.signal,
   });
   const text = await response.text();
   let data: unknown = null;

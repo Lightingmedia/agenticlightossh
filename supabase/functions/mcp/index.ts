@@ -121,8 +121,7 @@ async function callRuntimeGateway(ctx, path, init = {}) {
       "X-LightOS-User-ID": ctx.getUserId() ?? "unknown",
       "X-LightOS-User-Email": ctx.getUserEmail() ?? "unknown"
     },
-    body: init.body === void 0 ? void 0 : JSON.stringify(init.body),
-    signal: ctx.signal
+    body: init.body === void 0 ? void 0 : JSON.stringify(init.body)
   });
   const text = await response.text();
   let data = null;
