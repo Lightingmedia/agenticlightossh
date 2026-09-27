@@ -12,31 +12,31 @@ const CTASection = () => {
     offset: ["start end", "end start"],
   });
 
-  const orbY1 = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const orbY2 = useTransform(scrollYProgress, [0, 1], [50, -150]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.95]);
+  const orbY1 = useTransform(scrollYProgress, [0, 1], [40, -40]);
+  const orbY2 = useTransform(scrollYProgress, [0, 1], [20, -60]);
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 20]);
 
   return (
     <section ref={containerRef} className="py-28 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-card/50 to-background" />
       <motion.div 
-        className="absolute inset-0 grid-pattern opacity-10"
-        style={{ y: useTransform(scrollYProgress, [0, 1], [0, 50]) }}
+        className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"
+        style={{ y: gridY }}
       />
 
       {/* Parallax Glowing orbs */}
       <motion.div 
-        className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/8 blur-3xl"
+        className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/8 blur-3xl pointer-events-none"
         style={{ y: orbY1 }}
       />
       <motion.div 
-        className="absolute top-1/2 right-1/3 translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-3xl"
+        className="absolute top-1/2 right-1/3 translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-3xl pointer-events-none"
         style={{ y: orbY2 }}
       />
 
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div style={{ scale }}>
+        <div>
           <ScrollReveal className="text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold font-mono mb-6">
               <span className="text-foreground">Stop Wasting Your </span>
