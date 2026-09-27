@@ -54,7 +54,11 @@ export function Window({ win, children }: Props) {
       dragListener={false}
       onMouseDown={() => focusWindow(win.id)}
       animate={style}
-      transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.6 }}
+      transition={
+        dragging
+          ? { duration: 0 }
+          : { type: "spring", stiffness: 500, damping: 40, mass: 0.6 }
+      }
       style={{
         position: "absolute",
         zIndex: win.zIndex,
