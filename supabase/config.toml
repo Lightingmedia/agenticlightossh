@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.cerebras-inference]
 verify_jwt = false
+
+[functions.gateway-checklist]
+verify_jwt = false
