@@ -17,6 +17,7 @@ export function Window({ win, children }: Props) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize, updateWindow } =
     useWindowManager();
   const dragOrigin = useRef({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
   const [vp, setVp] = useState(() => ({
     w: typeof window !== "undefined" ? window.innerWidth : 1280,
     h: typeof window !== "undefined" ? window.innerHeight : 800,
