@@ -300,39 +300,31 @@ function StageCard({
         </div>
       </div>
 
-      {/* Opcodes strip */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ overflow: "hidden", position: "relative" }}
-          >
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              {stage.opcodes.map((op, i) => (
-                <motion.span
-                  key={op}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  style={{
-                    fontSize: 9, fontFamily: "monospace", fontWeight: 700,
-                    color: stage.color,
-                    background: `${stage.color}15`,
-                    border: `1px solid ${stage.color}30`,
-                    padding: "2px 7px", borderRadius: 4,
-                  }}
-                >{op}</motion.span>
-              ))}
-            </div>
-            <div style={{ marginTop: 8, fontSize: 10, fontFamily: "monospace", color: "#6b7280", lineHeight: 1.5 }}>
-              {stage.detail}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Opcodes strip — fixed height so cycling never changes page layout */}
+      <motion.div
+        animate={{ opacity: isActive ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        style={{ overflow: "hidden", position: "relative", height: 76 }}
+        aria-hidden={!isActive}
+      >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          {stage.opcodes.map((op) => (
+            <span
+              key={op}
+              style={{
+                fontSize: 9, fontFamily: "monospace", fontWeight: 700,
+                color: stage.color,
+                background: `${stage.color}15`,
+                border: `1px solid ${stage.color}30`,
+                padding: "2px 7px", borderRadius: 4,
+              }}
+            >{op}</span>
+          ))}
+        </div>
+        <div style={{ marginTop: 8, fontSize: 10, fontFamily: "monospace", color: "#6b7280", lineHeight: 1.5 }}>
+          {stage.detail}
+        </div>
+      </motion.div>
     </motion.button>
   );
 }
