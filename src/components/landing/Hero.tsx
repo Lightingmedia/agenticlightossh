@@ -16,9 +16,10 @@ const Hero = () => {
     target: containerRef,
     offset: ["start start", "end start"]
   });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 40]);
+  const orbY1 = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const orbY2 = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.15]);
 
   const installCommands = {
     mac: "curl -fsSL https://agentic.lightos.sh | bash",
