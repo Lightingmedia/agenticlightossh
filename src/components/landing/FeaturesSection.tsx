@@ -17,7 +17,7 @@ const features = [
     icon: Cpu,
     title: "Universal Runtime Translation",
     description:
-      "What makes LightOS unique: a software translation layer that natively speaks CUDA, ROCm, TPU/XLA, oneAPI/SYCL and more — optimizing every cluster without rewriting a single kernel.",
+      "Aurora validates workload intent against live CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity, then returns a policy-controlled placement and runtime plan through one authenticated gateway.",
     tag: "Universal",
   },
   {

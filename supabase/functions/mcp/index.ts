@@ -87,18 +87,184 @@ var get_fabric_telemetry_default = defineTool3({
   }
 });
 
+// src/lib/mcp/tools/get-runtime-capacity.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z4 } from "npm:zod@^3.25.76";
+
+// src/lib/mcp/runtime-gateway.ts
+function runtimeEnv(name) {
+  const runtime = globalThis;
+  return runtime.Deno?.env?.get?.(name) ?? runtime.process?.env?.[name];
+}
+function runtimeGatewayConfig() {
+  const rawUrl = runtimeEnv("LIGHTOS_RUNTIME_GATEWAY_URL")?.trim();
+  const token = runtimeEnv("LIGHTOS_RUNTIME_GATEWAY_TOKEN")?.trim();
+  if (!rawUrl || !token) {
+    throw new Error("LightOS runtime gateway is not configured");
+  }
+  const url = new URL(rawUrl);
+  const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (url.protocol !== "https:" && !(isLocal && url.protocol === "http:")) {
+    throw new Error("LightOS runtime gateway must use HTTPS");
+  }
+  return { baseUrl: url.toString().replace(/\/$/, ""), token };
+}
+async function callRuntimeGateway(ctx, path, init = {}) {
+  if (!ctx.isAuthenticated()) throw new Error("Authenticated LightOS user required");
+  const { baseUrl, token } = runtimeGatewayConfig();
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: init.method ?? "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "X-LightOS-User-ID": ctx.getUserId() ?? "unknown",
+      "X-LightOS-User-Email": ctx.getUserEmail() ?? "unknown"
+    },
+    body: init.body === void 0 ? void 0 : JSON.stringify(init.body),
+    signal: ctx.signal
+  });
+  const text = await response.text();
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+  }
+  if (!response.ok) {
+    const safeMessage = data && typeof data === "object" && "message" in data ? String(data.message) : `Runtime gateway returned ${response.status}`;
+    throw new Error(safeMessage);
+  }
+  return data;
+}
+function toolResult(data) {
+  return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+}
+
+// src/lib/mcp/tools/get-runtime-capacity.ts
+var get_runtime_capacity_default = defineTool4({
+  name: "get_runtime_capacity",
+  title: "Get accelerator capacity",
+  description: "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the Aurora control plane.",
+  inputSchema: {
+    runtime: z4.enum(["all", "cuda", "rocm", "tpu_xla", "oneapi_sycl"]).describe("Runtime family to inspect.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  handler: async ({ runtime }, ctx) => {
+    try {
+      const data = await callRuntimeGateway(ctx, `/v1/fabric/capacity?runtime=${encodeURIComponent(runtime)}`);
+      return toolResult(data);
+    } catch (error) {
+      return { content: [{ type: "text", text: error instanceof Error ? error.message : "Capacity request failed" }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/validate-workload-intent.ts
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z5 } from "npm:zod@^3.25.76";
+var validate_workload_intent_default = defineTool5({
+  name: "validate_workload_intent",
+  title: "Validate workload intent",
+  description: "Validate a constrained accelerator workload intent against Aurora policy without executing it.",
+  inputSchema: {
+    workloadClass: z5.enum(["inference", "fine_tuning", "batch_training"]),
+    model: z5.string().trim().min(1).max(160),
+    runtime: z5.enum(["cuda", "rocm", "tpu_xla", "oneapi_sycl", "auto"]),
+    objective: z5.enum(["lowest_latency", "lowest_cost", "maximum_throughput"]),
+    acceleratorCount: z5.number().int().min(1).max(1024),
+    minimumMemoryGiB: z5.number().int().min(1).max(2048),
+    region: z5.string().trim().min(1).max(80),
+    maxCostPerHourUsd: z5.number().min(0).max(1e5)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  handler: async (intent, ctx) => {
+    try {
+      return toolResult(await callRuntimeGateway(ctx, "/v1/intents/validate", { method: "POST", body: { intent } }));
+    } catch (error) {
+      return { content: [{ type: "text", text: error instanceof Error ? error.message : "Intent validation failed" }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/plan-deployment.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z6 } from "npm:zod@^3.25.76";
+var plan_deployment_default = defineTool6({
+  name: "plan_deployment",
+  title: "Plan accelerator deployment",
+  description: "Ask Aurora for a policy-controlled placement, fabric route, cost estimate, and runtime plan; this tool never executes the plan.",
+  inputSchema: {
+    projectId: z6.string().trim().min(1).max(120),
+    workloadClass: z6.enum(["inference", "fine_tuning", "batch_training"]),
+    model: z6.string().trim().min(1).max(160),
+    runtime: z6.enum(["cuda", "rocm", "tpu_xla", "oneapi_sycl", "auto"]),
+    objective: z6.enum(["lowest_latency", "lowest_cost", "maximum_throughput"]),
+    acceleratorCount: z6.number().int().min(1).max(1024),
+    minimumMemoryGiB: z6.number().int().min(1).max(2048),
+    region: z6.string().trim().min(1).max(80),
+    availabilityTier: z6.enum(["standard", "high"]),
+    dataLocality: z6.string().trim().max(160),
+    maxCostPerHourUsd: z6.number().min(0).max(1e5),
+    maxRuntimeMinutes: z6.number().int().min(0).max(525600)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: false, openWorldHint: true },
+  handler: async (args, ctx) => {
+    try {
+      const { projectId, ...intent } = args;
+      return toolResult(await callRuntimeGateway(ctx, "/v1/deployments/plan", {
+        method: "POST",
+        body: { projectId, intent }
+      }));
+    } catch (error) {
+      return { content: [{ type: "text", text: error instanceof Error ? error.message : "Deployment planning failed" }], isError: true };
+    }
+  }
+});
+
+// src/lib/mcp/tools/get-fabric-state.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z7 } from "npm:zod@^3.25.76";
+var get_fabric_state_default = defineTool7({
+  name: "get_fabric_state",
+  title: "Get live fabric state",
+  description: "Read live Aurora topology, telemetry, or recent policy events from the privileged control plane.",
+  inputSchema: {
+    view: z7.enum(["topology", "telemetry", "events"]),
+    windowSeconds: z7.number().int().min(1).max(3600)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  handler: async ({ view, windowSeconds }, ctx) => {
+    try {
+      return toolResult(await callRuntimeGateway(ctx, `/v1/fabric/${view}?window_seconds=${windowSeconds}`));
+    } catch (error) {
+      return { content: [{ type: "text", text: error instanceof Error ? error.message : "Fabric request failed" }], isError: true };
+    }
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "cawwhnuezkrsexjvetjj";
 var mcp_default = defineMcp({
   name: "lightos-mcp",
-  title: "LightOS / LightRail MCP",
-  version: "0.2.0",
-  instructions: "Tools for the LightOS photonic AI datacenter platform. All tools require an authenticated LightOS user (Supabase OAuth). Use `echo` to verify connectivity, `list_agents` to enumerate running datacenter agents, and `get_fabric_telemetry` to sample photonic fabric metrics.",
+  title: "LightOS",
+  version: "0.3.0",
+  instructions: "Authenticated tools for Aurora Fabric OS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. Aurora is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [echo_default, list_agents_default, get_fabric_telemetry_default]
+  tools: [
+    echo_default,
+    list_agents_default,
+    get_fabric_telemetry_default,
+    get_runtime_capacity_default,
+    validate_workload_intent_default,
+    plan_deployment_default,
+    get_fabric_state_default
+  ]
 });
 
 // lovable-mcp-supabase-entry.ts
