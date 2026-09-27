@@ -23,13 +23,6 @@ const tools = [
 const ToolingSection = () => {
   const [activeTool, setActiveTool] = useState("dashboard");
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-  });
-
-  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [5, 0, -5]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.95, 1, 0.95]);
 
   return (
     <section ref={containerRef} className="py-24 border-t border-border">
@@ -51,11 +44,8 @@ const ToolingSection = () => {
           </p>
         </ScrollReveal>
 
-        {/* Tool Preview with 3D Transform */}
-        <motion.div
-          style={{ rotateX, scale, perspective: 1000 }}
-          className="relative"
-        >
+        {/* Tool Preview */}
+        <div className="relative">
           {/* Terminal Window */}
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
