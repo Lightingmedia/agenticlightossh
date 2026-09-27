@@ -74,6 +74,7 @@ export function Window({ win, children }: Props) {
           if ((e.target as HTMLElement).closest("button")) return;
           dragOrigin.current = { x: e.clientX - win.x, y: e.clientY - win.y };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          setDragging(true);
         }}
         onPointerMove={(e) => {
           if (win.maximized) return;
