@@ -71,7 +71,7 @@ const CTASection = () => {
               Free tier includes 100K inference tokens/month • No credit card required
             </p>
           </ScrollReveal>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
