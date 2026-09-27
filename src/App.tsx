@@ -49,6 +49,7 @@ import PowerGovernor from "./pages/PowerGovernor";
 import AcceleratorRuntime from "./pages/AcceleratorRuntime";
 import OAuthConsent from "./pages/OAuthConsent";
 import MtmcConsole from "./pages/MtmcConsole";
+import GatewaySetup from "./pages/GatewaySetup";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,7 @@ const App = () => (
             <Route path="monitor" element={<AgentMonitor />} />
             <Route path="billing" element={<Billing />} />
             <Route path="accelerator" element={<AcceleratorRuntime />} />
+            <Route path="gateway-setup" element={<GatewaySetup />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -50,6 +50,7 @@ const monitoringItems = [
 const lightosItems = [
   { icon: Server, label: "Clusters", path: "/dashboard/clusters" },
   { icon: FileText, label: "Runs", path: "/dashboard/runs" },
+  { icon: Settings, label: "Gateway Setup", path: "/dashboard/gateway-setup" },
 ];
 
 const builderItems = [
