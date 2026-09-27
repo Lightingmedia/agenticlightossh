@@ -1,7 +1,6 @@
 // ============= Full file contents =============
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 
 const ecosystem = [
   { name: "CUDA", text: "CUDA" },
@@ -43,7 +42,7 @@ const LogosSection = () => {
               {logo.text}
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

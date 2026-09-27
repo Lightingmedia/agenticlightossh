@@ -223,7 +223,7 @@ for await (const chunk of response) {
               </motion.button>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
