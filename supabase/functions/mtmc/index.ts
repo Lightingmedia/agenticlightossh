@@ -3,6 +3,7 @@
 // Fast/cheap primary model; falls back to a stronger model when confidence < threshold.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { gatewayConfig, gatewayFetch } from "../_shared/runtime-gateway.ts";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const PRIMARY_MODEL = "google/gemini-3.1-flash-lite"; // cheapest capable
@@ -102,6 +103,61 @@ function estimateCost(model: string, totalTokens: number): number {
   return +((rate * totalTokens) / 1000).toFixed(6);
 }
 
+function gatewayReady(): boolean {
+  try { return gatewayConfig() !== null; } catch { return false; }
+}
+
+// Submit the MTMC prompt as an inference job on the customer's GPU; poll until done.
+// Returns null when the gateway is not configured or the job fails, so MTMC falls back to cloud.
+async function runOnGpu(text: string, user: { id: string; email?: string }) {
+  if (!gatewayReady()) return null;
+  const model = Deno.env.get("LIGHTOS_GPU_MODEL") ?? "meta-llama/Llama-3.1-8B-Instruct";
+  try {
+    const job = await gatewayFetch("/v1/jobs", user, {
+      method: "POST",
+      headers: { "Idempotency-Key": crypto.randomUUID() },
+      body: {
+        projectId: "mtmc",
+        kind: "inference_request",
+        payload: {
+          model,
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: text }],
+          max_tokens: 512,
+          response_format: "json",
+          json_schema: RESPONSE_SCHEMA,
+        },
+        timeout_seconds: 60,
+      },
+    });
+    const deadline = Date.now() + 60_000;
+    let s: any = job;
+    while (!["succeeded", "failed", "cancelled"].includes(s?.status) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 750));
+      s = await gatewayFetch(`/v1/jobs/${encodeURIComponent(job.job_id)}`, user);
+    }
+    if (s?.status !== "succeeded") {
+      if (s?.status !== "failed" && s?.status !== "cancelled") {
+        await gatewayFetch(`/v1/jobs/${encodeURIComponent(job.job_id)}`, user, { method: "DELETE" }).catch(() => {});
+      }
+      return null;
+    }
+    const out = s.result?.output;
+    const parsed = typeof out === "string" ? JSON.parse(out) : out;
+    const u = s.result?.usage ?? {};
+    return {
+      model: `gpu:${model}`,
+      parsed,
+      jobId: job.job_id as string,
+      placement: s.placement ?? null,
+      metrics: (s.metrics ?? {}) as Record<string, number>,
+      tokens: Number(u.prompt_tokens ?? 0) + Number(u.completion_tokens ?? 0),
+    };
+  } catch (e) {
+    console.error("GPU path failed:", (e as Error).message);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -153,6 +209,29 @@ Deno.serve(async (req) => {
 
   const threshold = typeof body.threshold === "number" ? body.threshold : DEFAULT_THRESHOLD;
   const startedAt = Date.now();
+  const user = { id: String(claims.claims.sub), email: claims.claims.email as string | undefined };
+
+  // 1) Try the customer's own GPU through the LightOS runtime gateway.
+  let gpu: Awaited<ReturnType<typeof runOnGpu>> = null;
+  if (!body.force_model) {
+    gpu = await runOnGpu(text, user);
+    const gpuConf = Number(gpu?.parsed?.confidence ?? 0);
+    if (gpu?.parsed && gpuConf >= threshold) {
+      return new Response(JSON.stringify({
+        result: gpu.parsed,
+        routing: { primary_model: gpu.model, primary_confidence: gpuConf, escalated: false, final_model: gpu.model, threshold, target: "gpu" },
+        cost: {
+          primary_usd: gpu.metrics.cost_usd ?? 0,
+          fallback_usd: 0,
+          total_usd: gpu.metrics.cost_usd ?? 0,
+          baseline_always_fallback_usd: estimateCost(FALLBACK_MODEL, gpu.tokens),
+        },
+        gpu: { job_id: gpu.jobId, metrics: gpu.metrics, placement: gpu.placement },
+        tokens: { primary: { prompt: 0, completion: 0, total: gpu.tokens }, fallback: null },
+        latency_ms: Date.now() - startedAt,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+  }
 
   try {
     const primary = await callGateway(body.force_model ?? PRIMARY_MODEL, text, apiKey);
@@ -178,14 +257,17 @@ Deno.serve(async (req) => {
         escalated,
         final_model: final.model,
         threshold,
+        target: "cloud",
+        gpu_status: gpu === null ? (gatewayReady() ? "gpu_unavailable" : "gateway_not_configured") : "gpu_low_confidence",
       },
       cost: {
         primary_usd: costPrimary,
         fallback_usd: costFallback,
-        total_usd: +(costPrimary + costFallback).toFixed(6),
+        total_usd: +(costPrimary + costFallback + (gpu?.metrics.cost_usd ?? 0)).toFixed(6),
         // Baseline: cost if we had always used the fallback for every request.
         baseline_always_fallback_usd: estimateCost(FALLBACK_MODEL, primary.usage.total),
       },
+      gpu: gpu ? { job_id: gpu.jobId, metrics: gpu.metrics, placement: gpu.placement } : null,
       tokens: {
         primary: primary.usage,
         fallback: fallback?.usage ?? null,

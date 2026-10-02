@@ -20,6 +20,7 @@ import {
   setOwner,
   writeFile,
 } from "../vfs";
+import { ubuntuBuiltins, notFound as ubuntuNotFound } from "./terminal-ubuntu";
 
 const PROMPT_USER = "root";
 const PROMPT_HOST = "lightos-main";
@@ -758,6 +759,10 @@ const builtins: Record<string, Builtin> = {
   },
 };
 builtins.curl = builtins.fetch;
+// Ubuntu command set — only fills names not already provided above.
+for (const [k, v] of Object.entries(ubuntuBuiltins(builtins))) {
+  if (!(k in builtins)) builtins[k] = v as Builtin;
+}
 
 // --------------------------- history ---------------------------
 
@@ -926,7 +931,7 @@ async function runPipeline(p: Pipeline, ctx: ShellCtx): Promise<CmdResult> {
     const fn = builtins[name];
     let res: CmdResult;
     if (!fn) {
-      res = { stdout: "", stderr: `lsh: command not found: ${name}\n`, code: 127 };
+      res = { stdout: "", stderr: ubuntuNotFound(name), code: 127 };
     } else {
       try {
         res = await fn(args, stdin, ctx);
