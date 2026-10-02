@@ -3,6 +3,7 @@
 // Fast/cheap primary model; falls back to a stronger model when confidence < threshold.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { gatewayConfig, gatewayFetch } from "../_shared/runtime-gateway.ts";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const PRIMARY_MODEL = "google/gemini-3.1-flash-lite"; // cheapest capable
@@ -100,6 +101,61 @@ async function callGateway(model: string, text: string, apiKey: string): Promise
 function estimateCost(model: string, totalTokens: number): number {
   const rate = COST_PER_1K[model] ?? 0.001;
   return +((rate * totalTokens) / 1000).toFixed(6);
+}
+
+function gatewayReady(): boolean {
+  try { return gatewayConfig() !== null; } catch { return false; }
+}
+
+// Submit the MTMC prompt as an inference job on the customer's GPU; poll until done.
+// Returns null when the gateway is not configured or the job fails, so MTMC falls back to cloud.
+async function runOnGpu(text: string, user: { id: string; email?: string }) {
+  if (!gatewayReady()) return null;
+  const model = Deno.env.get("LIGHTOS_GPU_MODEL") ?? "meta-llama/Llama-3.1-8B-Instruct";
+  try {
+    const job = await gatewayFetch("/v1/jobs", user, {
+      method: "POST",
+      headers: { "Idempotency-Key": crypto.randomUUID() },
+      body: {
+        projectId: "mtmc",
+        kind: "inference_request",
+        payload: {
+          model,
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: text }],
+          max_tokens: 512,
+          response_format: "json",
+          json_schema: RESPONSE_SCHEMA,
+        },
+        timeout_seconds: 60,
+      },
+    });
+    const deadline = Date.now() + 60_000;
+    let s: any = job;
+    while (!["succeeded", "failed", "cancelled"].includes(s?.status) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 750));
+      s = await gatewayFetch(`/v1/jobs/${encodeURIComponent(job.job_id)}`, user);
+    }
+    if (s?.status !== "succeeded") {
+      if (s?.status !== "failed" && s?.status !== "cancelled") {
+        await gatewayFetch(`/v1/jobs/${encodeURIComponent(job.job_id)}`, user, { method: "DELETE" }).catch(() => {});
+      }
+      return null;
+    }
+    const out = s.result?.output;
+    const parsed = typeof out === "string" ? JSON.parse(out) : out;
+    const u = s.result?.usage ?? {};
+    return {
+      model: `gpu:${model}`,
+      parsed,
+      jobId: job.job_id as string,
+      placement: s.placement ?? null,
+      metrics: (s.metrics ?? {}) as Record<string, number>,
+      tokens: Number(u.prompt_tokens ?? 0) + Number(u.completion_tokens ?? 0),
+    };
+  } catch (e) {
+    console.error("GPU path failed:", (e as Error).message);
+    return null;
+  }
 }
 
 Deno.serve(async (req) => {
