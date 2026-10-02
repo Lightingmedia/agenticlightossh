@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRealtimeAgents, useRealtimeGPUs, useRealtimeInferenceTasks, useRealtimeSystemLogs } from "@/hooks/use-realtime-telemetry";
 import { format } from "date-fns";
+import GatewayLivePanel from "@/components/dashboard/GatewayLivePanel";
 
 const LEVEL_CONFIG = {
   ERROR:   { dot: "bg-red-500 led-glow-red",    badge: "badge-neon-red",   label: "ERR" },
@@ -119,6 +120,8 @@ const Dashboard = () => {
                 </motion.div>
               ))}
         </div>
+
+        <GatewayLivePanel />
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
