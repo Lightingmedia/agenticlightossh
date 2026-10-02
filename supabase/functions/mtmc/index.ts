@@ -153,6 +153,29 @@ Deno.serve(async (req) => {
 
   const threshold = typeof body.threshold === "number" ? body.threshold : DEFAULT_THRESHOLD;
   const startedAt = Date.now();
+  const user = { id: String(claims.claims.sub), email: claims.claims.email as string | undefined };
+
+  // 1) Try the customer's own GPU through the LightOS runtime gateway.
+  let gpu: Awaited<ReturnType<typeof runOnGpu>> = null;
+  if (!body.force_model) {
+    gpu = await runOnGpu(text, user);
+    const gpuConf = Number(gpu?.parsed?.confidence ?? 0);
+    if (gpu?.parsed && gpuConf >= threshold) {
+      return new Response(JSON.stringify({
+        result: gpu.parsed,
+        routing: { primary_model: gpu.model, primary_confidence: gpuConf, escalated: false, final_model: gpu.model, threshold, target: "gpu" },
+        cost: {
+          primary_usd: gpu.metrics.cost_usd ?? 0,
+          fallback_usd: 0,
+          total_usd: gpu.metrics.cost_usd ?? 0,
+          baseline_always_fallback_usd: estimateCost(FALLBACK_MODEL, gpu.tokens),
+        },
+        gpu: { job_id: gpu.jobId, metrics: gpu.metrics, placement: gpu.placement },
+        tokens: { primary: { prompt: 0, completion: 0, total: gpu.tokens }, fallback: null },
+        latency_ms: Date.now() - startedAt,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+  }
 
   try {
     const primary = await callGateway(body.force_model ?? PRIMARY_MODEL, text, apiKey);
@@ -178,14 +201,17 @@ Deno.serve(async (req) => {
         escalated,
         final_model: final.model,
         threshold,
+        target: "cloud",
+        gpu_status: gpu === null ? (gatewayReady() ? "gpu_unavailable" : "gateway_not_configured") : "gpu_low_confidence",
       },
       cost: {
         primary_usd: costPrimary,
         fallback_usd: costFallback,
-        total_usd: +(costPrimary + costFallback).toFixed(6),
+        total_usd: +(costPrimary + costFallback + (gpu?.metrics.cost_usd ?? 0)).toFixed(6),
         // Baseline: cost if we had always used the fallback for every request.
         baseline_always_fallback_usd: estimateCost(FALLBACK_MODEL, primary.usage.total),
       },
+      gpu: gpu ? { job_id: gpu.jobId, metrics: gpu.metrics, placement: gpu.placement } : null,
       tokens: {
         primary: primary.usage,
         fallback: fallback?.usage ?? null,
