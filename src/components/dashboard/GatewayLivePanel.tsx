@@ -61,7 +61,7 @@ export default function GatewayLivePanel() {
           <p>
             No GPU cluster connected yet. Once your runtime gateway address and key are added, this panel shows real
             GPU usage, power and cost, and MTMC runs requests on your GPUs first.{" "}
-            <Link to="/gateway-setup" className="text-primary underline">Setup checklist</Link>
+            <Link to="/dashboard/gateway-setup" className="text-primary underline">Setup checklist</Link>
           </p>
         </div>
       ) : data.error ? (
