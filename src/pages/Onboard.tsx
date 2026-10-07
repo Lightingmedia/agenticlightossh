@@ -447,6 +447,11 @@ const Onboard = () => {
                             </>
                       }
                     </Button>}
+                    {step.id === "cuda" && !completedSteps.has(currentStep) && (
+                      <Button size="lg" variant="ghost" onClick={() => setCurrentStep(currentStep + 1)} className="font-mono">
+                        Skip for now (not completed)
+                      </Button>
+                    )}
                     {completedSteps.has(currentStep) && currentStep < WIZARD_STEPS.length - 1 && (
                       <Button
                         size="lg"
