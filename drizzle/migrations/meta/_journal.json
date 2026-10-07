@@ -15,6 +15,13 @@
       "when": 1791389648230,
       "tag": "0001_restrict_ops_tables_to_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791389800231,
+      "tag": "0002_restrict_deployment_logs_to_admins",
+      "breakpoints": true
     }
   ]
 }

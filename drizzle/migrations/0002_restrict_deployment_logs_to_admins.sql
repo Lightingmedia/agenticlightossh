@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Authenticated can view llm_deployment_logs" ON public.llm_deployment_logs;
+CREATE POLICY "Admins can view llm_deployment_logs" ON public.llm_deployment_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
