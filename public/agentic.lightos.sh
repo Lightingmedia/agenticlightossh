@@ -133,6 +133,7 @@ VERSION = "0.2.0"
 
 COMMANDS = {
     "onboard":    "Interactive onboarding: fabric detection, WDM setup, first agent",
+    "cuda":       "Detect NVIDIA driver/nvcc/cudart and report: lightos cuda --code XXXX-XXXX [--install-cuda]",
     "status":     "Show fabric topology status and channel utilisation",
     "fingerprint":"Print the current topology fingerprint (SHA-256)",
     "agents":     "List, deploy, and monitor agentic workers",
@@ -308,8 +309,104 @@ def cmd_onboard():
     cprint("bold", "  Dashboard: https://agentic.lightos.sh/dashboard")
     print()
 
+ENROLL_URL = os.environ.get("LIGHTOS_ENROLL_URL", "https://cawwhnuezkrsexjvetjj.supabase.co/functions/v1/node-enroll")
+ENROLL_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhd3dobnVlemtyc2V4anZldGpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNTk0MTIsImV4cCI6MjA4NTczNTQxMn0.9nzx6VMwz4DgYp-ODRcqhFkot5OGBsXJ3lep46GUy_E"
+
+def _run(cmd):
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        return r.returncode, r.stdout.strip()
+    except Exception:
+        return 127, ""
+
+def _which(name):
+    from shutil import which
+    return which(name)
+
+def detect_cuda():
+    import re, socket, platform, glob
+    report = {"hostname": socket.gethostname()[:255], "os": platform.platform()[:255],
+              "driver": {"present": False, "version": None},
+              "nvcc": {"present": False, "version": None},
+              "cudart": {"present": False, "version": None}, "gpus": []}
+    if _which("nvidia-smi"):
+        rc, out = _run(["nvidia-smi", "--query-gpu=index,name,uuid,memory.total,driver_version,compute_cap",
+                        "--format=csv,noheader,nounits"])
+        if rc != 0:
+            rc, out = _run(["nvidia-smi", "--query-gpu=index,name,uuid,memory.total,driver_version",
+                            "--format=csv,noheader,nounits"])
+        if rc == 0 and out:
+            for line in out.splitlines()[:64]:
+                p = [x.strip() for x in line.split(",")]
+                report["driver"] = {"present": True, "version": p[4] if len(p) > 4 else None}
+                try: mem = float(p[3])
+                except Exception: mem = None
+                report["gpus"].append({"index": int(p[0]), "name": p[1][:128], "uuid": p[2][:128] or None,
+                                       "memory_total_mib": mem, "compute_capability": p[5] if len(p) > 5 else None})
+    nvcc = _which("nvcc") or ("/usr/local/cuda/bin/nvcc" if os.path.exists("/usr/local/cuda/bin/nvcc") else None)
+    if nvcc:
+        rc, out = _run([nvcc, "--version"])
+        m = re.search(r"release ([\d.]+)", out)
+        report["nvcc"] = {"present": rc == 0, "version": m.group(1) if m else None}
+    libs = glob.glob("/usr/local/cuda*/lib64/libcudart.so.*") + glob.glob("/usr/lib/x86_64-linux-gnu/libcudart.so.*")
+    if libs:
+        m = re.search(r"libcudart\.so\.([\d.]+)", sorted(libs)[-1])
+        report["cudart"] = {"present": True, "version": m.group(1) if m else None}
+    return report
+
+def install_cuda():
+    if not _which("apt-get"):
+        warn("Automatic install supports Ubuntu/Debian only. See https://developer.nvidia.com/cuda-downloads")
+        return False
+    info("This will run: sudo apt-get install -y nvidia-cuda-toolkit")
+    if input("  Continue? [y/N] ").strip().lower() != "y":
+        warn("Skipped CUDA install")
+        return False
+    return subprocess.call(["sudo", "apt-get", "install", "-y", "nvidia-cuda-toolkit"]) == 0
+
+def cmd_cuda():
+    import urllib.request, urllib.error
+    args = sys.argv[2:]
+    code = None
+    if "--code" in args:
+        i = args.index("--code")
+        code = args[i + 1] if i + 1 < len(args) else None
+    cprint("bold", "\n  LightOS CUDA PDK check")
+    r = detect_cuda()
+    if not r["driver"]["present"]:
+        warn("NVIDIA driver not found (nvidia-smi missing or failing). Install the driver first.")
+    else:
+        ok(f"NVIDIA driver {r['driver']['version']} — {len(r['gpus'])} GPU(s)")
+        for g in r["gpus"]:
+            print(f"     [{g['index']}] {g['name']}  {g['memory_total_mib'] or '?'} MiB  cc {g['compute_capability'] or '?'}")
+    if (not r["nvcc"]["present"] or not r["cudart"]["present"]) and "--install-cuda" in args:
+        if install_cuda():
+            r = detect_cuda()
+    ok(f"nvcc {r['nvcc']['version']}") if r["nvcc"]["present"] else warn("nvcc not found (re-run with --install-cuda to install)")
+    ok(f"CUDA runtime {r['cudart']['version']}") if r["cudart"]["present"] else warn("libcudart not found")
+    if not code:
+        warn("No --code given — results not reported. Get a setup code from the onboarding page.")
+        return
+    req = urllib.request.Request(ENROLL_URL, method="POST",
+        data=json.dumps({"action": "report", "code": code, "report": r}).encode(),
+        headers={"Content-Type": "application/json", "apikey": ENROLL_KEY})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            res = json.loads(resp.read() or b"{}")
+    except urllib.error.HTTPError as e:
+        try: msg = json.loads(e.read()).get("error")
+        except Exception: msg = str(e)
+        warn(f"Report rejected: {msg}"); return
+    except Exception as e:
+        warn(f"Could not reach LightOS: {e}"); return
+    gs = res.get("gateway_status")
+    if gs == "accepted": ok("Reported to LightOS and accepted by your runtime gateway")
+    elif gs == "not_configured": warn("Reported to LightOS, but no runtime gateway is connected yet")
+    else: warn(f"Reported to LightOS, gateway error: {res.get('gateway_message')}")
+
 DISPATCH = {
     "onboard":    cmd_onboard,
+    "cuda":       cmd_cuda,
     "status":     cmd_status,
     "fingerprint":cmd_fingerprint,
     "agents":     cmd_agents,
