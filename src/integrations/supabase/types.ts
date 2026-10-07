@@ -232,6 +232,45 @@ export type Database = {
         }
         Relationships: []
       }
+      node_enrollments: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          gateway_message: string | null
+          gateway_status: string | null
+          id: string
+          report: Json | null
+          reported_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          gateway_message?: string | null
+          gateway_status?: string | null
+          id?: string
+          report?: Json | null
+          reported_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          gateway_message?: string | null
+          gateway_status?: string | null
+          id?: string
+          report?: Json | null
+          reported_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
