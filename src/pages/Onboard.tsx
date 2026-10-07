@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import CudaPdkStep from "@/components/onboard/CudaPdkStep";
 
 // ─── Wizard step definitions ─────────────────────────────────────────────────
 const WIZARD_STEPS = [
@@ -26,6 +27,13 @@ const WIZARD_STEPS = [
     title: "Install LightOS",
     subtitle: "One-command setup",
     description: "Copy and run the install script in your terminal. It detects your OS, installs the CLI, and configures your PATH automatically.",
+  },
+  {
+    id: "cuda",
+    icon: Cpu,
+    title: "CUDA PDK",
+    subtitle: "Real driver + toolkit check",
+    description: "Runs on your GPU machine: finds the NVIDIA driver, checks nvcc and the CUDA runtime, and reports the GPUs to your LightOS runtime gateway. Nothing here is simulated.",
   },
   {
     id: "fabric",
@@ -184,7 +192,10 @@ function StepIndicator({
         <div className={`font-mono text-sm font-bold ${isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
           {step.title}
         </div>
-        <div className="font-mono text-xs text-muted-foreground">{step.subtitle}</div>
+        <div className="font-mono text-xs text-muted-foreground">
+          {step.subtitle}
+          {step.id !== "cuda" && step.id !== "install" && <span className="ml-1.5 px-1 rounded border border-border text-[10px] uppercase">Demo</span>}
+        </div>
       </div>
       {isCurrent && <ChevronRight className="w-4 h-4 text-primary ml-auto mt-1 flex-shrink-0" />}
     </div>
@@ -370,8 +381,16 @@ const Onboard = () => {
                     </div>
                   )}
 
+                  {step.id === "cuda" && (
+                    <CudaPdkStep onComplete={() => setCompletedSteps((prev) => new Set([...prev, currentStep]))} />
+                  )}
+
+                  {step.id !== "cuda" && step.id !== "install" && (
+                    <div className="mb-3 font-mono text-xs text-muted-foreground">Demo — simulated output, nothing runs on your machine.</div>
+                  )}
+
                   {/* Terminal output */}
-                  <div className="terminal-window overflow-hidden">
+                  {step.id !== "cuda" && <div className="terminal-window overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
                       <div className="flex gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
@@ -409,9 +428,11 @@ const Onboard = () => {
                     </div>
                   </div>
 
+                  </div>}
+
                   {/* Action button */}
                   <div className="mt-6 flex items-center gap-4">
-                    <Button
+                    {step.id !== "cuda" && <Button
                       size="lg"
                       onClick={handleNext}
                       disabled={runningStep !== null || completedSteps.has(currentStep)}
