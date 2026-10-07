@@ -8,6 +8,13 @@
       "when": 1790961303242,
       "tag": "0000_restrict_cluster_telemetry_to_admins",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791389648230,
+      "tag": "0001_restrict_ops_tables_to_admins",
+      "breakpoints": true
     }
   ]
 }
