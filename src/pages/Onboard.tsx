@@ -426,9 +426,8 @@ const Onboard = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-
                   </div>}
+
 
                   {/* Action button */}
                   <div className="mt-6 flex items-center gap-4">
@@ -447,7 +446,7 @@ const Onboard = () => {
                               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </>
                       }
-                    </Button>
+                    </Button>}
                     {completedSteps.has(currentStep) && currentStep < WIZARD_STEPS.length - 1 && (
                       <Button
                         size="lg"
