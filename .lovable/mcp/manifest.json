@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "lightos-mcp",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "title": "LightOS"
     },
     "tools": [
@@ -290,6 +290,16 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 525600
+            },
+            "allowedProviders": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "maxItems": 30,
+              "description": "Provider ids from list_compute_providers to consider; omit to let Aurora choose among the user's connected providers."
             }
           },
           "required": [
@@ -341,6 +351,52 @@
             "view",
             "windowSeconds"
           ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_compute_providers",
+        "title": "List compute providers",
+        "description": "List the hyperscalers, NVIDIA services, GPU clouds and inference APIs LightOS can place workloads on, with accelerators, runtimes and capabilities. Use the returned ids in plan_deployment.allowedProviders. Never returns credentials.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "hyperscaler",
+                "nvidia",
+                "gpu_cloud",
+                "inference_api",
+                "self_managed",
+                "any"
+              ]
+            },
+            "runtime": {
+              "type": "string",
+              "enum": [
+                "cuda",
+                "rocm",
+                "tpu_xla",
+                "oneapi_sycl",
+                "neuron",
+                "asic",
+                "any"
+              ]
+            },
+            "accelerator": {
+              "type": "string",
+              "maxLength": 40,
+              "description": "Substring match, e.g. 'H200' or 'TPU'"
+            }
+          },
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
