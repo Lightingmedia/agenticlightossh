@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
 
 // src/lib/mcp/tools/echo.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z } from "npm:zod@^3.25.76";
 var echo_default = defineTool({
   name: "echo",
@@ -23,7 +23,7 @@ var echo_default = defineTool({
 });
 
 // src/lib/mcp/tools/list-agents.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z2 } from "npm:zod@^3.25.76";
 var AGENTS = [
   { name: "fabric-optimizer", role: "Topology auto-tuner", status: "executing" },
@@ -54,7 +54,7 @@ var list_agents_default = defineTool2({
 });
 
 // src/lib/mcp/tools/get-fabric-telemetry.ts
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z3 } from "npm:zod@^3.25.76";
 var get_fabric_telemetry_default = defineTool3({
   name: "get_fabric_telemetry",
@@ -88,7 +88,7 @@ var get_fabric_telemetry_default = defineTool3({
 });
 
 // src/lib/mcp/tools/get-runtime-capacity.ts
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z4 } from "npm:zod@^3.25.76";
 
 // src/lib/mcp/runtime-gateway.ts
@@ -162,7 +162,7 @@ var get_runtime_capacity_default = defineTool4({
 });
 
 // src/lib/mcp/tools/validate-workload-intent.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z5 } from "npm:zod@^3.25.76";
 var validate_workload_intent_default = defineTool5({
   name: "validate_workload_intent",
@@ -189,7 +189,7 @@ var validate_workload_intent_default = defineTool5({
 });
 
 // src/lib/mcp/tools/plan-deployment.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z6 } from "npm:zod@^3.25.76";
 var plan_deployment_default = defineTool6({
   name: "plan_deployment",
@@ -207,7 +207,8 @@ var plan_deployment_default = defineTool6({
     availabilityTier: z6.enum(["standard", "high"]),
     dataLocality: z6.string().trim().max(160),
     maxCostPerHourUsd: z6.number().min(0).max(1e5),
-    maxRuntimeMinutes: z6.number().int().min(0).max(525600)
+    maxRuntimeMinutes: z6.number().int().min(0).max(525600),
+    allowedProviders: z6.array(z6.string().trim().min(1).max(64)).max(30).optional().describe("Provider ids from list_compute_providers to consider; omit to let Aurora choose among the user's connected providers.")
   },
   annotations: { readOnlyHint: true, idempotentHint: false, openWorldHint: true },
   handler: async (args, ctx) => {
@@ -224,7 +225,7 @@ var plan_deployment_default = defineTool6({
 });
 
 // src/lib/mcp/tools/get-fabric-state.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.1";
 import { z as z7 } from "npm:zod@^3.25.76";
 var get_fabric_state_default = defineTool7({
   name: "get_fabric_state",
@@ -244,12 +245,533 @@ var get_fabric_state_default = defineTool7({
   }
 });
 
+// src/lib/mcp/tools/list-compute-providers.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z8 } from "npm:zod@^3.25.76";
+
+// supabase/functions/_shared/provider-catalog.ts
+var caps = (c) => ({
+  inventory: false,
+  catalog: false,
+  launch: false,
+  kubernetes: false,
+  slurm: false,
+  serverlessInference: false,
+  ...c
+});
+var openAiCompatible = (keyLabel, placeholder) => [{
+  id: "api_key",
+  label: "API key",
+  recommended: true,
+  fields: [{ key: "apiKey", label: keyLabel, secret: true, placeholder }],
+  permissions: "Inference-only key. Create a dedicated key for LightOS so it can be revoked independently."
+}];
+var PROVIDERS = [
+  // ───────────── Hyperscalers ─────────────
+  {
+    id: "aws",
+    name: "Amazon Web Services",
+    category: "hyperscaler",
+    accelerators: ["H100", "H200", "B200", "A100", "L40S", "L4", "Trainium2", "Inferentia2"],
+    runtimes: ["cuda", "neuron"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [
+      {
+        id: "assume_role",
+        label: "Cross-account IAM role (no long-lived keys)",
+        recommended: true,
+        fields: [
+          { key: "roleArn", label: "Role ARN", placeholder: "arn:aws:iam::123456789012:role/LightOSControlPlane", pattern: "^arn:aws:iam::\\d{12}:role\\/.+$" },
+          { key: "externalId", label: "External ID", placeholder: "Generated by LightOS \u2014 paste into the role trust policy", help: "Prevents the confused-deputy problem." },
+          { key: "region", label: "Default region", placeholder: "us-east-1" }
+        ],
+        permissions: "Trust policy for the LightRail platform account with sts:ExternalId; attach ec2:Describe*, eks:List*/Describe*, sagemaker:List*, servicequotas:Get*. Add ec2:RunInstances/TerminateInstances only when you enable launch."
+      },
+      {
+        id: "access_key",
+        label: "IAM user access key",
+        fields: [
+          { key: "accessKeyId", label: "Access key ID", placeholder: "AKIA\u2026" },
+          { key: "secretAccessKey", label: "Secret access key", secret: true },
+          { key: "region", label: "Default region", placeholder: "us-east-1" }
+        ],
+        permissions: "Dedicated IAM user with the same read-only policy as the role option. Rotate every 90 days."
+      }
+    ],
+    docsUrl: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html",
+    consoleUrl: "https://console.aws.amazon.com/iam/",
+    phase: 1
+  },
+  {
+    id: "gcp",
+    name: "Google Cloud",
+    category: "hyperscaler",
+    accelerators: ["TPU v5e", "TPU v5p", "TPU v6e (Trillium)", "TPU7x (Ironwood)", "H100", "H200", "B200", "A100", "L4"],
+    runtimes: ["cuda", "tpu_xla"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [
+      {
+        id: "service_account_key",
+        label: "Service account key (JSON)",
+        recommended: true,
+        fields: [
+          { key: "projectId", label: "Project ID", placeholder: "my-gpu-project" },
+          { key: "serviceAccountJson", label: "Service account key JSON", secret: true, multiline: true, placeholder: '{ "type": "service_account", \u2026 }' }
+        ],
+        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once Aurora runs in your VPC."
+      }
+    ],
+    docsUrl: "https://cloud.google.com/iam/docs/keys-create-delete",
+    consoleUrl: "https://console.cloud.google.com/iam-admin/serviceaccounts",
+    phase: 1
+  },
+  {
+    id: "azure",
+    name: "Microsoft Azure",
+    category: "hyperscaler",
+    accelerators: ["H100", "H200", "GB200", "A100", "MI300X"],
+    runtimes: ["cuda", "rocm"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [
+      {
+        id: "service_principal",
+        label: "Service principal (client secret)",
+        recommended: true,
+        fields: [
+          { key: "tenantId", label: "Tenant ID", placeholder: "00000000-0000-0000-0000-000000000000" },
+          { key: "subscriptionId", label: "Subscription ID", placeholder: "00000000-0000-0000-0000-000000000000" },
+          { key: "clientId", label: "Client (application) ID" },
+          { key: "clientSecret", label: "Client secret", secret: true }
+        ],
+        permissions: "Reader role on the subscription (or GPU resource groups). Add Virtual Machine Contributor only when you enable launch."
+      }
+    ],
+    docsUrl: "https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal",
+    consoleUrl: "https://portal.azure.com/#view/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/~/RegisteredApps",
+    phase: 1
+  },
+  {
+    id: "oci",
+    name: "Oracle Cloud (OCI)",
+    category: "hyperscaler",
+    accelerators: ["H100", "H200", "B200", "GB200", "MI300X", "A100"],
+    runtimes: ["cuda", "rocm"],
+    validation: "gateway",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [
+      {
+        id: "api_signing_key",
+        label: "API signing key",
+        recommended: true,
+        fields: [
+          { key: "tenancyOcid", label: "Tenancy OCID", placeholder: "ocid1.tenancy.oc1.." },
+          { key: "userOcid", label: "User OCID", placeholder: "ocid1.user.oc1.." },
+          { key: "fingerprint", label: "Key fingerprint", placeholder: "aa:bb:cc:\u2026" },
+          { key: "region", label: "Region", placeholder: "us-ashburn-1" },
+          { key: "privateKeyPem", label: "Private key (PEM)", secret: true, multiline: true }
+        ],
+        permissions: "Group policy: 'Allow group LightOS to read all-resources in tenancy'. Add manage instance-family only for launch."
+      }
+    ],
+    docsUrl: "https://docs.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm",
+    consoleUrl: "https://cloud.oracle.com/identity",
+    phase: 2,
+    notes: "OCI uses RSA request signing; validated by the Aurora runtime gateway."
+  },
+  {
+    id: "ibm",
+    name: "IBM Cloud",
+    category: "hyperscaler",
+    accelerators: ["H100", "H200", "L40S", "Gaudi 3"],
+    runtimes: ["cuda"],
+    validation: "gateway",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true }),
+    authMethods: [{
+      id: "iam_api_key",
+      label: "IAM API key",
+      recommended: true,
+      fields: [
+        { key: "apiKey", label: "IAM API key", secret: true },
+        { key: "region", label: "Region", placeholder: "us-south" }
+      ],
+      permissions: "Service ID with Viewer platform role on VPC Infrastructure Services."
+    }],
+    docsUrl: "https://cloud.ibm.com/docs/account?topic=account-serviceidapikeys",
+    consoleUrl: "https://cloud.ibm.com/iam/serviceids",
+    phase: 3
+  },
+  // ───────────── NVIDIA ─────────────
+  {
+    id: "nvidia_api_catalog",
+    name: "NVIDIA API Catalog (NIM)",
+    category: "nvidia",
+    accelerators: ["NVIDIA-hosted NIM endpoints"],
+    runtimes: ["cuda"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("NVIDIA API key", "nvapi-\u2026"),
+    docsUrl: "https://docs.api.nvidia.com/",
+    consoleUrl: "https://build.nvidia.com/",
+    phase: 1
+  },
+  {
+    id: "nvidia_dgx_cloud_lepton",
+    name: "NVIDIA DGX Cloud Lepton",
+    category: "nvidia",
+    accelerators: ["H100", "H200", "B200", "GB200 (via partner clouds)"],
+    runtimes: ["cuda"],
+    validation: "gateway",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, serverlessInference: true }),
+    authMethods: [{
+      id: "service_account_token",
+      label: "Workspace service account token",
+      recommended: true,
+      fields: [
+        { key: "workspaceId", label: "Workspace ID", help: "Settings \u2192 General in the Lepton console." },
+        { key: "token", label: "Service account token", secret: true, help: "Settings \u2192 Tokens \u2192 Service Account Token. Default expiry is 30 days." }
+      ],
+      permissions: "Service account token bound to a read-only role; a separate token with deploy rights when you enable launch."
+    }],
+    docsUrl: "https://docs.nvidia.com/dgx-cloud/lepton/features/workspace/token",
+    consoleUrl: "https://dashboard.dgxc-lepton.nvidia.com/",
+    phase: 1
+  },
+  {
+    id: "nvidia_ngc",
+    name: "NVIDIA NGC (containers & models)",
+    category: "nvidia",
+    accelerators: ["Container/model registry \u2014 pairs with any GPU provider"],
+    runtimes: ["cuda"],
+    validation: "gateway",
+    capabilities: caps({}),
+    authMethods: [{
+      id: "ngc_api_key",
+      label: "NGC personal or service key",
+      recommended: true,
+      fields: [
+        { key: "orgName", label: "NGC org name" },
+        { key: "apiKey", label: "NGC API key", secret: true, placeholder: "nvapi-\u2026" }
+      ],
+      permissions: "Key scoped to 'NGC Catalog' (pull only). Used by Aurora to pull NIM / TensorRT-LLM images onto any connected cluster."
+    }],
+    docsUrl: "https://docs.nvidia.com/ngc/gpu-cloud/ngc-user-guide/index.html",
+    consoleUrl: "https://org.ngc.nvidia.com/setup/api-keys",
+    phase: 1
+  },
+  // ───────────── GPU clouds (neoclouds) ─────────────
+  {
+    id: "coreweave",
+    name: "CoreWeave (CKS)",
+    category: "gpu_cloud",
+    accelerators: ["GB300", "GB200 NVL72", "B200", "H200", "H100", "L40S"],
+    runtimes: ["cuda"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [{
+      id: "cks_token",
+      label: "CKS API access token",
+      recommended: true,
+      fields: [
+        { key: "apiServer", label: "Cluster API server", placeholder: "https://<org-id>-<cluster-hash>.k8s.<zone>.coreweave.com", pattern: "^https://.+" },
+        { key: "token", label: "Access token secret", secret: true, help: "Cloud Console \u2192 Tokens \u2192 Create token. Shown only once." },
+        { key: "namespace", label: "Namespace", optional: true, placeholder: "default" }
+      ],
+      permissions: "Token for a user/group bound to a read-only ClusterRole (nodes, pods, jobs). Grant job create in a dedicated namespace when you enable launch. Slurm runs via SUNK on the same cluster."
+    }],
+    docsUrl: "https://docs.coreweave.com/security/authn-authz/manage-api-access-tokens",
+    consoleUrl: "https://console.coreweave.com/tokens",
+    phase: 1
+  },
+  {
+    id: "lambda",
+    name: "Lambda",
+    category: "gpu_cloud",
+    accelerators: ["B200", "H200", "H100", "A100", "GH200"],
+    runtimes: ["cuda"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true }),
+    authMethods: [{
+      id: "api_key",
+      label: "Cloud API key",
+      recommended: true,
+      fields: [{ key: "apiKey", label: "API key", secret: true }],
+      permissions: "Lambda API keys are account-wide \u2014 create a dedicated key for LightOS."
+    }],
+    docsUrl: "https://docs.lambda.ai/api/cloud",
+    consoleUrl: "https://cloud.lambda.ai/api-keys",
+    phase: 1
+  },
+  {
+    id: "crusoe",
+    name: "Crusoe Cloud",
+    category: "gpu_cloud",
+    accelerators: ["GB200", "B200", "H200", "H100", "MI300X", "L40S"],
+    runtimes: ["cuda", "rocm"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [{
+      id: "access_key",
+      label: "Access key + secret",
+      recommended: true,
+      fields: [
+        { key: "accessKeyId", label: "Access key ID" },
+        { key: "secretKey", label: "Secret key", secret: true },
+        { key: "projectId", label: "Project ID", optional: true }
+      ],
+      permissions: "Dedicated access key; requests are HMAC-signed server-side."
+    }],
+    docsUrl: "https://docs.cloud.crusoe.ai/reference/api/",
+    consoleUrl: "https://console.crusoecloud.com/security/tokens",
+    phase: 1
+  },
+  {
+    id: "nebius",
+    name: "Nebius AI Cloud",
+    category: "gpu_cloud",
+    accelerators: ["GB200", "B200", "H200", "H100", "L40S"],
+    runtimes: ["cuda"],
+    validation: "gateway",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [{
+      id: "service_account_key",
+      label: "Service account authorized key",
+      recommended: true,
+      fields: [
+        { key: "projectId", label: "Project ID" },
+        { key: "serviceAccountId", label: "Service account ID" },
+        { key: "publicKeyId", label: "Authorized key ID" },
+        { key: "privateKeyPem", label: "Private key (PEM)", secret: true, multiline: true }
+      ],
+      permissions: "Service account in a 'viewers' group; 'editors' only when launch is enabled."
+    }],
+    docsUrl: "https://docs.nebius.com/iam/service-accounts/authorized-keys",
+    consoleUrl: "https://console.nebius.com/",
+    phase: 2,
+    notes: "gRPC API with JWT exchange; validated by the Aurora runtime gateway."
+  },
+  {
+    id: "runpod",
+    name: "RunPod",
+    category: "gpu_cloud",
+    accelerators: ["H200", "H100", "B200", "A100", "L40S", "RTX 6000 Ada", "MI300X"],
+    runtimes: ["cuda", "rocm"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, serverlessInference: true }),
+    authMethods: [{
+      id: "api_key",
+      label: "API key",
+      recommended: true,
+      fields: [{ key: "apiKey", label: "API key", secret: true }],
+      permissions: "Restricted key with Read access; Read/Write only when launch is enabled."
+    }],
+    docsUrl: "https://docs.runpod.io/api-reference-v2/migrate-from-v1",
+    consoleUrl: "https://console.runpod.io/user/settings",
+    phase: 2
+  },
+  {
+    id: "vast",
+    name: "Vast.ai",
+    category: "gpu_cloud",
+    accelerators: ["H100", "A100", "RTX 4090", "RTX 5090", "L40S"],
+    runtimes: ["cuda"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true }),
+    authMethods: [{
+      id: "api_key",
+      label: "API key",
+      recommended: true,
+      fields: [{ key: "apiKey", label: "API key", secret: true }],
+      permissions: "Scoped key with instance read permissions."
+    }],
+    docsUrl: "https://docs.vast.ai/api",
+    consoleUrl: "https://cloud.vast.ai/manage-keys/",
+    phase: 2
+  },
+  {
+    id: "digitalocean",
+    name: "DigitalOcean GPU Droplets",
+    category: "gpu_cloud",
+    accelerators: ["H100", "H200", "MI300X", "MI325X", "L40S", "RTX 6000 Ada"],
+    runtimes: ["cuda", "rocm"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, catalog: true, launch: true, kubernetes: true }),
+    authMethods: [{
+      id: "pat",
+      label: "Personal access token",
+      recommended: true,
+      fields: [{ key: "token", label: "Personal access token", secret: true, placeholder: "dop_v1_\u2026" }],
+      permissions: "Custom-scoped token: droplet:read, sizes:read, kubernetes:read, account:read."
+    }],
+    docsUrl: "https://docs.digitalocean.com/reference/api/create-personal-access-token/",
+    consoleUrl: "https://cloud.digitalocean.com/account/api/tokens",
+    phase: 2
+  },
+  {
+    id: "together_gpu_clusters",
+    name: "Together AI",
+    category: "gpu_cloud",
+    accelerators: ["GB200", "B200", "H200", "H100"],
+    runtimes: ["cuda"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true, kubernetes: true, slurm: true }),
+    authMethods: openAiCompatible("Together API key", "tgp_v1_\u2026"),
+    docsUrl: "https://docs.together.ai/reference/authentication-1",
+    consoleUrl: "https://api.together.ai/settings/api-keys",
+    phase: 2,
+    notes: "Serverless/dedicated inference via API; Instant GPU Clusters connect as Kubernetes or Slurm through the gateway."
+  },
+  // ───────────── Inference APIs (ASIC + GPU) ─────────────
+  {
+    id: "general_compute",
+    name: "General Compute",
+    category: "inference_api",
+    accelerators: ["Cerebras CS-3", "SambaNova SN50", "Positron", "d-Matrix", "B300 (prefill)"],
+    runtimes: ["asic", "cuda"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("General Compute API key", "gc_live_\u2026"),
+    docsUrl: "https://docs.generalcompute.com/api-keys",
+    consoleUrl: "https://www.generalcompute.com",
+    phase: 1,
+    notes: "OpenAI-compatible; base URL https://api.generalcompute.com/v1."
+  },
+  {
+    id: "cerebras",
+    name: "Cerebras Inference",
+    category: "inference_api",
+    accelerators: ["Cerebras CS-3"],
+    runtimes: ["asic"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("Cerebras API key", "csk-\u2026"),
+    docsUrl: "https://inference-docs.cerebras.ai/",
+    consoleUrl: "https://cloud.cerebras.ai/",
+    phase: 1
+  },
+  {
+    id: "groq",
+    name: "Groq",
+    category: "inference_api",
+    accelerators: ["Groq LPU"],
+    runtimes: ["asic"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("Groq API key", "gsk_\u2026"),
+    docsUrl: "https://console.groq.com/docs/api-reference",
+    consoleUrl: "https://console.groq.com/keys",
+    phase: 2
+  },
+  {
+    id: "sambanova",
+    name: "SambaNova Cloud",
+    category: "inference_api",
+    accelerators: ["SambaNova RDU"],
+    runtimes: ["asic"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("SambaNova API key", ""),
+    docsUrl: "https://docs.sambanova.ai/",
+    consoleUrl: "https://cloud.sambanova.ai/apis",
+    phase: 2
+  },
+  {
+    id: "fireworks",
+    name: "Fireworks AI",
+    category: "inference_api",
+    accelerators: ["H100", "H200", "B200", "MI300X"],
+    runtimes: ["cuda", "rocm"],
+    validation: "direct",
+    capabilities: caps({ catalog: true, serverlessInference: true }),
+    authMethods: openAiCompatible("Fireworks API key", "fw_\u2026"),
+    docsUrl: "https://docs.fireworks.ai/api-reference/introduction",
+    consoleUrl: "https://app.fireworks.ai/settings/users/api-keys",
+    phase: 3
+  },
+  // ───────────── Self-managed (your own metal) ─────────────
+  {
+    id: "kubernetes",
+    name: "Any Kubernetes cluster",
+    category: "self_managed",
+    accelerators: ["Whatever the GPU / Network Operator exposes"],
+    runtimes: ["cuda", "rocm", "oneapi_sycl"],
+    validation: "direct",
+    capabilities: caps({ inventory: true, launch: true, kubernetes: true }),
+    authMethods: [{
+      id: "service_account_token",
+      label: "ServiceAccount bearer token",
+      recommended: true,
+      fields: [
+        { key: "apiServer", label: "API server URL", placeholder: "https://k8s.example.com:6443", pattern: "^https://.+" },
+        { key: "token", label: "ServiceAccount token", secret: true },
+        { key: "namespace", label: "Namespace", optional: true, placeholder: "lightrail-system" }
+      ],
+      permissions: "API server must present a publicly trusted certificate for direct validation; private clusters connect through the Aurora gateway / node enrollment instead."
+    }],
+    docsUrl: "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
+    consoleUrl: "https://kubernetes.io/",
+    phase: 1
+  },
+  {
+    id: "lightos_gateway",
+    name: "On-prem via LightOS gateway (Slurm / Ray / bare metal)",
+    category: "self_managed",
+    accelerators: ["Any NVIDIA, AMD, Intel or LightRail NCE node"],
+    runtimes: ["cuda", "rocm", "oneapi_sycl"],
+    validation: "gateway",
+    capabilities: caps({ inventory: true, launch: true, kubernetes: true, slurm: true }),
+    authMethods: [{
+      id: "node_enrollment",
+      label: "One-time node enrollment code",
+      recommended: true,
+      fields: [{ key: "clusterName", label: "Cluster name", placeholder: "pittsburg-dc-1" }],
+      permissions: "Uses the existing 15-minute hashed setup code flow (Onboard \u2192 CUDA PDK). No cloud credential is stored."
+    }],
+    docsUrl: "/dashboard/gateway-setup",
+    consoleUrl: "/onboard",
+    phase: 1
+  }
+];
+
+// src/lib/mcp/tools/list-compute-providers.ts
+var list_compute_providers_default = defineTool8({
+  name: "list_compute_providers",
+  title: "List compute providers",
+  description: "List the hyperscalers, NVIDIA services, GPU clouds and inference APIs LightOS can place workloads on, with accelerators, runtimes and capabilities. Use the returned ids in plan_deployment.allowedProviders. Never returns credentials.",
+  inputSchema: {
+    category: z8.enum(["hyperscaler", "nvidia", "gpu_cloud", "inference_api", "self_managed", "any"]).optional(),
+    runtime: z8.enum(["cuda", "rocm", "tpu_xla", "oneapi_sycl", "neuron", "asic", "any"]).optional(),
+    accelerator: z8.string().trim().max(40).optional().describe("Substring match, e.g. 'H200' or 'TPU'")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: ({ category, runtime, accelerator }, ctx) => {
+    if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    const acc = accelerator?.toLowerCase();
+    const providers = PROVIDERS.filter((p) => !category || category === "any" || p.category === category).filter((p) => !runtime || runtime === "any" || p.runtimes.includes(runtime)).filter((p) => !acc || p.accelerators.some((a) => a.toLowerCase().includes(acc))).map(({ id, name, category: category2, accelerators, runtimes, capabilities, validation, phase }) => ({
+      id,
+      name,
+      category: category2,
+      accelerators,
+      runtimes,
+      capabilities,
+      validation,
+      phase
+    }));
+    return {
+      content: [{ type: "text", text: JSON.stringify(providers, null, 2) }],
+      structuredContent: { providers }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "cawwhnuezkrsexjvetjj";
 var mcp_default = defineMcp({
   name: "lightos-mcp",
   title: "LightOS",
-  version: "0.3.0",
+  version: "0.4.0",
   instructions: "Authenticated tools for Aurora Fabric OS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. Aurora is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
@@ -262,10 +784,11 @@ var mcp_default = defineMcp({
     get_runtime_capacity_default,
     validate_workload_intent_default,
     plan_deployment_default,
-    get_fabric_state_default
+    get_fabric_state_default,
+    list_compute_providers_default
   ]
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.1/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));

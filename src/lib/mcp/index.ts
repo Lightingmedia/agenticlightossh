@@ -6,6 +6,7 @@ import getRuntimeCapacityTool from "./tools/get-runtime-capacity";
 import validateWorkloadIntentTool from "./tools/validate-workload-intent";
 import planDeploymentTool from "./tools/plan-deployment";
 import getFabricStateTool from "./tools/get-fabric-state";
+import listComputeProvidersTool from "./tools/list-compute-providers";
 
 // Build the Supabase OAuth issuer from the project ref (inlined by Vite at build).
 // Never derive from SUPABASE_URL — that may be the .lovable.cloud proxy which
@@ -15,7 +16,7 @@ const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unse
 export default defineMcp({
   name: "lightos-mcp",
   title: "LightOS",
-  version: "0.3.0",
+  version: "0.4.0",
   instructions:
     "Authenticated tools for Aurora Fabric OS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. Aurora is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
   auth: auth.oauth.issuer({
@@ -30,5 +31,6 @@ export default defineMcp({
     validateWorkloadIntentTool,
     planDeploymentTool,
     getFabricStateTool,
+    listComputeProvidersTool,
   ],
 });

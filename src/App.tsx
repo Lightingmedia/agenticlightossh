@@ -50,6 +50,7 @@ import AcceleratorRuntime from "./pages/AcceleratorRuntime";
 import OAuthConsent from "./pages/OAuthConsent";
 import MtmcConsole from "./pages/MtmcConsole";
 import GatewaySetup from "./pages/GatewaySetup";
+import ComputeProviders from "./pages/ComputeProviders";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,7 @@ const App = () => (
             <Route path="billing" element={<Billing />} />
             <Route path="accelerator" element={<AcceleratorRuntime />} />
             <Route path="gateway-setup" element={<GatewaySetup />} />
+            <Route path="providers" element={<ComputeProviders />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
