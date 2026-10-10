@@ -19,6 +19,8 @@ export default defineTool({
     dataLocality: z.string().trim().max(160),
     maxCostPerHourUsd: z.number().min(0).max(100000),
     maxRuntimeMinutes: z.number().int().min(0).max(525600),
+    allowedProviders: z.array(z.string().trim().min(1).max(64)).max(30).optional()
+      .describe("Provider ids from list_compute_providers to consider; omit to let Aurora choose among the user's connected providers."),
   },
   annotations: { readOnlyHint: true, idempotentHint: false, openWorldHint: true },
   handler: async (args, ctx) => {

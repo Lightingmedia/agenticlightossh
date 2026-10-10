@@ -10,6 +10,7 @@ import {
   Brain,
   Layers,
   Settings,
+  CloudCog,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -48,6 +49,7 @@ const monitoringItems = [
 ];
 
 const lightosItems = [
+  { icon: CloudCog, label: "Compute Providers", path: "/dashboard/providers" },
   { icon: Server, label: "Clusters", path: "/dashboard/clusters" },
   { icon: FileText, label: "Runs", path: "/dashboard/runs" },
   { icon: Settings, label: "Gateway Setup", path: "/dashboard/gateway-setup" },
