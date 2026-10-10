@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 backend/__pycache__
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Provider service state: the SQLite database and the development vault key. Never commit these.
+backend/data/

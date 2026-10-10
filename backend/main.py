@@ -11,6 +11,7 @@ GET  /api/health                         — overall API health
 
 /fleet/*                                 — fleet management (enrollment, OTA, certs, telemetry)
 /cluster/*                               — cluster management (k8s, slurm, ray, crds)
+/api/providers/*                         — compute-provider connections (own database + encrypted vault; docs/provider-backend.md)
 
 GET  /inference/llm-serving              — list LLM deployments
 POST /inference/llm-serving/deploy       — create a new deployment
@@ -39,6 +40,7 @@ from fabrics import FABRIC_PRESETS, get_fabric
 from llm_serving import router as llm_serving_router
 from fleet import router as fleet_router
 from cluster import router as cluster_router
+from providers.api import create_providers_app
 
 # Global auth guard — every route requires a valid Supabase JWT except the
 # open paths (health/docs) declared inside auth_dependency. Mutating verbs
@@ -73,11 +75,16 @@ app.include_router(llm_serving_router)
 app.include_router(fleet_router)
 app.include_router(cluster_router)
 
+# Compute-provider connections live in their own sub-app: a mounted app is outside the global guard above (which
+# demands the admin role for every mutating verb); it authenticates the Supabase session itself and only ever touches
+# the caller's own rows. Needs PROVIDER_VAULT_KEY in production; see docs/provider-backend.md.
+app.mount("/api/providers", create_providers_app())
+
 # ─── Health ───────────────────────────────────────────────────────────────────
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "version": "0.3.0", "services": ["compiler", "fleet", "cluster", "llm-serving"]}
+    return {"status": "ok", "version": "0.3.0", "services": ["compiler", "fleet", "cluster", "llm-serving", "providers"]}
 
 
 
