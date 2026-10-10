@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/echo.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z } from "npm:zod@^3.25.76";
 var echo_default = defineTool({
   name: "echo",
@@ -23,7 +23,7 @@ var echo_default = defineTool({
 });
 
 // src/lib/mcp/tools/list-agents.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z2 } from "npm:zod@^3.25.76";
 var AGENTS = [
   { name: "fabric-optimizer", role: "Topology auto-tuner", status: "executing" },
@@ -54,7 +54,7 @@ var list_agents_default = defineTool2({
 });
 
 // src/lib/mcp/tools/get-fabric-telemetry.ts
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z3 } from "npm:zod@^3.25.76";
 var get_fabric_telemetry_default = defineTool3({
   name: "get_fabric_telemetry",
@@ -88,7 +88,7 @@ var get_fabric_telemetry_default = defineTool3({
 });
 
 // src/lib/mcp/tools/get-runtime-capacity.ts
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z4 } from "npm:zod@^3.25.76";
 
 // src/lib/mcp/runtime-gateway.ts
@@ -162,7 +162,7 @@ var get_runtime_capacity_default = defineTool4({
 });
 
 // src/lib/mcp/tools/validate-workload-intent.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z5 } from "npm:zod@^3.25.76";
 var validate_workload_intent_default = defineTool5({
   name: "validate_workload_intent",
@@ -189,7 +189,7 @@ var validate_workload_intent_default = defineTool5({
 });
 
 // src/lib/mcp/tools/plan-deployment.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z6 } from "npm:zod@^3.25.76";
 var plan_deployment_default = defineTool6({
   name: "plan_deployment",
@@ -225,7 +225,7 @@ var plan_deployment_default = defineTool6({
 });
 
 // src/lib/mcp/tools/get-fabric-state.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z7 } from "npm:zod@^3.25.76";
 var get_fabric_state_default = defineTool7({
   name: "get_fabric_state",
@@ -246,7 +246,7 @@ var get_fabric_state_default = defineTool7({
 });
 
 // src/lib/mcp/tools/list-compute-providers.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z8 } from "npm:zod@^3.25.76";
 
 // supabase/functions/_shared/provider-catalog.ts
@@ -790,5 +790,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.1/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
