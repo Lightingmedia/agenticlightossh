@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "export:provider-catalog": "node scripts/export-provider-catalog.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

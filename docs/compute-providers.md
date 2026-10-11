@@ -136,3 +136,5 @@ Database: run the migration (requires the `supabase_vault` extension, enabled by
   confirmed against a real account response.
 - `npm ci` currently fails because `package-lock.json` is out of sync with `package.json`
   (`drizzle-kit`), unrelated to this change.
+- A self-hosted alternative to the edge function + Supabase tables (FastAPI with its own database and encrypted
+  vault) is described in [provider-backend.md](provider-backend.md).

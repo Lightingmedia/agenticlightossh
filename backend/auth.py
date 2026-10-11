@@ -82,6 +82,19 @@ async def _require_admin(user: AuthedUser) -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
 
 
+async def current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
+) -> AuthedUser:
+    """Dependency for per-user resources (e.g. provider connections).
+
+    Requires a valid Supabase session but, unlike ``auth_dependency``, not the ``admin`` role: such routes only ever
+    touch the caller's own rows. Used by sub-apps that are mounted outside the global guard.
+    """
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+    return await _verify_token(credentials.credentials)
+
+
 async def auth_dependency(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
