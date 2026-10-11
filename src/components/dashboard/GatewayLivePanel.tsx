@@ -83,7 +83,12 @@ export default function GatewayLivePanel() {
           </p>
         </div>
       ) : data.error ? (
-        <p className="text-sm text-destructive">Gateway error: {data.error}</p>
+        <p className="text-sm text-destructive">Gateway error: {errorText}</p>
+      ) : noGpu ? (
+        <p className="text-sm text-muted-foreground">
+          Gateway connected, but no GPUs are visible on it
+          {data.capacity?.reason ? <span className="font-mono"> ({data.capacity.reason})</span> : null}.
+        </p>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
