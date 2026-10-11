@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Cpu, DollarSign, Gauge, PlugZap, Zap } from "lucide-react";
+import { Cpu, DollarSign, Gauge, Lock, PlugZap, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { useSubscription } from "@/hooks/use-subscription";
 
 interface DeviceTelemetry {
   uuid: string;
@@ -29,6 +31,8 @@ const RATE_KEY = "lightos:gpu-hour-usd";
 export default function GatewayLivePanel() {
   const [data, setData] = useState<Resp | null>(null);
   const [rate, setRate] = useState<number>(() => Number(localStorage.getItem(RATE_KEY)) || 0);
+  const { tier, gpuLimit, loading: subLoading } = useSubscription();
+  const overLimit = !subLoading && (data?.capacity?.totals?.devices ?? 0) > gpuLimit;
 
   useEffect(() => {
     let alive = true;
@@ -105,8 +109,19 @@ export default function GatewayLivePanel() {
               className="w-24 bg-background border border-border rounded px-2 py-1 font-mono text-foreground"
             />
           </label>
+          {overLimit && (
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-lg border border-primary/40 bg-primary/5">
+              <Lock className="w-5 h-5 text-primary shrink-0" />
+              <p className="text-sm text-foreground flex-1">
+                {totals?.devices} GPUs connected. Your {tier === "free" ? "Free" : tier} plan monitors{" "}
+                {gpuLimit === 1 ? "1 GPU" : `${gpuLimit} GPUs`}, so only the first {gpuLimit === 1 ? "one is" : `${gpuLimit} are`} shown.
+                Upgrade to see every GPU and unlock agents and orchestration.
+              </p>
+              <Button asChild size="sm"><Link to="/pricing">{tier === "free" ? "Start 7-day trial" : "Upgrade plan"}</Link></Button>
+            </div>
+          )}
           <div className="space-y-2">
-            {(data.telemetry?.devices ?? []).slice(0, 8).map((d) => (
+            {(data.telemetry?.devices ?? []).slice(0, Math.min(8, gpuLimit)).map((d) => (
               <div key={d.uuid} className="flex items-center gap-3 text-xs font-mono">
                 <span className="w-40 truncate text-muted-foreground">{d.node ?? d.uuid}</span>
                 <div className="flex-1 h-2 rounded bg-muted overflow-hidden">

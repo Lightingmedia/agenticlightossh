@@ -31,6 +31,14 @@ const TIER_LEVEL: Record<SubscriptionTier, number> = {
   enterprise: 3,
 };
 
+/** GPUs each plan may monitor. Free = 1 GPU, monitoring only, no card. */
+export const GPU_LIMIT: Record<SubscriptionTier, number> = {
+  free: 1,
+  starter: 2,
+  pro: Infinity,
+  enterprise: Infinity,
+};
+
 export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [tier, setTier] = useState<SubscriptionTier>("free");
@@ -99,5 +107,7 @@ export function useSubscription() {
     return TIER_LEVEL[tier] >= TIER_LEVEL[requiredTier];
   }
 
-  return { subscription, tier, isActive, isTrial, isCanceled, expiresAt, loading, hasAccess };
+  const gpuLimit = GPU_LIMIT[tier];
+
+  return { subscription, tier, isActive, isTrial, isCanceled, expiresAt, loading, hasAccess, gpuLimit };
 }
