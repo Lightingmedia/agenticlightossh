@@ -4,9 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap, Shield, Cpu } from "lucide-react";
+import { Check, Zap, Shield, Cpu, Gauge } from "lucide-react";
 
 const plans = [
+  {
+    id: "free",
+    name: "Free",
+    description: "Monitor one GPU forever. No credit card required",
+    monthlyPrice: 0,
+    yearlyPrice: null,
+    features: [
+      "1 GPU monitoring",
+      "Live utilization, power & cost",
+      "Monitoring only",
+      "No card required",
+    ],
+    icon: Gauge,
+    popular: false,
+  },
   {
     id: "starter",
     name: "Starter",
@@ -86,7 +101,7 @@ const PricingSection = () => {
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             const price = annual && plan.yearlyPrice ? plan.yearlyPrice : plan.monthlyPrice;
             const period = annual && plan.yearlyPrice ? "/yr" : "/mo";
@@ -136,7 +151,7 @@ const PricingSection = () => {
                     variant={plan.popular ? "default" : "outline"}
                     asChild
                   >
-                    <Link to="/pricing">Start Free Trial</Link>
+                    <Link to={plan.id === "free" ? "/auth" : "/pricing"}>{plan.id === "free" ? "Get Started Free" : "Start Free Trial"}</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -145,7 +160,7 @@ const PricingSection = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          All plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
+          Free plan needs no card. Paid plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
         </p>
       </div>
     </section>

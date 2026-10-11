@@ -5,13 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Check, Zap, Shield, Cpu, ArrowLeft } from "lucide-react";
+import { Check, Zap, Shield, Cpu, ArrowLeft, Gauge } from "lucide-react";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useToast } from "@/hooks/use-toast";
 
 const plans = [
+  {
+    id: "free",
+    name: "Free",
+    description: "Monitor one GPU forever. No credit card required",
+    monthlyPrice: 0,
+    yearlyPrice: null,
+    monthlyPriceId: null,
+    yearlyPriceId: null,
+    features: [
+      "1 GPU monitoring",
+      "Live utilization, power & cost",
+      "Monitoring only",
+      "No card required",
+    ],
+    icon: Gauge,
+    popular: false,
+  },
   {
     id: "starter",
     name: "Starter",
@@ -86,6 +103,10 @@ export default function Pricing() {
   }, []);
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
+    if (plan.id === "free") {
+      navigate(user ? "/dashboard" : "/auth");
+      return;
+    }
     if (!user) {
       toast({ title: "Sign in required", description: "Please sign in to subscribe.", variant: "destructive" });
       navigate("/auth");
@@ -108,7 +129,7 @@ export default function Pricing() {
       } catch {}
     }
     const priceId = annual && plan.yearlyPriceId ? plan.yearlyPriceId : plan.monthlyPriceId;
-    setCheckoutPriceId(priceId);
+    if (priceId) setCheckoutPriceId(priceId);
   };
 
   if (checkoutPriceId) {
@@ -162,11 +183,11 @@ export default function Pricing() {
         </div>
 
         {/* Plans */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             const price = annual && plan.yearlyPrice ? plan.yearlyPrice : plan.monthlyPrice;
             const period = annual && plan.yearlyPrice ? "/yr" : "/mo";
-            const isCurrent = isActive && tier === plan.id;
+            const isCurrent = plan.id === "free" ? !!user && tier === "free" : isActive && tier === plan.id;
 
             return (
               <Card
@@ -214,7 +235,7 @@ export default function Pricing() {
                     onClick={() => handleSubscribe(plan)}
                     disabled={isCurrent}
                   >
-                    {isCurrent ? "Current Plan" : "Start Free Trial"}
+                    {isCurrent ? "Current Plan" : plan.id === "free" ? "Get Started Free" : "Start Free Trial"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -223,7 +244,7 @@ export default function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          All plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
+          Free plan needs no card. Paid plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
         </p>
       </div>
     </div>
