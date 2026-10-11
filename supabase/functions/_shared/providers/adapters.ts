@@ -4,7 +4,7 @@
 // launches are executed by the Aurora runtime gateway (see AGENTS.md).
 import { AwsClient } from "npm:aws4fetch@1.0.20";
 import type { InventoryItem } from "../provider-catalog.ts";
-import { b64url, b64urlDecode, bearer, getJson, pemToPkcs8, ProviderError, request, xmlAll, xmlFirst } from "./http.ts";
+import { assertPublicHttps, awsRegion, b64url, b64urlDecode, bearer, getJson, pemToPkcs8, ProviderError, request, xmlAll, xmlFirst } from "./http.ts";
 
 export type Creds = Record<string, string>;
 export type Validation = { identity: string; message?: string };
@@ -22,7 +22,7 @@ const AWS_GPU_FAMILIES: [RegExp, string][] = [
 ];
 
 async function awsClient(c: Creds): Promise<AwsClient> {
-  const region = c.region || "us-east-1";
+  const region = awsRegion(c.region);
   if (c.roleArn) {
     const platformKey = Deno.env.get("LIGHTRAIL_AWS_ACCESS_KEY_ID");
     const platformSecret = Deno.env.get("LIGHTRAIL_AWS_SECRET_ACCESS_KEY");
@@ -66,7 +66,7 @@ const aws: Adapter = {
     return { identity: xmlFirst(xml, "Arn") ?? "AWS principal" };
   },
   async inventory(c) {
-    const region = c.region || "us-east-1";
+    const region = awsRegion(c.region);
     const xml = await awsQuery(await awsClient(c), "ec2", region, {
       Action: "DescribeInstances", Version: "2016-11-15", MaxResults: "1000",
       "Filter.1.Name": "instance-type",
@@ -195,25 +195,25 @@ const azure: Adapter = {
 
 const k8s: Adapter = {
   async validate(c) {
-    const base = c.apiServer.replace(/\/$/, "");
+    const base = await assertPublicHttps(c.apiServer);
     try {
       const { json } = await request(`${base}/apis/authentication.k8s.io/v1/selfsubjectreviews`, {
-        method: "POST",
+        method: "POST", redirect: "manual",
         headers: { ...bearer(c.token), "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ apiVersion: "authentication.k8s.io/v1", kind: "SelfSubjectReview" }),
       });
       return { identity: json?.status?.userInfo?.username ?? "authenticated" };
     } catch (e) {
       if (e instanceof ProviderError && e.status === 404) {
-        await getJson(`${base}/api/v1/nodes?limit=1`, bearer(c.token));
+        await request(`${base}/api/v1/nodes?limit=1`, { headers: { ...bearer(c.token), Accept: "application/json" }, redirect: "manual" });
         return { identity: "token accepted (cluster < 1.28)" };
       }
       throw e;
     }
   },
   async inventory(c) {
-    const base = c.apiServer.replace(/\/$/, "");
-    const nodes = await getJson(`${base}/api/v1/nodes`, bearer(c.token));
+    const base = await assertPublicHttps(c.apiServer);
+    const { json: nodes } = await request(`${base}/api/v1/nodes`, { headers: { ...bearer(c.token), Accept: "application/json" }, redirect: "manual" });
     return (nodes?.items ?? []).flatMap((n: any): InventoryItem[] => {
       const cap = n.status?.capacity ?? {};
       const count = Number(cap["nvidia.com/gpu"] ?? cap["amd.com/gpu"] ?? cap["gpu.intel.com/xe"] ?? 0);
@@ -374,7 +374,9 @@ function openAiAdapter(providerId: string): Adapter {
   };
   return {
     async validate(c) {
+      if (providerId === "nvidia_api_catalog") return { identity: await ngcCheckKey(c.apiKey) };
       const m = await models(c);
+      if (providerId === "sambanova") return await sambanovaCheckKey(base, c.apiKey, m);
       return { identity: `${m.length} models available` };
     },
     async inventory(c) {
@@ -383,6 +385,40 @@ function openAiAdapter(providerId: string): Adapter {
       }));
     },
   };
+}
+
+// NVIDIA's /v1/models is public and accepts any key, so verify with NGC's key service.
+async function ngcCheckKey(key: string): Promise<string> {
+  const { json } = await request("https://api.ngc.nvidia.com/v3/keys/get-caller-info", {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ credentials: key }).toString(),
+  });
+  const who = json?.user?.name ?? json?.user?.email ?? json?.name ?? json?.email;
+  return who ? `NGC account ${who}` : "NGC API key accepted";
+}
+
+// SambaNova's model list is public too: probe the key with a one-token completion.
+async function sambanovaCheckKey(base: string, key: string, models: any[]): Promise<Validation> {
+  const candidates = models.map((m) => m?.id).filter((id) => typeof id === "string" && !/embed|whisper|tts|rerank|guard|vision|ocr|image/i.test(id)).slice(0, 3);
+  if (!candidates.length) throw new ProviderError("SambaNova returned no chat models to verify the key with");
+  let last = "no usable model";
+  for (const model of candidates) {
+    try {
+      await request(`${base}/chat/completions`, {
+        method: "POST",
+        headers: { ...bearer(key), "Content-Type": "application/json" },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: "ping" }], max_tokens: 1 }),
+      });
+      return { identity: `${models.length} models available` };
+    } catch (e) {
+      if (!(e instanceof ProviderError)) throw e;
+      if (e.status === 401 || e.status === 403) throw e;
+      if (e.status === 429) return { identity: `${models.length} models available`, message: "Key accepted (rate limited at the moment)." };
+      last = e.message;
+    }
+  }
+  throw new ProviderError(`Could not verify the SambaNova key: ${last}`);
 }
 
 export const ADAPTERS: Record<string, Adapter> = {
