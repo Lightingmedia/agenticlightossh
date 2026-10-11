@@ -32,6 +32,12 @@ Deno.serve(async (req) => {
     ]);
     return json({ configured: true, capacity, telemetry });
   } catch (e) {
-    return json({ configured: true, error: (e as Error).message }, 502);
+    const msg = (e as Error).message ?? "";
+    const cause = /invalid gateway token|unauthorized/i.test(msg)
+      ? "token_mismatch"
+      : e instanceof TypeError || /error sending request|connect|dns|timed out|tcp/i.test(msg)
+        ? "unreachable"
+        : "gateway_error";
+    return json({ configured: true, cause, error: msg.slice(0, 300) }, 502);
   }
 });

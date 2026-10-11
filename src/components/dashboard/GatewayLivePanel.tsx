@@ -14,8 +14,14 @@ interface DeviceTelemetry {
 interface Resp {
   configured: boolean;
   error?: string;
-  capacity?: { totals?: { devices?: number; allocated?: number; free?: number } };
-  telemetry?: { cluster?: { gpu_util_pct_avg?: number; power_w_sum?: number; gpus_reporting?: number }; devices?: DeviceTelemetry[] };
+  cause?: string;
+  capacity?: { totals?: { devices?: number; allocated?: number; free?: number }; reason?: string };
+  telemetry?: {
+    collector?: string;
+    reason?: string;
+    cluster?: { gpu_util_pct_avg?: number; power_w_sum?: number; gpus_reporting?: number };
+    devices?: DeviceTelemetry[];
+  };
 }
 
 const RATE_KEY = "lightos:gpu-hour-usd";
@@ -29,7 +35,11 @@ export default function GatewayLivePanel() {
     const load = async () => {
       const { data: d, error } = await supabase.functions.invoke("gateway-telemetry");
       if (!alive) return;
-      setData(error ? { configured: true, error: error.message } : (d as Resp));
+      if (error) {
+        let body: Resp | null = null;
+        try { body = await (error as { context?: Response }).context?.json(); } catch { /* keep generic */ }
+        setData(body ?? { configured: true, error: error.message });
+      } else setData(d as Resp);
     };
     load();
     const t = window.setInterval(load, 15000);
@@ -41,6 +51,12 @@ export default function GatewayLivePanel() {
   const allocated = totals?.allocated ?? 0;
   const hourly = rate > 0 ? allocated * rate : null;
   const fmt = (n?: number, d = 1) => (n == null ? "—" : n.toFixed(d));
+  const collector = data?.telemetry?.collector;
+  const noGpu = data?.configured && !data.error && (totals?.devices ?? 0) === 0;
+  const errorText =
+    data?.cause === "token_mismatch" ? "token mismatch: the app's gateway token differs from the one on the GPU host"
+      : data?.cause === "unreachable" ? "gateway unreachable (tunnel down or URL changed)"
+        : data?.error;
 
   return (
     <div className="p-6 rounded-xl border border-border bg-card/50">
@@ -49,7 +65,9 @@ export default function GatewayLivePanel() {
           <Cpu className="w-4 h-4 text-primary" /> Live GPU usage &amp; cost
         </h3>
         <span className="text-xs font-mono text-muted-foreground">
-          {data?.configured && !data.error ? "gateway · DCGM · 15s" : "gateway offline"}
+          {data?.configured && !data.error
+            ? `gateway · ${collector && collector !== "none" ? collector.toUpperCase() : "no source"} · 15s`
+            : "gateway offline"}
         </span>
       </div>
 
