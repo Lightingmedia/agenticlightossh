@@ -1,0 +1,54 @@
+# LightOS runtime gateway on a single NVIDIA GPU host (e.g. NVIDIA Brev VM mode).
+# No ports are published: HTTPS comes from an outbound Cloudflare tunnel.
+# Profiles (set COMPOSE_PROFILES in .env):
+#   quick      -> Cloudflare quick tunnel (random *.trycloudflare.com URL, changes on every restart)
+#   named      -> named tunnel using CLOUDFLARE_TUNNEL_TOKEN (stable hostname)
+#   dcgm       -> dcgm-exporter; the gateway then reads DCGM instead of NVML
+#   inference  -> local vLLM model server for /v1/jobs (MTMC)
+services:
+  gateway:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      GATEWAY_DB_PATH: /data/gateway.db
+    volumes:
+      - gateway-data:/data
+    gpus: all
+
+  tunnel-quick:
+    image: cloudflare/cloudflared:latest
+    profiles: ["quick"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://gateway:8080
+    depends_on: [gateway]
+
+  tunnel-named:
+    image: cloudflare/cloudflared:latest
+    profiles: ["named"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on: [gateway]
+
+  dcgm-exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.8-3.6.0-ubuntu22.04
+    profiles: ["dcgm"]
+    restart: unless-stopped
+    cap_add: [SYS_ADMIN]
+    gpus: all
+
+  vllm:
+    image: vllm/vllm-openai:v0.6.3.post1
+    profiles: ["inference"]
+    restart: unless-stopped
+    command: --model ${MODEL:-Qwen/Qwen2.5-1.5B-Instruct} --gpu-memory-utilization 0.85 --max-model-len 8192
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    gpus: all
+
+volumes:
+  gateway-data:
+  hf-cache:

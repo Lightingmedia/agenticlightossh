@@ -1,7 +1,9 @@
 # Roadmap
 
-- [ ] Connect LightOS app to the live Modal runtime gateway
-  - [x] Gateway deployed at the `.modal.run` address (confirmed reachable)
-  - [x] Save correct gateway address in app settings (app now reaches the gateway)
-  - [ ] Save matching gateway token in app settings and on Modal (same string on both sides) — awaiting user's `modal secret create ... --force` run
-  - [ ] Verify dashboard shows live GPU usage/cost through the app's gateway call
+- [ ] Real GPU usage on the dashboard via an NVIDIA Brev gateway
+  - [x] Gateway source in `gateway/` (NVML/DCGM telemetry, auth, register, jobs, tests)
+  - [x] Docker + Cloudflare tunnel packaging and Brev README
+  - [x] Brev quick start + Test connection on Gateway Setup; telemetry source in live panel
+  - [ ] Run `docker compose up -d` on a Brev instance (needs the user's Brev account)
+  - [ ] Save the tunnel URL and token in the app's secret form, then verify the live panel
+- Modal gateway stays a CPU-only fallback (GPU billing declined)

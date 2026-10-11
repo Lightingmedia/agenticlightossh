@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Sparkles, Square, Copy } from "lucide-react";
 import { toast } from "sonner";
+import GatewayBrevSetup from "@/components/dashboard/GatewayBrevSetup";
 
 type Env = { gpus: string; nodes: string; os: string; scheduler: string; network: string; serving: string; notes: string };
 
@@ -135,6 +136,10 @@ export default function GatewaySetup() {
           Describe your GPU environment and get a step-by-step checklist for deploying the LightOS runtime gateway and NVIDIA inference serving.
         </p>
       </div>
+
+      <GatewayBrevSetup />
+
+
 
       <div className="grid lg:grid-cols-[380px_1fr] gap-6">
         <div className="rounded-lg border border-border bg-card p-5 space-y-4 h-fit">
