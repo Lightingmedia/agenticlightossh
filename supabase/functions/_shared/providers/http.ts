@@ -77,3 +77,57 @@ export function pemToPkcs8(pem: string): ArrayBuffer {
   const body = pem.replace(/-----(BEGIN|END) [A-Z ]+-----/g, "").replace(/\s+/g, "");
   return Uint8Array.from(atob(body), (c) => c.charCodeAt(0)).buffer;
 }
+
+// ── Input guards ──
+
+const AWS_REGION = /^[a-z]{2}(-gov|-iso[a-z]?)?-[a-z]+-\d{1,2}$/;
+
+/** AWS regions end up in hostnames, so only accept the documented region shape. */
+export function awsRegion(value: string | undefined): string {
+  const region = (value || "us-east-1").trim().toLowerCase();
+  if (!AWS_REGION.test(region)) throw new ProviderError("Invalid AWS region");
+  return region;
+}
+
+function isPublicIp(ip: string): boolean {
+  const v4 = ip.match(/^(?:::ffff:)?(\d+)\.(\d+)\.(\d+)\.(\d+)$/i);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+    if (a === 100 && b >= 64 && b <= 127) return false;
+    if (a === 169 && b === 254) return false;
+    if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 192 && (b === 168 || b === 0)) return false;
+    if (a === 198 && (b === 18 || b === 19)) return false;
+    return true;
+  }
+  const s = ip.toLowerCase();
+  if (s === "::" || s === "::1") return false;
+  if (/^(fc|fd|fe[89ab]|ff)/.test(s)) return false;
+  if (s.startsWith("64:ff9b:") || s.startsWith("2001:db8") || s.startsWith("::ffff:")) return false;
+  return /^[23]/.test(s); // global unicast 2000::/3 only
+}
+
+/**
+ * SSRF guard for user-supplied endpoints: https only, no credentials in the URL,
+ * and every resolved address must be public. Returns the normalized base URL.
+ */
+export async function assertPublicHttps(raw: string): Promise<string> {
+  let u: URL;
+  try { u = new URL(raw.trim()); } catch { throw new ProviderError("The endpoint URL is invalid"); }
+  if (u.protocol !== "https:") throw new ProviderError("Only https:// endpoints are allowed");
+  if (u.username || u.password) throw new ProviderError("Credentials inside the endpoint URL are not allowed");
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  if (!host) throw new ProviderError("The endpoint URL has no host");
+  const literal = /^[\d.]+$/.test(host) || host.includes(":");
+  let addresses: string[] = [];
+  if (literal) addresses = [host];
+  else {
+    for (const type of ["A", "AAAA"] as const) {
+      try { addresses.push(...(await Deno.resolveDns(host, type))); } catch { /* no records of this type */ }
+    }
+  }
+  if (!addresses.length) throw new ProviderError(`Could not resolve ${host}`);
+  if (!addresses.every(isPublicIp)) throw new ProviderError("The endpoint resolves to a private or reserved address");
+  return `${u.origin}${u.pathname.replace(/\/+$/, "")}`;
+}
