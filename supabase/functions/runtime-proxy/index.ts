@@ -6,7 +6,7 @@ import { gatewayFetch } from "../_shared/runtime-gateway.ts";
 import { RuntimeAccessError } from "../_shared/runtime-access.ts";
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const Body = z.object({
-  path: z.string().max(1024).regex(/^\/v1\/(fabric\/(capacity|telemetry|state)|intent\/validate|deployments\/plan)(\?[^#]*)?$/),
+  path: z.string().max(1024).regex(/^\/v1\/(fabric\/(capacity|telemetry|state)|intents\/validate|deployments\/plan)(\?[^#]*)?$/),
   method: z.enum(["GET", "POST"]).default("GET"), body: z.record(z.unknown()).optional(),
 }).strict();
 Deno.serve(async (req) => {

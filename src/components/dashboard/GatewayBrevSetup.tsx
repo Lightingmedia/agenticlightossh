@@ -8,8 +8,6 @@ const STEPS: { title: string; cmd: string }[] = [
   {
     title: "1. On your Brev GPU instance (VM mode), start the gateway",
     cmd: `cd gateway
-cp .env.example .env
-sed -i "s/^LIGHTOS_GATEWAY_TOKEN=.*/LIGHTOS_GATEWAY_TOKEN=$(openssl rand -hex 32)/" .env
 docker compose up -d --build`,
   },
   {
@@ -94,7 +92,7 @@ export default function GatewayBrevSetup() {
       ))}
 
       <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-        <li>3. Save the printed URL and the token from the instance's <code className="font-mono text-primary">.env</code> in the app's secure settings (never in chat).</li>
+        <li>3. Enter the printed URL and your existing gateway token in the connection form above (never in chat).</li>
         <li>Quick-tunnel URLs <strong>change every time the tunnel restarts</strong>. When that happens, rerun step 2 and update the URL. Use a named Cloudflare tunnel for a stable address.</li>
         <li>No GPU readings are ever made up. If the gateway sees no GPUs, the test says so and gives the reason.</li>
       </ul>

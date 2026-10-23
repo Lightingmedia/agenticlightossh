@@ -3,7 +3,9 @@
 // Fast/cheap primary model; falls back to a stronger model when confidence < threshold.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { gatewayConfig, gatewayFetch } from "../_shared/runtime-gateway.ts";
+import { gatewayFetch } from "../_shared/runtime-gateway.ts";
+import { runtimeAccess } from "../_shared/runtime-access.ts";
+import { canExecute } from "../_shared/launch-policy.ts";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const PRIMARY_MODEL = "google/gemini-3.1-flash-lite"; // cheapest capable
@@ -103,14 +105,13 @@ function estimateCost(model: string, totalTokens: number): number {
   return +((rate * totalTokens) / 1000).toFixed(6);
 }
 
-function gatewayReady(): boolean {
-  try { return gatewayConfig() !== null; } catch { return false; }
-}
-
 // Submit the MTMC prompt as an inference job on the customer's GPU; poll until done.
 // Returns null when the gateway is not configured or the job fails, so MTMC falls back to cloud.
 async function runOnGpu(text: string, user: { id: string; email?: string }) {
-  if (!gatewayReady()) return null;
+  try {
+    const access = await runtimeAccess(user.id, (name) => Deno.env.get(name));
+    if (!canExecute(access.tier)) return null;
+  } catch { return null; }
   const model = Deno.env.get("LIGHTOS_GPU_MODEL") ?? "meta-llama/Llama-3.1-8B-Instruct";
   try {
     const job = await gatewayFetch("/v1/jobs", user, {
@@ -153,7 +154,6 @@ async function runOnGpu(text: string, user: { id: string; email?: string }) {
       tokens: Number(u.prompt_tokens ?? 0) + Number(u.completion_tokens ?? 0),
     };
   } catch (e) {
-    console.error("GPU path failed:", (e as Error).message);
     return null;
   }
 }
@@ -169,9 +169,11 @@ Deno.serve(async (req) => {
     });
   }
 
+  const base = Deno.env.get("SUPABASE_URL"), anon = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!base || !anon) return new Response(JSON.stringify({ error: "Authentication unavailable" }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
+    base,
+    anon,
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: claims, error: claimsErr } = await supabase.auth.getClaims(authHeader.replace("Bearer ", ""));
@@ -258,7 +260,7 @@ Deno.serve(async (req) => {
         final_model: final.model,
         threshold,
         target: "cloud",
-        gpu_status: gpu === null ? (gatewayReady() ? "gpu_unavailable" : "gateway_not_configured") : "gpu_low_confidence",
+        gpu_status: gpu === null ? "gpu_unavailable_or_monitoring_only" : "gpu_low_confidence",
       },
       cost: {
         primary_usd: costPrimary,

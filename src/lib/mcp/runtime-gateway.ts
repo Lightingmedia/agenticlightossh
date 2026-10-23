@@ -28,7 +28,7 @@ export async function callRuntimeGateway(
   const { baseUrl, key } = runtimeGatewayConfig();
   const response = await fetch(`${baseUrl}/functions/v1/runtime-proxy`, {
     method: "POST",
-    signal: ctx.signal,
+    signal: AbortSignal.timeout(20000),
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",

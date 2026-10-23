@@ -3,13 +3,12 @@ import { Link } from "react-router-dom";
 import { Cpu, DollarSign, Gauge, Lock, PlugZap, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useSubscription } from "@/hooks/use-subscription";
 
 interface DeviceTelemetry {
   uuid: string;
   node?: string;
-  gpu_util_pct?: { avg?: number };
-  power_w?: { avg?: number };
+  gpu_util_pct?: { avg?: number | null };
+  power_w?: { avg?: number | null };
   fb_used_mib?: { max?: number };
   gpu_temp_c?: { max?: number };
 }
@@ -17,11 +16,13 @@ interface Resp {
   configured: boolean;
   error?: string;
   cause?: string;
-  capacity?: { totals?: { devices?: number; allocated?: number; free?: number }; reason?: string };
+  observed_at?: string;
+  entitlement?: { tier: string; gpu_limit: number | null; detected_devices: number; upgrade_required: boolean };
+  capacity?: { totals?: { devices?: number; allocated?: number | null; free?: number | null }; reason?: string };
   telemetry?: {
     collector?: string;
     reason?: string;
-    cluster?: { gpu_util_pct_avg?: number; power_w_sum?: number; gpus_reporting?: number };
+    cluster?: { gpu_util_pct_avg?: number | null; power_w_sum?: number | null; gpus_reporting?: number };
     devices?: DeviceTelemetry[];
   };
 }
@@ -31,8 +32,9 @@ const RATE_KEY = "lightos:gpu-hour-usd";
 export default function GatewayLivePanel() {
   const [data, setData] = useState<Resp | null>(null);
   const [rate, setRate] = useState<number>(() => Number(localStorage.getItem(RATE_KEY)) || 0);
-  const { tier, gpuLimit, loading: subLoading } = useSubscription();
-  const overLimit = !subLoading && (data?.capacity?.totals?.devices ?? 0) > gpuLimit;
+  const tier = data?.entitlement?.tier ?? "free";
+  const gpuLimit = data?.entitlement?.gpu_limit ?? Infinity;
+  const overLimit = data?.entitlement?.upgrade_required === true;
 
   useEffect(() => {
     let alive = true;
@@ -46,15 +48,16 @@ export default function GatewayLivePanel() {
       } else setData(d as Resp);
     };
     load();
+    window.addEventListener("lightos:runtime-connection", load);
     const t = window.setInterval(load, 15000);
-    return () => { alive = false; window.clearInterval(t); };
+    return () => { alive = false; window.clearInterval(t); window.removeEventListener("lightos:runtime-connection", load); };
   }, []);
 
   const totals = data?.capacity?.totals;
   const cluster = data?.telemetry?.cluster;
-  const allocated = totals?.allocated ?? 0;
-  const hourly = rate > 0 ? allocated * rate : null;
-  const fmt = (n?: number, d = 1) => (n == null ? "—" : n.toFixed(d));
+  const allocated = totals?.allocated;
+  const hourly = rate > 0 && allocated != null ? allocated * rate : null;
+  const fmt = (n?: number | null, d = 1) => (n == null || !Number.isFinite(n) ? "—" : n.toFixed(d));
   const collector = data?.telemetry?.collector;
   const noGpu = data?.configured && !data.error && (totals?.devices ?? 0) === 0;
   const errorText =
@@ -63,14 +66,14 @@ export default function GatewayLivePanel() {
         : data?.error;
 
   return (
-    <div className="p-6 rounded-xl border border-border bg-card/50">
+    <section className="py-6 space-y-4" aria-label="Live GPU monitoring">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-mono font-bold text-foreground flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-primary" /> Live GPU usage &amp; cost
+          <Cpu className="w-4 h-4 text-primary" /> Live GPU monitoring
         </h3>
         <span className="text-xs font-mono text-muted-foreground">
           {data?.configured && !data.error
-            ? `gateway · ${collector && collector !== "none" ? collector.toUpperCase() : "no source"} · 15s`
+            ? `gateway · ${collector && collector !== "none" ? collector.toUpperCase() : "no source"} · ${data.observed_at ? new Date(data.observed_at).toLocaleTimeString() : "waiting"}`
             : "gateway offline"}
         </span>
       </div>
@@ -81,9 +84,8 @@ export default function GatewayLivePanel() {
         <div className="flex items-start gap-3 text-sm text-muted-foreground">
           <PlugZap className="w-5 h-5 text-primary shrink-0" />
           <p>
-            No GPU cluster connected yet. Once your runtime gateway address and key are added, this panel shows real
-            GPU usage, power and cost, and MTMC runs requests on your GPUs first.{" "}
-            <Link to="/dashboard/gateway-setup" className="text-primary underline">Setup checklist</Link>
+            No GPU host connected yet.{" "}
+            <Link to="/dashboard/gateway-setup" className="text-primary underline">Connect your GPU</Link>
           </p>
         </div>
       ) : data.error ? (
@@ -97,9 +99,9 @@ export default function GatewayLivePanel() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <Metric icon={<Gauge className="w-4 h-4" />} label="Avg GPU util" value={`${fmt(cluster?.gpu_util_pct_avg)}%`} />
-            <Metric icon={<Cpu className="w-4 h-4" />} label="GPUs in use" value={`${allocated} / ${totals?.devices ?? "—"}`} />
-            <Metric icon={<Zap className="w-4 h-4" />} label="Power draw" value={`${fmt((cluster?.power_w_sum ?? 0) / 1000, 2)} kW`} />
-            <Metric icon={<DollarSign className="w-4 h-4" />} label="Cost / hour" value={hourly == null ? "set rate" : `$${hourly.toFixed(2)}`} />
+            <Metric icon={<Cpu className="w-4 h-4" />} label="GPUs monitored" value={`${totals?.devices ?? "—"}`} />
+            <Metric icon={<Zap className="w-4 h-4" />} label="Power draw" value={`${fmt(cluster?.power_w_sum == null ? null : cluster.power_w_sum / 1000, 2)} kW`} />
+            <Metric icon={<DollarSign className="w-4 h-4" />} label="Estimated cost / hour" value={hourly == null ? "unavailable" : `$${hourly.toFixed(2)}`} />
           </div>
           <label className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
             Your price per GPU-hour (USD)
@@ -113,9 +115,9 @@ export default function GatewayLivePanel() {
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-lg border border-primary/40 bg-primary/5">
               <Lock className="w-5 h-5 text-primary shrink-0" />
               <p className="text-sm text-foreground flex-1">
-                {totals?.devices} GPUs connected. Your {tier === "free" ? "Free" : tier} plan monitors{" "}
+                {data.entitlement?.detected_devices} GPUs detected. Your {tier === "free" ? "Free" : tier} plan monitors{" "}
                 {gpuLimit === 1 ? "1 GPU" : `${gpuLimit} GPUs`}, so only the first {gpuLimit === 1 ? "one is" : `${gpuLimit} are`} shown.
-                Upgrade to see every GPU and unlock agents and orchestration.
+                Upgrade to monitor additional GPUs.
               </p>
               <Button asChild size="sm"><Link to="/pricing">Upgrade plan</Link></Button>
             </div>
@@ -134,7 +136,7 @@ export default function GatewayLivePanel() {
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 }
 
