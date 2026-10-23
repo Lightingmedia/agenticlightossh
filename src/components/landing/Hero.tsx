@@ -1,165 +1,82 @@
-// ============= Full file contents =============
-
-import { useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Copy, Check, ArrowRight, Layers, Terminal } from "lucide-react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
+const script = [
+  { p: "you", t: "How much GPU headroom do I have for a 7B fine-tune?" },
+  { p: "agent", t: "Reading capacity from your connected gateway…" },
+  { p: "sys", t: "gateway ✓  1 GPU visible · measured readings received" },
+  { p: "agent", t: "Drafting a placement plan with memory and power constraints." },
+  { p: "sys", t: "plan ready → awaiting your approval" },
+];
+
+const tone: Record<string, string> = {
+  you: "text-foreground",
+  agent: "text-primary",
+  sys: "text-muted-foreground",
+};
+
 const Hero = () => {
-  const [copied, setCopied] = useState<"install" | "onboard" | null>(null);
-  const [activeTab, setActiveTab] = useState<"mac" | "windows">("mac");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const {
-    scrollYProgress
-  } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-  const gridY = useTransform(scrollYProgress, [0, 1], [0, 40]);
-  const orbY1 = useTransform(scrollYProgress, [0, 1], [0, 80]);
-  const orbY2 = useTransform(scrollYProgress, [0, 1], [0, 60]);
-  const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.15]);
+  const [shown, setShown] = useState(1);
+  useEffect(() => {
+    const id = setInterval(() => setShown((n) => (n >= script.length ? 1 : n + 1)), 1400);
+    return () => clearInterval(id);
+  }, []);
 
-  const installCommands = {
-    mac: "https://agentic.lightos.sh/dashboard/providers",
-    windows: "https://agentic.lightos.sh/dashboard/providers"
-  };
-  const onboardCommand = "https://agentic.lightos.sh/docs#quickstart";
+  return (
+    <section className="relative pt-40 pb-24 overflow-hidden">
+      <div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-  const handleCopy = (type: "install" | "onboard") => {
-    const text = type === "install" ? installCommands[activeTab] : onboardCommand;
-    navigator.clipboard.writeText(text);
-    setCopied(type);
-    setTimeout(() => setCopied(null), 2000);
-  };
-
-  return <section ref={containerRef} className="relative min-h-screen pt-36 pb-20 overflow-hidden">
-      {/* Parallax Background Grid */}
-      <motion.div className="absolute inset-0 grid-pattern opacity-20 pointer-events-none" style={{
-      y: gridY
-    }} />
-
-      {/* Parallax Gradient Orbs */}
-      <motion.div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-transparent blur-3xl pointer-events-none" style={{
-      y: orbY1
-    }} />
-      <motion.div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-3xl pointer-events-none" style={{
-      y: orbY2
-    }} />
-
-      <motion.div className="container mx-auto px-4 relative z-10" style={{
-      opacity
-    }}>
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-border bg-card/50">
+      <div className="container mx-auto px-4 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-border bg-card/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm text-muted-foreground font-mono">
-              Aurora Fabric OS · Early access
-            </span>
-          </motion.div>
-
-          {/* Main Headline */}
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono leading-tight mb-6">
-            <span className="text-gradient glow-text">LightOS</span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            An agent-first workspace for the GPU infrastructure you already own or rent.
-            Connect a supported compute account, inspect capacity, and plan workloads
-            through conversation. Monitoring and planning are in early access;
-            supported execution is being validated with pilot teams.
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/auth?next=/dashboard/providers">
-              <Button size="lg" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90 glow-primary group">
-                <Terminal className="mr-2 w-4 h-4" />
-                Get Started Free
+            <span className="text-xs text-muted-foreground font-mono">Early access · Free for one GPU</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold font-mono leading-[1.05] mb-6">
+            The agent for your <span className="text-gradient glow-text">GPU infrastructure</span>
+          </h1>
+          <p className="text-lg text-muted-foreground mb-8 max-w-xl">
+            Connect the GPUs you already own or rent. Ask questions, see measured capacity, and get
+            workload plans you approve — all through conversation.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/auth?next=/dashboard/gateway-setup">
+              <Button size="lg" className="font-mono glow-primary group w-full sm:w-auto">
+                <Terminal className="mr-2 w-4 h-4" />Get started free
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link to="/docs#quickstart">
-              <Button size="lg" variant="outline" className="font-mono border-border hover:border-primary/50">
-                First-run Guide
-              </Button>
+            <Link to="/dashboard/templates">
+              <Button size="lg" variant="outline" className="font-mono w-full sm:w-auto">View agent templates</Button>
             </Link>
-          </motion.div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-4 font-mono">No card required · GPU rental billed by your provider</p>
+        </motion.div>
 
-          {/* Two-line Install + Onboard Terminal Box */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-            className="terminal-window max-w-2xl mx-auto">
-            {/* Window chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                <div className="w-3 h-3 rounded-full bg-green-500/70" />
-              </div>
-              {/* OS tabs */}
-              <div className="ml-4 flex gap-1">
-                <button onClick={() => setActiveTab("mac")}
-                  className={`px-3 py-1 rounded font-mono text-xs transition-colors ${activeTab === "mac" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  Browser
-                </button>
-                <button onClick={() => setActiveTab("windows")}
-                  className={`px-3 py-1 rounded font-mono text-xs transition-colors ${activeTab === "windows" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  Windows / WSL
-                </button>
-              </div>
-            </div>
-
-            {/* Line 1 — install */}
-            <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-4">
-              <code className="text-primary font-mono text-sm flex-1 text-left">
-                <span className="text-muted-foreground mr-2">~</span>
-                <Link to="/dashboard/providers" className="text-primary underline">Connect a compute account</Link>
-              </code>
-              <Button variant="ghost" size="icon" aria-label="Copy compute connections link" onClick={() => handleCopy("install")}>
-                {copied === "install" ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-
-            {/* Line 2 — onboard */}
-            <div className="px-4 pb-4 flex items-center justify-between gap-4">
-              <code className="text-primary font-mono text-sm flex-1 text-left">
-                <span className="text-muted-foreground mr-2">~</span>
-                <Link to="/docs#quickstart" className="text-primary underline">Read the setup prerequisites</Link>
-                <motion.span
-                  animate={{ opacity: [1, 0, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="text-primary ml-0.5">▌</motion.span>
-              </code>
-              <Button variant="ghost" size="icon" aria-label="Copy first-run guide link" onClick={() => handleCopy("onboard")}>
-                {copied === "onboard" ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Sub-caption */}
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
-            className="text-xs text-muted-foreground mt-4 font-mono">
-            Free: one GPU · Monitoring only · No card required · GPU rental billed separately
-          </motion.p>
-        </div>
-
-        {/* Floating Logo Graphic with Parallax */}
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.4 }}
-          style={{ y: useTransform(scrollYProgress, [0, 1], [0, -100]) }}
-          className="absolute right-10 top-1/3 hidden xl:block">
-          <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center glow-primary">
-            <Layers className="w-16 h-16 text-primary/60" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
+          className="terminal-window">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
+            <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
+            <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/50" />
+            <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
+            <span className="ml-3 font-mono text-xs text-muted-foreground">lightos — agent session (illustration)</span>
+          </div>
+          <div className="p-5 font-mono text-sm space-y-3 min-h-[260px]">
+            {script.slice(0, shown).map((l, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} className={tone[l.p]}>
+                <span className="text-muted-foreground mr-2">{l.p === "you" ? "›" : l.p === "agent" ? "◆" : "·"}</span>{l.t}
+              </motion.div>
+            ))}
+            <span className="text-primary animate-pulse">▌</span>
           </div>
         </motion.div>
-      </motion.div>
-    </section>;
+      </div>
+    </section>
+  );
 };
 
 export default Hero;
