@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { subscriptionTier, MONITORING_LIMITS } from "../../supabase/functions/_shared/launch-policy";
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN;
 const environment = clientToken?.startsWith("pk_test_") ? "sandbox" : "live";
@@ -15,14 +16,6 @@ interface Subscription {
   cancel_at_period_end: boolean;
 }
 
-const PRICE_TO_TIER: Record<string, SubscriptionTier> = {
-  starter_monthly: "starter",
-  starter_yearly: "starter",
-  pro_monthly: "pro",
-  pro_yearly: "pro",
-  enterprise_monthly: "enterprise",
-};
-
 // Tier hierarchy for comparison
 const TIER_LEVEL: Record<SubscriptionTier, number> = {
   free: 0,
@@ -32,12 +25,7 @@ const TIER_LEVEL: Record<SubscriptionTier, number> = {
 };
 
 /** GPUs each plan may monitor. Free = 1 GPU, monitoring only, no card. */
-export const GPU_LIMIT: Record<SubscriptionTier, number> = {
-  free: 1,
-  starter: 2,
-  pro: Infinity,
-  enterprise: Infinity,
-};
+export const GPU_LIMIT = MONITORING_LIMITS;
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -50,6 +38,8 @@ export function useSubscription() {
     async function fetchSub() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setSubscription(null);
+        setTier("free");
         setLoading(false);
         return;
       }
@@ -65,15 +55,12 @@ export function useSubscription() {
 
       // Find the best active subscription
       const now = new Date();
-      const activeSub = (data || []).find((s) => {
-        if (["active", "trialing"].includes(s.status)) return true;
-        if (s.status === "canceled" && s.current_period_end && new Date(s.current_period_end) > now) return true;
-        return false;
-      });
+      const resolvedTier = subscriptionTier(data ?? [], now.getTime());
+      const activeSub = (data || []).find((s) => subscriptionTier([s], now.getTime()) === resolvedTier && resolvedTier !== "free");
 
       if (activeSub) {
         setSubscription(activeSub as Subscription);
-        setTier(PRICE_TO_TIER[activeSub.price_id] || "pro");
+        setTier(resolvedTier);
       } else {
         setSubscription(null);
         setTier("free");
@@ -81,6 +68,7 @@ export function useSubscription() {
       setLoading(false);
 
       // Realtime
+      channel?.unsubscribe();
       channel = supabase
         .channel("subscription-changes")
         .on(

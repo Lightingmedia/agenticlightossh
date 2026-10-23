@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Sparkles, Square, Copy } from "lucide-react";
 import { toast } from "sonner";
 import GatewayBrevSetup from "@/components/dashboard/GatewayBrevSetup";
+import GpuConnectionForm from "@/components/dashboard/GpuConnectionForm";
+import GatewayLivePanel from "@/components/dashboard/GatewayLivePanel";
 
 type Env = { gpus: string; nodes: string; os: string; scheduler: string; network: string; serving: string; notes: string };
 
@@ -131,12 +133,14 @@ export default function GatewaySetup() {
   return (
     <div className="p-6 space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-bold font-mono text-foreground">Gateway Setup Assistant</h1>
+        <h1 className="text-2xl font-bold font-mono text-foreground">GPU setup</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Describe your GPU environment and get a step-by-step checklist for deploying the LightOS runtime gateway and NVIDIA inference serving.
         </p>
       </div>
 
+      <GpuConnectionForm />
+      <GatewayLivePanel />
       <GatewayBrevSetup />
 
 
