@@ -36,6 +36,7 @@ export async function getSystemStats(): Promise<SystemStats> {
     supabase.from("inference_tasks").select("*"),
   ]);
 
+  if (gpuRes.error || agentRes.error || taskRes.error) throw new Error("System statistics are unavailable");
   const gpus = gpuRes.data ?? [];
   const agents = agentRes.data ?? [];
   const tasks = taskRes.data ?? [];
@@ -64,51 +65,19 @@ export async function getSystemStats(): Promise<SystemStats> {
   };
 }
 
-export async function registerAgent(name: string, type: string) {
-  const agentData = {
-    agent_id: `agent-${Date.now()}`,
-    name,
-    type,
-    status: "online",
-    cpu: 0,
-    memory: 0,
-    tasks: 0,
-    uptime: "0s",
-  };
-
-  const { data, error } = await supabase.from("agents").insert(agentData).select().single();
-  if (error) throw new Error("Failed to register agent");
-  return data;
+// Operational writes must be backed by supported, authenticated runtime actions.
+// These legacy browser calls cannot prove a host-side change.
+export async function registerAgent(_name: string, _type: string) {
+  throw new Error("Use Gateway Setup to enroll a verified node. Manual agent execution is unavailable.");
 }
-
-export async function updateAgentStatus(agentId: string, updates: Record<string, unknown>) {
-  const { error } = await supabase.from("agents").update(updates).eq("id", agentId);
-  if (error) throw new Error("Failed to update agent");
-  return { success: true };
+export async function updateAgentStatus(_agentId: string, _updates: Record<string, unknown>) {
+  throw new Error("Agent control is unavailable on this gateway.");
 }
-
-export async function submitInferenceTask(model: string) {
-  const taskData = {
-    task_id: `task-${Date.now()}`,
-    model,
-    status: "queued",
-    progress: 0,
-    tokens: null,
-    duration: null,
-  };
-
-  const { data, error } = await supabase.from("inference_tasks").insert(taskData).select().single();
-  if (error) throw new Error("Failed to submit task");
-  return data;
+export async function submitInferenceTask(_model: string) {
+  throw new Error("Use the authenticated runtime inference flow; a database record cannot execute a GPU task.");
 }
-
-export async function adjustThermal(zoneId: string, fanSpeed: number) {
-  const { error } = await supabase
-    .from("thermal_zones")
-    .update({ fan_speed: fanSpeed })
-    .eq("zone_id", zoneId);
-  if (error) throw new Error("Failed to adjust thermal settings");
-  return { success: true, zone_id: zoneId, fan_speed: fanSpeed };
+export async function adjustThermal(_zoneId: string, _fanSpeed: number) {
+  throw new Error("Fan control is unavailable on this gateway.");
 }
 
 export async function triggerTelemetryUpdate() {

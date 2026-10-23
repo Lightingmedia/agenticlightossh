@@ -67,6 +67,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -358,87 +359,13 @@ const LLMServing = () => {
 
   // ─── Actions ──────────────────────────────────────────────────────────────
 
-  const handleDeploy = async () => {
-    if (!deploymentName.trim()) {
-      toast.error("Deployment name is required");
-      return;
-    }
-    setDeploying(true);
-    try {
-      const { error } = await supabase.from("llm_deployments").insert({
-        name: deploymentName.trim(),
-        model: selectedModel,
-        serving_mode: servingMode,
-        gpu_count: gpuCount[0],
-        data_parallel_size: dpSize[0],
-        expert_parallelism: expertParallel,
-        fault_tolerance: faultTolerance,
-        status: "provisioning",
-      });
-      if (error) throw error;
-      toast.success("Deployment submitted — provisioning GPUs");
-      setCreateDialogOpen(false);
-      setDeploymentName("");
-    } catch (err) {
-      toast.error(`Deploy failed: ${(err as Error).message}`);
-    } finally {
-      setDeploying(false);
-    }
-  };
-
-  const handleScale = async () => {
-    if (!selectedDeployment) return;
-    setScaling(true);
-    try {
-      const { error } = await supabase
-        .from("llm_deployments")
-        .update({ replicas: scaleReplicas[0] })
-        .eq("id", selectedDeployment.id);
-      if (error) throw error;
-      toast.success(`Scaled ${selectedDeployment.name} to ${scaleReplicas[0]} replicas`);
-      setScaleDialogOpen(false);
-    } catch (err) {
-      toast.error(`Scale failed: ${(err as Error).message}`);
-    } finally {
-      setScaling(false);
-    }
-  };
-
-  const handleRestart = async (dep: Deployment) => {
-    try {
-      const { error } = await supabase
-        .from("llm_deployments")
-        .update({ status: "provisioning", revision: dep.revision + 1 })
-        .eq("id", dep.id);
-      if (error) throw error;
-      await supabase.from("llm_deployment_logs").insert({
-        deployment_id: dep.id,
-        level: "info",
-        message: `Restart triggered — revision ${dep.revision + 1}`,
-      });
-      toast.success(`Restart triggered for ${dep.name}`);
-    } catch (err) {
-      toast.error(`Restart failed: ${(err as Error).message}`);
-    }
-  };
-
-  const handleRollback = async (dep: Deployment) => {
-    try {
-      const { error } = await supabase
-        .from("llm_deployments")
-        .update({ status: "rolling-back" })
-        .eq("id", dep.id);
-      if (error) throw error;
-      await supabase.from("llm_deployment_logs").insert({
-        deployment_id: dep.id,
-        level: "warn",
-        message: `Rollback initiated from revision ${dep.revision}`,
-      });
-      toast.success(`Rollback initiated for ${dep.name}`);
-    } catch (err) {
-      toast.error(`Rollback failed: ${(err as Error).message}`);
-    }
-  };
+  // This gateway supports inference jobs, not Ray Serve lifecycle or fan control.
+  // Never mark a database row as provisioned without verified host execution.
+  const unavailableAction = () => toast.error("Deployment controls are unavailable: this gateway does not support Ray Serve lifecycle actions.");
+  const handleDeploy = async () => unavailableAction();
+  const handleScale = async () => unavailableAction();
+  const handleRestart = async (_dep: Deployment) => unavailableAction();
+  const handleRollback = async (_dep: Deployment) => unavailableAction();
 
   const handleRefresh = () => {
     fetchDeployments();
@@ -733,11 +660,17 @@ const LLMServing = () => {
         />
 
         <div className="p-6 space-y-6">
+          <div className="border-b border-border pb-4 space-y-2">
+            <p className="text-sm text-muted-foreground">Only your account’s deployment records and logs are shown. Shared legacy records remain private.</p>
+            <p className="text-sm text-muted-foreground">Ray Serve creation, scaling, restart, and rollback are unavailable on the current gateway. No GPUs will be provisioned from this page.</p>
+            <Button asChild variant="outline"><Link to="/dashboard/gateway-setup">Manage GPU connection</Link></Button>
+          </div>
+          {!loadingDeployments && deployments.length === 0 && <p className="text-sm text-muted-foreground">No deployments reported for your account yet.</p>}
           {/* Action Bar */}
           <div className="flex flex-wrap items-center gap-3">
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="font-mono gap-2">
+              <Button disabled title="Ray Serve deployment is not supported by this gateway" className="font-mono gap-2">
                 <Rocket className="w-4 h-4" />
                 Create Deployment
               </Button>
@@ -987,7 +920,8 @@ const LLMServing = () => {
                                 size="sm"
                                 variant="ghost"
                                 className="h-7 px-2 font-mono text-xs"
-                                title="Scale"
+                                disabled
+                                title="Scale unavailable on this gateway"
                                 onClick={() => {
                                   setSelectedDeployment(dep);
                                   setScaleReplicas([dep.replicas]);
@@ -1000,7 +934,8 @@ const LLMServing = () => {
                                 size="sm"
                                 variant="ghost"
                                 className="h-7 px-2 font-mono text-xs"
-                                title="Restart"
+                                disabled
+                                title="Restart unavailable on this gateway"
                                 onClick={() => handleRestart(dep)}
                               >
                                 <RefreshCw className="w-3.5 h-3.5" />
@@ -1009,7 +944,8 @@ const LLMServing = () => {
                                 size="sm"
                                 variant="ghost"
                                 className="h-7 px-2 font-mono text-xs"
-                                title="Rollback"
+                                disabled
+                                title="Rollback unavailable on this gateway"
                                 onClick={() => handleRollback(dep)}
                               >
                                 <RotateCcw className="w-3.5 h-3.5" />
