@@ -14,7 +14,7 @@ describe.skipIf(!connection)("live operational account isolation", () => {
     try {
       await sql.begin(async tx => {
         // Existing auth identity is used only for an uncommitted admin-role fixture.
-        const users = await tx`select id from auth.users limit 1`;
+        const users = await tx`select user_id as id from public.profiles limit 1`;
         const adminId = users[0]?.id;
         if (!adminId) throw new Error("An auth identity is required to verify admin policies");
         await tx`insert into public.user_roles(user_id,role) values (${adminId},'admin') on conflict do nothing`;
