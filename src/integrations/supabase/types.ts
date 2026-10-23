@@ -27,6 +27,7 @@ export type Database = {
           type: string
           updated_at: string
           uptime: string
+          user_id: string | null
         }
         Insert: {
           agent_id: string
@@ -40,6 +41,7 @@ export type Database = {
           type: string
           updated_at?: string
           uptime?: string
+          user_id?: string | null
         }
         Update: {
           agent_id?: string
@@ -53,6 +55,7 @@ export type Database = {
           type?: string
           updated_at?: string
           uptime?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -109,6 +112,7 @@ export type Database = {
           task_id: string
           tokens: number | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -120,6 +124,7 @@ export type Database = {
           task_id: string
           tokens?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -131,6 +136,7 @@ export type Database = {
           task_id?: string
           tokens?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -187,6 +193,7 @@ export type Database = {
           throughput_tok_s: number | null
           tracing_enabled: boolean
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -208,6 +215,7 @@ export type Database = {
           throughput_tok_s?: number | null
           tracing_enabled?: boolean
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -229,6 +237,7 @@ export type Database = {
           throughput_tok_s?: number | null
           tracing_enabled?: boolean
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -495,6 +504,7 @@ export type Database = {
           temperature: number
           throttling: boolean
           updated_at: string
+          user_id: string | null
           zone_id: string
         }
         Insert: {
@@ -504,6 +514,7 @@ export type Database = {
           temperature?: number
           throttling?: boolean
           updated_at?: string
+          user_id?: string | null
           zone_id: string
         }
         Update: {
@@ -513,6 +524,7 @@ export type Database = {
           temperature?: number
           throttling?: boolean
           updated_at?: string
+          user_id?: string | null
           zone_id?: string
         }
         Relationships: []

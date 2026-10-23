@@ -1,5 +1,12 @@
 # Roadmap
 
+- [ ] Restore account-safe Agents, LLM Serving, and Thermal views
+  - [x] Owner-scoped operational reads, linked-log access, and legacy privacy
+  - [x] Clear empty/unavailable states and account gateway monitoring; no unsupported hardware success
+  - [x] 22 regression tests and signed-in legacy read denial / deployment write denial
+  - [ ] Full two-customer/admin ownership read-back (needs a test connection permitted to assume authenticated role or approved test accounts)
+  - [ ] Real GPU action read-back (requires a running gateway supporting the action)
+
 - [ ] Free-tier onboarding end to end: sign up → connect GPU → live dashboard → second-GPU upgrade prompt
   - [x] Build account signup → dedicated GPU connection form → measured dashboard; server one-GPU filtering and free execution denial
   - [x] Test owned-resource lookup, encrypted owner-bound credentials, second-GPU limits, and signed-in private-address rejection

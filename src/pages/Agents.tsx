@@ -19,9 +19,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import AccountGpuReadings from "@/components/dashboard/AccountGpuReadings";
+import { Link } from "react-router-dom";
 
 const Agents = () => {
-  const { agents, loading } = useRealtimeAgents();
+  const { agents, loading, error } = useRealtimeAgents();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,6 +75,13 @@ const Agents = () => {
       />
 
       <div className="p-6 space-y-6">
+        <AccountGpuReadings />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-mono font-bold">Reported agents</h2>
+          <Button asChild variant="outline"><Link to="/dashboard/gateway-setup">Set up a node</Link></Button>
+        </div>
+        <p className="text-sm text-muted-foreground">Only agents reported for your account appear here. Manual registration does not start an agent on a GPU.</p>
+        {error && <p role="alert" className="text-sm text-destructive">Agent records are unavailable. Please retry.</p>}
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex gap-3 flex-1">
@@ -92,7 +101,7 @@ const Agents = () => {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="font-mono bg-primary text-primary-foreground">
+              <Button disabled title="Use verified node setup instead" className="font-mono bg-primary text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
                 Register Agent
               </Button>
@@ -199,7 +208,7 @@ const Agents = () => {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <p className="text-muted-foreground">No agents found matching your criteria.</p>
+            <p className="text-muted-foreground">No agents reported for your account matching these filters.</p>
           </motion.div>
         )}
       </div>

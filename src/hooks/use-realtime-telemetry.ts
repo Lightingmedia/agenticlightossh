@@ -30,8 +30,10 @@ function useRealtimeTable<T>(
 
       const { data: rows, error: err } = await q;
       if (err) {
+        setData([]);
         setError(err.message);
       } else {
+        setError(null);
         setData((rows ?? []) as unknown as T[]);
       }
       setLoading(false);

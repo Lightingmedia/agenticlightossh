@@ -13,15 +13,12 @@ interface FeatureGateProps {
 export function FeatureGate({ requiredTier, featureName, children }: FeatureGateProps) {
   const { hasAccess, loading, tier } = useSubscription();
 
-  if (loading) return <>{children}</>;
+  if (loading) return <p className="p-6 text-sm text-muted-foreground">Checking plan access…</p>;
 
   if (!hasAccess(requiredTier)) {
     return (
       <div className="relative">
-        <div className="pointer-events-none opacity-20 blur-[2px] select-none">
-          {children}
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div className="flex min-h-64 items-center justify-center p-6">
           <Card className="max-w-md border-primary/30 bg-card/95 backdrop-blur">
             <CardContent className="pt-6 text-center space-y-4">
               <Lock className="w-10 h-10 text-primary mx-auto" />

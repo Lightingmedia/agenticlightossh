@@ -9,3 +9,4 @@
 
 - Runtime access resolves one encrypted dedicated-host connection per authenticated user, with admin-only deployment fallback, and enforces entitlements in the shared server gateway wrapper; MCP forwards verified caller tokens to that boundary so no client can bypass the free monitoring limit.
 - Initial user-supplied runtime addresses are Cloudflare quick-tunnel HTTPS origins only, with redirects disabled, to prevent arbitrary-host credential forwarding and SSRF until broader tunnel providers are verified.
+- Operational records use nullable account ownership with owner-only customer reads and parent-derived deployment-log access; unowned legacy records stay admin-only. Measured monitoring remains on the entitlement-filtered account gateway, and unsupported hardware controls must not mutate database state as a substitute for execution.
