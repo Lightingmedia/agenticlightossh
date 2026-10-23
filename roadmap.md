@@ -1,5 +1,10 @@
 # Roadmap
 
+- [ ] Verify Brev readings before republishing the one-GPU Free release
+  - [ ] Reject additional Free GPU connections across connection/enrollment paths (currently readings are filtered, connections are not rejected)
+  - [ ] Confirm measured readings in the requesting user's dashboard (currently no GPU host is connected)
+  - [ ] Check security scan and republish only after live readings and connection enforcement are verified
+
 - [ ] Restore account-safe Agents, LLM Serving, and Thermal views
   - [x] Owner-scoped operational reads, linked-log access, and legacy privacy
   - [x] Clear empty/unavailable states and account gateway monitoring; no unsupported hardware success
