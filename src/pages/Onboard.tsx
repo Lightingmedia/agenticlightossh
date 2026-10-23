@@ -25,8 +25,8 @@ const WIZARD_STEPS = [
     id: "install",
     icon: Terminal,
     title: "Install LightOS",
-    subtitle: "One-command setup",
-    description: "Copy and run the install script in your terminal. It detects your OS, installs the CLI, and configures your PATH automatically.",
+    subtitle: "Reviewed source setup · demo output",
+    description: "Start with the first-run guide. The log playback below is a demo, not proof that software was installed. Host setup requires reviewed source and your explicit approval.",
   },
   {
     id: "cuda",
@@ -75,7 +75,7 @@ const WIZARD_STEPS = [
 // ─── Simulated log lines per step ────────────────────────────────────────────
 const STEP_LOGS: Record<string, { type: string; text: string; delay: number }[]> = {
   install: [
-    { type: "cmd",  text: "curl -fsSL https://agentic.lightos.sh | bash", delay: 0 },
+    { type: "info", text: "DEMO — no installer runs in this browser", delay: 0 },
     { type: "info", text: "  ▸  Detecting environment…", delay: 600 },
     { type: "ok",   text: "  ✓  Platform: linux (x86_64)", delay: 1100 },
     { type: "ok",   text: "  ✓  Python 3.12.2 found", delay: 1500 },
@@ -194,7 +194,7 @@ function StepIndicator({
         </div>
         <div className="font-mono text-xs text-muted-foreground">
           {step.subtitle}
-          {step.id !== "cuda" && step.id !== "install" && <span className="ml-1.5 px-1 rounded border border-border text-[10px] uppercase">Demo</span>}
+          {step.id !== "cuda" && <span className="ml-1.5 px-1 rounded border border-border text-[10px] uppercase">Demo</span>}
         </div>
       </div>
       {isCurrent && <ChevronRight className="w-4 h-4 text-primary ml-auto mt-1 flex-shrink-0" />}
@@ -265,7 +265,7 @@ const Onboard = () => {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("curl -fsSL https://agentic.lightos.sh | bash");
+    navigator.clipboard.writeText(`${window.location.origin}/docs#quickstart`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -349,12 +349,12 @@ const Onboard = () => {
                       {/* curl command */}
                       <div className="terminal-window overflow-hidden">
                         <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card/50 font-mono text-xs text-muted-foreground">
-                          macOS / Linux
+                          First-run guide · reviewed source setup
                         </div>
                         <div className="px-4 py-3 flex items-center justify-between gap-4">
                           <code className="font-mono text-sm text-cyan-300 flex-1">
                             <span className="text-muted-foreground mr-2">~</span>
-                            curl -fsSL https://agentic.lightos.sh | bash
+                            <Link to="/docs#quickstart" className="text-primary underline">Read prerequisites and setup instructions</Link>
                           </code>
                           <button
                             onClick={handleCopy}
@@ -385,7 +385,7 @@ const Onboard = () => {
                     <CudaPdkStep onComplete={() => setCompletedSteps((prev) => new Set([...prev, currentStep]))} />
                   )}
 
-                  {step.id !== "cuda" && step.id !== "install" && (
+                  {step.id !== "cuda" && (
                     <div className="mb-3 font-mono text-xs text-muted-foreground">Demo — simulated output, nothing runs on your machine.</div>
                   )}
 
@@ -442,7 +442,7 @@ const Onboard = () => {
                         : completedSteps.has(currentStep)
                           ? <><CheckCircle2 className="mr-2 w-4 h-4" /> Completed</>
                           : <>
-                              Run Step {currentStep + 1}
+                              Play Demo Step {currentStep + 1}
                               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </>
                       }
@@ -497,19 +497,19 @@ const Onboard = () => {
             </motion.div>
 
             <h1 className="text-3xl md:text-4xl font-bold font-mono mb-4">
-              <span className="text-gradient glow-text">Onboarding Complete!</span>
+              <span className="text-gradient glow-text">Demo Walkthrough Complete</span>
             </h1>
             <p className="text-muted-foreground mb-2">
-              Your photonic NCE fabric is mapped, fingerprinted, and ready.
-              Your first agentic worker is running.
+              The photonic steps were simulated; no fabric or worker was deployed.
+              Only the CUDA step can show a real gateway-accepted report.
             </p>
 
             {/* Summary stats */}
             <div className="grid grid-cols-3 gap-4 my-8">
               {[
-                { label: "WDM Channels", value: "64" },
-                { label: "Fabric Layers", value: "20" },
-                { label: "Active Agents", value: "1" },
+                { label: "Demo WDM Channels", value: "64" },
+                { label: "Demo Fabric Layers", value: "20" },
+                { label: "Demo Agent", value: "1" },
               ].map((s) => (
                 <div key={s.label} className="p-4 rounded-xl border border-border bg-card/30">
                   <div className="text-2xl font-bold font-mono text-primary">{s.value}</div>

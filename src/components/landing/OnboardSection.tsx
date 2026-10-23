@@ -7,7 +7,7 @@ import { ScrollReveal } from "@/components/ui/parallax-section";
 
 // ─── Simulated onboard terminal lines ────────────────────────────────────────
 const ONBOARD_LINES = [
-  { delay: 0,    type: "cmd",     text: "curl -fsSL https://agentic.lightos.sh | bash" },
+  { delay: 0,    type: "info",    text: "DEMO ONLY — no install or hardware scan runs here" },
   { delay: 900,  type: "info",    text: "  ▸  Detecting environment…" },
   { delay: 1400, type: "ok",      text: "  ✓  Platform: linux (x86_64)" },
   { delay: 1800, type: "ok",      text: "  ✓  Python 3.12.2" },
@@ -63,12 +63,12 @@ function TerminalLine({ line }: { line: typeof ONBOARD_LINES[0] }) {
 
 // ─── Steps summary beside the terminal ───────────────────────────────────────
 const STEPS = [
-  { label: "Installer", desc: "One curl command — auto-detects OS and Python" },
-  { label: "Fabric Scan", desc: "Maps your 20-layer photonic NCE topology" },
-  { label: "Fingerprint", desc: "SHA-256 cryptographic stamp of fabric state" },
-  { label: "TAR Routing", desc: "Dijkstra + congestion-penalised WDM assignment" },
-  { label: "Framework", desc: "PyTorch FX or JAX JAXPR adapter, auto-detected" },
-  { label: "First Agent", desc: "Photonic fabric agent registered and running" },
+  { label: "Installer demo", desc: "Illustrative setup output; no software is installed" },
+  { label: "Fabric scan demo", desc: "Example topology; photonic hardware is not detected here" },
+  { label: "Fingerprint demo", desc: "Example fabric-state fingerprint" },
+  { label: "Routing demo", desc: "Illustrative route and channel assignment" },
+  { label: "Framework demo", desc: "Example adapter selection; your machine is not inspected" },
+  { label: "Agent demo", desc: "Example registration; no live worker is deployed" },
 ];
 
 const OnboardSection = () => {
@@ -120,19 +120,17 @@ const OnboardSection = () => {
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <Terminal className="w-3.5 h-3.5 text-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-              One-Command Onboarding
+              Research workflow demo
             </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold font-mono mb-4">
-            <span className="text-foreground">From Zero to </span>
-            <span className="text-gradient glow-text">Photonic AI</span>
-            <br />
-            <span className="text-foreground">in Seconds</span>
+            <span className="text-foreground">Explore the </span>
+            <span className="text-gradient glow-text">Fabric Vision</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            One <code className="text-primary bg-primary/10 px-1 rounded">curl</code> command installs the LightOS CLI.
-            Then <code className="text-primary bg-primary/10 px-1 rounded">lightos onboard</code> fingerprints your
-            photonic fabric, assigns WDM channels, and registers your first AI agent.
+            This simulated sequence illustrates the longer-term photonic workflow.
+            It does not install software, detect hardware, or deploy agents.
+            Real monitoring starts with a supported compute connection.
           </p>
         </ScrollReveal>
 
@@ -154,7 +152,7 @@ const OnboardSection = () => {
                   <div className="w-3 h-3 rounded-full bg-green-500/70" />
                 </div>
                 <span className="ml-4 font-mono text-xs text-muted-foreground">
-                  ubuntu@lightos-node: ~
+                  DEMO · simulated node
                 </span>
                 <div className="ml-auto flex items-center gap-2">
                   {playing && (
@@ -164,7 +162,7 @@ const OnboardSection = () => {
                   )}
                   {done && (
                     <span className="flex items-center gap-1 text-xs font-mono text-green-400">
-                      <CheckCircle2 className="w-3 h-3" /> done
+                      <CheckCircle2 className="w-3 h-3" /> demo finished
                     </span>
                   )}
                 </div>
@@ -207,7 +205,7 @@ const OnboardSection = () => {
               {/* Play / replay button */}
               <div className="px-4 py-3 border-t border-border bg-card/30 flex items-center justify-between">
                 <span className="font-mono text-xs text-muted-foreground">
-                  Interactive demo — click to run
+                  Simulated output · no host actions
                 </span>
                 <button
                   onClick={startDemo}
@@ -262,7 +260,7 @@ const OnboardSection = () => {
             >
               <Link to="/onboard" className="flex-1">
                 <Button size="lg" className="w-full font-mono bg-primary text-primary-foreground hover:bg-primary/90 group">
-                  Open Onboard Wizard
+                  Explore Demo Wizard
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

@@ -117,7 +117,7 @@ export default function GatewayLivePanel() {
                 {gpuLimit === 1 ? "1 GPU" : `${gpuLimit} GPUs`}, so only the first {gpuLimit === 1 ? "one is" : `${gpuLimit} are`} shown.
                 Upgrade to see every GPU and unlock agents and orchestration.
               </p>
-              <Button asChild size="sm"><Link to="/pricing">{tier === "free" ? "Start 7-day trial" : "Upgrade plan"}</Link></Button>
+              <Button asChild size="sm"><Link to="/pricing">Upgrade plan</Link></Button>
             </div>
           )}
           <div className="space-y-2">

@@ -12,11 +12,11 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Announcement Bar */}
       <div className="bg-secondary/80 backdrop-blur-sm border-b border-border py-2 px-4">
-        <div className="container mx-auto flex items-center justify-center gap-2 text-sm">
+        <div className="container mx-auto flex flex-wrap items-center justify-center gap-2 text-xs">
           <span className="text-primary">⚡</span>
-          <span className="font-mono text-muted-foreground">Aurora Fabric OS — zero-code orchestration for any accelerator fleet is live.</span>
-          <Link to="/onboard" className="text-primary hover:underline font-mono">
-            Run lightos onboard →
+          <span className="font-mono text-muted-foreground">Aurora Fabric OS · Agent-first monitoring and planning · Early access</span>
+          <Link to="/docs#quickstart" className="text-primary hover:underline font-mono">
+            First-run guide →
           </Link>
         </div>
       </div>

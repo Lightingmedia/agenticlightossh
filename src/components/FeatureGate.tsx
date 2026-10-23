@@ -29,12 +29,12 @@ export function FeatureGate({ requiredTier, featureName, children }: FeatureGate
                 <h3 className="text-lg font-mono font-bold text-foreground">{featureName}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   This feature requires a <span className="text-primary capitalize">{requiredTier}</span> plan or higher.
-                  {tier === "free" ? " Start your 7-day free trial." : " Upgrade to unlock."}
+                  {tier === "free" ? " Explore paid early-access plans." : " Upgrade to unlock."}
                 </p>
               </div>
               <Button asChild>
                 <Link to="/pricing">
-                  {tier === "free" ? "Start Free Trial" : "Upgrade Plan"}
+                  {tier === "free" ? "View Paid Plans" : "Upgrade Plan"}
                 </Link>
               </Button>
             </CardContent>
