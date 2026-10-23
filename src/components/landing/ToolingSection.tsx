@@ -11,7 +11,7 @@ const tools = [
   {
     id: "terminal",
     name: "Terminal",
-    description: "Power-user CLI for rapid deployment and debugging.",
+    description: "Browser-simulated terminal; not a shell on your GPU host.",
   },
   {
     id: "api",
@@ -62,7 +62,7 @@ const ToolingSection = () => {
                 <div className="w-3 h-3 rounded-full bg-green-500/70" />
               </div>
               <span className="ml-4 font-mono text-xs text-muted-foreground">
-                lightos — {activeTool}
+                lightos — {activeTool} · Illustrative demo, not live infrastructure
               </span>
             </div>
 

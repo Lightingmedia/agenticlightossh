@@ -1,5 +1,12 @@
 # Roadmap
 
+- [ ] Evidence-led early-access launch
+  - [ ] Credential triage, honest public copy, working quickstart, CI
+  - [ ] Real agent loop: capacity → plan → approval → inference → read-back (needs accessible GPU account/host and budget)
+  - [ ] Server-side free-plan enforcement, account isolation, live billing verification
+  - [ ] License, legal pages, support contact (needs founder-approved details)
+  - [ ] Assisted pilots, real demo, versioned release (needs pilot users and release authorization)
+
 - [ ] Real GPU usage on the dashboard via an NVIDIA Brev gateway
   - [x] Gateway source in `gateway/` (NVML/DCGM telemetry, auth, register, jobs, tests)
   - [x] Docker + Cloudflare tunnel packaging and Brev README

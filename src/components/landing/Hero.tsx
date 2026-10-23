@@ -22,10 +22,10 @@ const Hero = () => {
   const opacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.15]);
 
   const installCommands = {
-    mac: "curl -fsSL https://agentic.lightos.sh | bash",
-    windows: "iwr https://agentic.lightos.sh/install.ps1 | iex"
+    mac: "https://agentic.lightos.sh/dashboard/providers",
+    windows: "https://agentic.lightos.sh/dashboard/providers"
   };
-  const onboardCommand = "lightos onboard";
+  const onboardCommand = "https://agentic.lightos.sh/docs#quickstart";
 
   const handleCopy = (type: "install" | "onboard") => {
     const text = type === "install" ? installCommands[activeTab] : onboardCommand;
@@ -57,42 +57,38 @@ const Hero = () => {
             className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border border-border bg-card/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-sm text-muted-foreground font-mono">
-              One Conversational Layer — Every Accelerator Stack
+              Aurora Fabric OS · Early access
             </span>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono leading-tight mb-6">
-            <span className="text-foreground">Any Silicon. </span>
-            <span className="text-gradient glow-text">Any Stack.</span>
-            <br />
-            <span className="text-foreground">One </span>
-            <span className="text-gradient glow-text">Conversation.</span>
+            <span className="text-gradient glow-text">LightOS</span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            Aurora Fabric OS is an agentic operating system that speaks fluently to
-            every accelerator stack — CUDA, ROCm, TPU/XLA, oneAPI and beyond — managing
-            datacenter compute and fabric allocation through seamless conversational
-            control, so you can focus purely on building AI.
+            An agent-first workspace for the GPU infrastructure you already own or rent.
+            Connect a supported compute account, inspect capacity, and plan workloads
+            through conversation. Monitoring and planning are in early access;
+            supported execution is being validated with pilot teams.
           </motion.p>
 
           {/* CTA Buttons */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}
             className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/onboard">
+            <Link to="/auth?next=/dashboard/providers">
               <Button size="lg" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90 glow-primary group">
                 <Terminal className="mr-2 w-4 h-4" />
-                Run Onboard Wizard
+                Get Started Free
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link to="/dashboard">
+            <Link to="/docs#quickstart">
               <Button size="lg" variant="outline" className="font-mono border-border hover:border-primary/50">
-                Open Dashboard
+                First-run Guide
               </Button>
             </Link>
           </motion.div>
@@ -111,11 +107,11 @@ const Hero = () => {
               <div className="ml-4 flex gap-1">
                 <button onClick={() => setActiveTab("mac")}
                   className={`px-3 py-1 rounded font-mono text-xs transition-colors ${activeTab === "mac" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  macOS / Linux
+                  Browser
                 </button>
                 <button onClick={() => setActiveTab("windows")}
                   className={`px-3 py-1 rounded font-mono text-xs transition-colors ${activeTab === "windows" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                  Windows
+                  Windows / WSL
                 </button>
               </div>
             </div>
@@ -124,37 +120,33 @@ const Hero = () => {
             <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-4">
               <code className="text-primary font-mono text-sm flex-1 text-left">
                 <span className="text-muted-foreground mr-2">~</span>
-                <span className="text-cyan-400">curl</span>
-                <span className="text-muted-foreground"> -fsSL </span>
-                <span className="text-primary">https://agentic.lightos.sh</span>
-                <span className="text-muted-foreground"> | bash</span>
+                <Link to="/dashboard/providers" className="text-primary underline">Connect a compute account</Link>
               </code>
-              <button onClick={() => handleCopy("install")} className="text-muted-foreground hover:text-foreground transition-colors p-2 flex-shrink-0">
+              <Button variant="ghost" size="icon" aria-label="Copy compute connections link" onClick={() => handleCopy("install")}>
                 {copied === "install" ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-              </button>
+              </Button>
             </div>
 
             {/* Line 2 — onboard */}
             <div className="px-4 pb-4 flex items-center justify-between gap-4">
               <code className="text-primary font-mono text-sm flex-1 text-left">
                 <span className="text-muted-foreground mr-2">~</span>
-                <span className="text-green-400">lightos</span>
-                <span className="text-primary"> onboard</span>
+                <Link to="/docs#quickstart" className="text-primary underline">Read the setup prerequisites</Link>
                 <motion.span
                   animate={{ opacity: [1, 0, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
                   className="text-primary ml-0.5">▌</motion.span>
               </code>
-              <button onClick={() => handleCopy("onboard")} className="text-muted-foreground hover:text-foreground transition-colors p-2 flex-shrink-0">
+              <Button variant="ghost" size="icon" aria-label="Copy first-run guide link" onClick={() => handleCopy("onboard")}>
                 {copied === "onboard" ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-              </button>
+              </Button>
             </div>
           </motion.div>
 
           {/* Sub-caption */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
             className="text-xs text-muted-foreground mt-4 font-mono">
-            Seamless integration with your existing clusters — any vendor, any runtime · No YAML required
+            Free: one GPU · Monitoring only · No card required · GPU rental billed separately
           </motion.p>
         </div>
 

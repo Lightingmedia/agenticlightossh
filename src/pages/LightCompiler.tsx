@@ -665,18 +665,18 @@ const LightCompiler = () => {
                 <span className="text-gradient glow-text">Photonically</span>
               </h2>
               <p className="text-muted-foreground mb-10">
-                One command to install. One decorator to compile.
-                Mathematically optimal WDM scheduling, out of the box.
+                Research preview: illustrative compilation and WDM scheduling.
+                Real execution requires supported hardware and a verified runtime.
               </p>
               <div className="terminal-window max-w-sm mx-auto mb-8">
                 <div className="px-4 py-3 space-y-1.5">
                   <div className="font-mono text-sm text-cyan-300">
                     <span className="text-muted-foreground mr-2">~</span>
-                    curl -fsSL https://agentic.lightos.sh | bash
+                    Reviewed source setup — see the first-run guide
                   </div>
                   <div className="font-mono text-sm text-green-400">
                     <span className="text-muted-foreground mr-2">~</span>
-                    lightos onboard
+                    Demo workflows do not prove hardware execution
                   </div>
                 </div>
               </div>

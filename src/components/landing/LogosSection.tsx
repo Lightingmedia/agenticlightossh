@@ -24,7 +24,7 @@ const LogosSection = () => {
           className="text-center mb-10"
         >
           <span className="text-sm text-muted-foreground uppercase tracking-wider">
-            Speaks every accelerator stack — seamlessly
+            Accelerator ecosystem roadmap · support depends on verified adapters
           </span>
         </motion.div>
 

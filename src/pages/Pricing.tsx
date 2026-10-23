@@ -22,7 +22,7 @@ const plans = [
     yearlyPriceId: null,
     features: [
       "1 GPU monitoring",
-      "Live utilization, power & cost",
+      "Usage and power with connected gateway",
       "Monitoring only",
       "No card required",
     ],
@@ -39,10 +39,10 @@ const plans = [
     yearlyPriceId: "starter_yearly",
     features: [
       "2 GPU monitoring slots",
-      "1 AI agent deployment",
+      "Agent planning · early access",
       "Basic telemetry dashboard",
       "Thermal alerts",
-      "7-day free trial",
+      "Your compute billed separately",
       "Email support",
     ],
     icon: Zap,
@@ -58,11 +58,11 @@ const plans = [
     yearlyPriceId: "pro_yearly",
     features: [
       "Unlimited GPU monitoring",
-      "10 AI agent deployments",
-      "LLM Serving (Ray Serve)",
-      "Agent Studio access",
-      "Advanced telemetry & Photonic Fabric",
-      "7-day free trial",
+      "Agent workflow tools · early access",
+      "Supported execution · pilot validation",
+      "Agent Studio workspace",
+      "Advanced telemetry with gateway",
+      "Photonic controls · research preview",
       "Priority support",
     ],
     icon: Cpu,
@@ -77,10 +77,10 @@ const plans = [
     monthlyPriceId: "enterprise_monthly",
     yearlyPriceId: null,
     features: [
-      "Unlimited everything",
-      "Dedicated GPU clusters",
-      "Custom model deployments",
-      "SLA guarantee (99.9%)",
+      "Unlimited monitoring slots",
+      "Bring your own GPU clusters",
+      "Custom integration planning",
+      "Service terms agreed separately",
       "Priority onboarding",
       "Custom integrations",
       "Dedicated account manager",
@@ -169,7 +169,7 @@ export default function Pricing() {
             Scale Your AI Infrastructure
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From single-GPU setups to enterprise photonic clusters. Start with a 7-day free trial.
+            Start free with one GPU. Paid plans are early access; GPU rental is billed separately by your provider.
           </p>
 
           {/* Billing toggle */}
@@ -235,7 +235,7 @@ export default function Pricing() {
                     onClick={() => handleSubscribe(plan)}
                     disabled={isCurrent}
                   >
-                    {isCurrent ? "Current Plan" : plan.id === "free" ? "Get Started Free" : "Start Free Trial"}
+                    {isCurrent ? "Current Plan" : plan.id === "free" ? "Get Started Free" : "Continue to Checkout"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -244,7 +244,7 @@ export default function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Free plan needs no card. Paid plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
+          Free: one GPU, monitoring only, no card required. Paid access and supported execution are subject to pilot validation. Compute charges are separate.
         </p>
       </div>
     </div>

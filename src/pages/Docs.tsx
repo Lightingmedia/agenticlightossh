@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import FirstRunGuide from "@/components/onboard/FirstRunGuide";
 
 const docSections = [
   {
@@ -23,8 +24,8 @@ const docSections = [
     title: "Getting Started",
     description: "Learn the basics of LightOS and create your first agent",
     links: [
-      { title: "Quick Start Guide", href: "#" },
-      { title: "Installation", href: "#" },
+      { title: "Quick Start Guide", href: "#quickstart" },
+      { title: "Installation", href: "#quickstart" },
       { title: "First Agent Tutorial", href: "#" },
       { title: "Core Concepts", href: "#" }
     ]
@@ -113,6 +114,8 @@ const Docs = () => {
           </motion.div>
         </section>
 
+        <FirstRunGuide />
+
         {/* Quick Links */}
         <section className="container mx-auto px-4 mb-16">
           <div className="flex flex-wrap justify-center gap-4">
@@ -183,9 +186,6 @@ const Docs = () => {
               <div className="flex justify-center gap-4">
                 <Button variant="outline" className="font-mono">
                   Join Discord
-                </Button>
-                <Button variant="outline" className="font-mono">
-                  GitHub Issues
                 </Button>
                 <Button className="font-mono">
                   Contact Support
