@@ -7,12 +7,12 @@ LightRail AI is building an infrastructure agent for compute you already own or 
 ## First run: hosted workspace, no CLI required
 
 1. Open [LightOS](https://agentic.lightos.sh), choose **Get Started Free**, and sign in or create an account. Complete required email confirmation.
-2. Open **Dashboard → Compute Providers** (`/dashboard/providers`). Select a supported provider and authentication method; follow its field-specific credential guidance. Prefer least-privilege access. Enter credentials in the connection form, never in chat.
-3. Give the connection a label and submit it. Rejected credentials show an error; `awaiting_gateway` means validation is not complete, not success.
-4. Use **Test connection**, then **Inventory**. An empty inventory can mean no resources or a model-only catalog. Inventory is not live GPU utilization or proof a job ran.
-5. For actual GPU usage, the deployment operator must configure a runtime gateway on an accessible GPU host. Follow [gateway setup](gateway/README.md), then open **Dashboard → Gateway Setup → Test connection** and the dashboard's **Live GPU usage & cost** panel. Missing hardware or a failed gateway must not become invented readings.
+2. On **Dashboard → Gateway Setup** (`/dashboard/gateway-setup`), connect a dedicated NVIDIA Brev GPU host running the [gateway](gateway/README.md). The initial self-service path accepts only Cloudflare quick-tunnel HTTPS origins (`*.trycloudflare.com`), not Modal addresses or arbitrary URLs. This path is implemented; real Brev hardware acceptance is still pending.
+3. Enter the tunnel address and the host's existing gateway token in **Connect your GPU**. The server validates inventory before storing the token encrypted, bound to your authenticated account. Never paste tokens into chat.
+4. Open **Dashboard → Overview → Live GPU monitoring**. Readings refresh every 15 seconds and show the collector and response timestamp. Missing readings stay unavailable; cost is an estimate using your entered rate, not provider billing evidence.
+5. A second detected GPU shows **Upgrade plan**; the server returns only one GPU's inventory and readings to Free accounts, recomputes aggregates, and denies GPU execution. **Disconnect** deletes this account's encrypted connection. Stop the host/tunnel or rotate its token separately to revoke other holders of that host token.
 
-The Free offer is **one GPU, monitoring only, no card required**. Extra GPUs require an upgrade. GPU rental is billed separately by the compute provider. Server-side entitlement and ownership checks are public-launch gates; UI filtering alone is not enforcement.
+The Free offer is **one GPU, monitoring only, no card required**. Extra GPUs require an upgrade. GPU rental is billed separately by the compute provider. Server enforcement is implemented in the shared runtime boundary; real-hardware acceptance and paid billing remain launch gates.
 
 ### Real telemetry prerequisites
 
@@ -21,7 +21,7 @@ The Free offer is **one GPU, monitoring only, no card required**. Extra GPUs req
 - Permission to run the gateway and save its HTTPS address and matching bearer token through secure server settings.
 - For inference jobs: a configured local model server. Default gateway setup is monitoring only.
 
-The hosted gateway configuration is deployment-wide, not a self-service private gateway per customer. Do not use shared gateway telemetry for public customer monitoring until ownership/isolation is verified. Hardware and model downloads may incur provider charges.
+Each account stores one dedicated host connection. The deployment-wide legacy gateway is accessible only to protected administrators, never as a fallback for customers without a connection. Sharing a host token shares that host's access; use a dedicated host per account. Hardware and model downloads may incur provider charges.
 
 ## Demo without GPU hardware
 
