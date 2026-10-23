@@ -695,7 +695,7 @@ const LLMServing = () => {
                   ) : deployments.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="p-8 text-center text-muted-foreground font-mono text-sm">
-                        No deployments yet — create one to get started.
+                        No deployments reported for your account yet.
                       </td>
                     </tr>
                   ) : (
