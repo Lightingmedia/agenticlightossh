@@ -1,8 +1,9 @@
-// Run explicitly with SUPABASE_DB_URL; fixtures never commit.
+// Requires a dedicated test DB connection able to SET ROLE authenticated; fixtures never commit.
+// The managed sandbox connection intentionally cannot impersonate that role.
 import postgres from "postgres";
 import { describe, expect, it } from "vitest";
 
-const connection = process.env.SUPABASE_DB_URL;
+const connection = process.env.OPERATIONAL_RLS_TEST_DB_URL;
 describe.skipIf(!connection)("live operational account isolation", () => {
   it("two customers see only their rows; admins retain access; writes and unlinked logs stay private", async () => {
     if (!connection) throw new Error("Database test connection required");
