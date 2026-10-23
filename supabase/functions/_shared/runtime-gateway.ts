@@ -1,4 +1,8 @@
-// Server-only client for the LightOS runtime gateway (see gateway spec).
+import { authorizeRuntimePath, runtimeAccess, RuntimeAccessError } from "./runtime-access.ts";
+import { decryptRuntimeToken, runtimeConnectionUrl } from "./runtime-connection.ts";
+import { limitMonitoring } from "./launch-policy.ts";
+
+// Deployment-wide fallback is resolved ONLY after protected admin authorization.
 export function gatewayConfig(): { baseUrl: string; token: string } | null {
   const raw = Deno.env.get("LIGHTOS_RUNTIME_GATEWAY_URL")?.trim();
   const token = Deno.env.get("LIGHTOS_RUNTIME_GATEWAY_TOKEN")?.trim();
@@ -16,10 +20,19 @@ export async function gatewayFetch(
   user: { id: string; email?: string },
   init: { method?: string; body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<any> {
-  const cfg = gatewayConfig();
+  const env = (name: string) => Deno.env.get(name);
+  const access = await runtimeAccess(user.id, env);
+  authorizeRuntimePath(path, init.method ?? "GET", access.tier);
+  const cfg = access.connection ? {
+    baseUrl: runtimeConnectionUrl(access.connection.base_url),
+    token: await decryptRuntimeToken(access.connection.token_ciphertext, user.id, env),
+  } : gatewayConfig();
   if (!cfg) throw new Error("LightOS runtime gateway is not configured");
-  const res = await fetch(`${cfg.baseUrl}${path}`, {
+  const rawFetch = async (target: string) => {
+  const res = await fetch(`${cfg.baseUrl}${target}`, {
     method: init.method ?? "GET",
+    redirect: "error",
+    signal: AbortSignal.timeout(15000),
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
@@ -27,13 +40,22 @@ export async function gatewayFetch(
       "X-LightOS-User-ID": user.id,
       "X-LightOS-User-Email": user.email ?? "unknown",
       "X-Request-ID": crypto.randomUUID(),
-      ...(init.headers ?? {}),
+      ...(init.headers?.["Idempotency-Key"] ? { "Idempotency-Key": init.headers["Idempotency-Key"] } : {}),
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
   });
-  const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = { message: text.slice(0, 300) }; }
-  if (!res.ok) throw new Error(data?.message ?? `Runtime gateway returned ${res.status}`);
-  return data;
+  // Upstream bodies may contain secrets; never echo errors or log them.
+  if (!res.ok) throw new RuntimeAccessError(res.status === 401 ? "Invalid gateway token" : `Runtime gateway returned ${res.status}`, 502);
+  return res.json();
+  };
+  const pathname = path.split("?")[0];
+  if ((init.method ?? "GET") === "GET" && ["/v1/fabric/capacity", "/v1/fabric/telemetry"].includes(pathname)) {
+    const [capacity, telemetry] = await Promise.all([
+      rawFetch("/v1/fabric/capacity?runtime=cuda"),
+      rawFetch(pathname === "/v1/fabric/telemetry" ? path : "/v1/fabric/telemetry?window_seconds=60"),
+    ]);
+    const limited = limitMonitoring(capacity, telemetry, access.tier);
+    return { ...(pathname === "/v1/fabric/capacity" ? limited.capacity : limited.telemetry), entitlement: limited.entitlement };
+  }
+  return rawFetch(path);
 }

@@ -5,10 +5,9 @@ export class RuntimeAccessError extends Error {
   constructor(message: string, public status = 403) { super(message); }
 }
 
-// Interim release boundary: one deployment-wide gateway is NOT a customer-owned
-// resource. Only protected admin-role operators may inspect it, until workspace
-// resource ownership is implemented and verified. Paid status never grants admin.
-export async function runtimeAccess(userId: string, env: ReadEnv): Promise<{ tier: LaunchTier }> {
+// Customers use only their dedicated connection; deployment-wide fallback is
+// restricted to protected administrators. Paid status never grants ownership.
+export async function runtimeAccess(userId: string, env: ReadEnv): Promise<{ tier: LaunchTier; connection: { base_url: string; token_ciphertext: string } | null }> {
   const base = env("SUPABASE_URL");
   const key = env("SUPABASE_SERVICE_ROLE_KEY");
   if (!base || !key) throw new RuntimeAccessError("Runtime authorization is unavailable", 503);
@@ -19,14 +18,19 @@ export async function runtimeAccess(userId: string, env: ReadEnv): Promise<{ tie
     return response.json();
   };
   const id = encodeURIComponent(userId);
-  const roles = await query("user_roles", `select=role&user_id=eq.${id}&role=eq.admin`);
-  if (!Array.isArray(roles) || !roles.some((r) => r.role === "admin")) {
-    throw new RuntimeAccessError("This shared runtime gateway is restricted to deployment administrators until private workspace access is verified.");
+  const connections = await query("runtime_connections", `select=base_url,token_ciphertext&user_id=eq.${id}`);
+  if (!Array.isArray(connections)) throw new RuntimeAccessError("Connection ownership could not be verified", 503);
+  const connection = connections[0] ?? null;
+  if (!connection) {
+    const roles = await query("user_roles", `select=role&user_id=eq.${id}&role=eq.admin`);
+    if (!Array.isArray(roles) || !roles.some((r) => r.role === "admin")) {
+      throw new RuntimeAccessError("Connect your own GPU host to start monitoring", 404);
+    }
   }
   // Live entitlements only; sandbox subscriptions must never authorize production.
   const rows = await query("subscriptions", `select=price_id,status,current_period_end&user_id=eq.${id}&environment=eq.live`);
   if (!Array.isArray(rows)) throw new RuntimeAccessError("Subscription access could not be verified", 503);
-  return { tier: subscriptionTier(rows) };
+  return { tier: subscriptionTier(rows), connection };
 }
 
 export function authorizeRuntimePath(path: string, method: string, tier: LaunchTier) {
