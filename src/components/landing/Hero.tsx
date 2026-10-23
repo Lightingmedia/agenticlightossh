@@ -5,7 +5,7 @@ import WorkloadJourney from "./WorkloadJourney";
 
 const Hero = () => {
   return (
-    <section className="relative pt-36 pb-8 overflow-hidden bg-background">
+    <section className="relative pt-44 sm:pt-36 pb-8 overflow-hidden bg-background">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-6">
           <div className="max-w-2xl">
