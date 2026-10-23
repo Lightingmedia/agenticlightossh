@@ -1,5 +1,10 @@
 # Roadmap
 
+- [ ] Free-tier onboarding end to end: sign up → connect GPU → live dashboard → second-GPU upgrade prompt
+  - [ ] Enforce one-GPU monitoring entitlement on every server runtime access path
+  - [ ] Verify signed-in onboarding and cross-user isolation
+  - [ ] Connect the running Brev address/token securely and confirm measured dashboard numbers (needs running Brev GPU)
+
 - [ ] Evidence-led early-access launch
   - [ ] Credential triage, honest public copy, working quickstart, CI
   - [ ] Real agent loop: capacity → plan → approval → inference → read-back (needs accessible GPU account/host and budget)
