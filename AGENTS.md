@@ -6,3 +6,6 @@
 - The runtime gateway lives in gateway/ as one plain ASGI app (Docker + outbound tunnel for GPU hosts, thin Modal wrapper as fallback) and only reports measured GPU data, returning a reason instead of numbers when none is visible, so the dashboard can never show fabricated usage.
 
 - Keep the product explanation in `docs/product-brief.md` and setup prerequisites in the root README, so future work distinguishes source implementation from verified operation.
+
+- Runtime access resolves one encrypted dedicated-host connection per authenticated user, with admin-only deployment fallback, and enforces entitlements in the shared server gateway wrapper; MCP forwards verified caller tokens to that boundary so no client can bypass the free monitoring limit.
+- Initial user-supplied runtime addresses are Cloudflare quick-tunnel HTTPS origins only, with redirects disabled, to prevent arbitrary-host credential forwarding and SSRF until broader tunnel providers are verified.

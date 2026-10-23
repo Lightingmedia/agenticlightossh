@@ -11,19 +11,10 @@ function runtimeEnv(name: string): string | undefined {
 }
 
 function runtimeGatewayConfig() {
-  const rawUrl = runtimeEnv("LIGHTOS_RUNTIME_GATEWAY_URL")?.trim();
-  const token = runtimeEnv("LIGHTOS_RUNTIME_GATEWAY_TOKEN")?.trim();
-  if (!rawUrl || !token) {
-    throw new Error("LightOS runtime gateway is not configured");
-  }
-
-  const url = new URL(rawUrl);
-  const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  if (url.protocol !== "https:" && !(isLocal && url.protocol === "http:")) {
-    throw new Error("LightOS runtime gateway must use HTTPS");
-  }
-
-  return { baseUrl: url.toString().replace(/\/$/, ""), token };
+  const baseUrl = runtimeEnv("SUPABASE_URL");
+  const key = runtimeEnv("SUPABASE_ANON_KEY");
+  if (!baseUrl || !key) throw new Error("Runtime authorization unavailable");
+  return { baseUrl, key };
 }
 
 export async function callRuntimeGateway(
@@ -32,17 +23,19 @@ export async function callRuntimeGateway(
   init: { method?: "GET" | "POST"; body?: unknown } = {},
 ) {
   if (!ctx.isAuthenticated()) throw new Error("Authenticated LightOS user required");
-  const { baseUrl, token } = runtimeGatewayConfig();
-  const response = await fetch(`${baseUrl}${path}`, {
-    method: init.method ?? "GET",
+  const token = ctx.getToken();
+  if (!token) throw new Error("Verified OAuth token required");
+  const { baseUrl, key } = runtimeGatewayConfig();
+  const response = await fetch(`${baseUrl}/functions/v1/runtime-proxy`, {
+    method: "POST",
+    signal: ctx.signal,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      "X-LightOS-User-ID": ctx.getUserId() ?? "unknown",
-      "X-LightOS-User-Email": ctx.getUserEmail() ?? "unknown",
+      apikey: key,
     },
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    body: JSON.stringify({ path, method: init.method ?? "GET", ...(init.body === undefined ? {} : { body: init.body }) }),
   });
   const text = await response.text();
   let data: unknown = null;
@@ -54,8 +47,8 @@ export async function callRuntimeGateway(
     }
   }
   if (!response.ok) {
-    const safeMessage = data && typeof data === "object" && "message" in data
-      ? String(data.message)
+    const safeMessage = data && typeof data === "object" && "error" in data
+      ? String(data.error)
       : `Runtime gateway returned ${response.status}`;
     throw new Error(safeMessage);
   }

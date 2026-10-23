@@ -4,8 +4,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 // Only allow same-origin relative paths as `next` targets.
 function safeNext(raw: string | null): string | null {
   if (!raw) return null;
-  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
-  return raw;
+  if (!raw.startsWith("/") || raw.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(raw)) return null;
+  const url = new URL(raw, "https://app.invalid");
+  return url.origin === "https://app.invalid" ? `${url.pathname}${url.search}${url.hash}` : null;
 }
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,9 @@ const Auth = () => {
   const { toast } = useToast();
 
   const goPostAuth = () => {
-    if (nextPath) window.location.href = nextPath;
-    else navigate("/dashboard");
+    const pending = safeNext(sessionStorage.getItem("lightos:auth-next"));
+    sessionStorage.removeItem("lightos:auth-next");
+    navigate(nextPath ?? pending ?? "/dashboard/gateway-setup");
   };
 
   useEffect(() => {
@@ -58,7 +60,7 @@ const Auth = () => {
       email, password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: nextPath ? `${window.location.origin}${nextPath}` : window.location.origin,
+        emailRedirectTo: `${window.location.origin}/auth?next=${encodeURIComponent(nextPath ?? "/dashboard/gateway-setup")}`,
       }
     });
     setLoading(false);
@@ -79,8 +81,9 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     const { lovable } = await import("@/integrations/lovable");
+    sessionStorage.setItem("lightos:auth-next", nextPath ?? "/dashboard/gateway-setup");
     await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: nextPath ? `${window.location.origin}${nextPath}` : `${window.location.origin}/dashboard`,
+      redirect_uri: `${window.location.origin}/auth`,
     });
   };
 
@@ -129,8 +132,8 @@ const Auth = () => {
               <Layers className="w-6 h-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="font-mono text-2xl">LightOS Admin</CardTitle>
-          <CardDescription>Sign in to access the admin panel</CardDescription>
+          <CardTitle className="font-mono text-2xl">LightOS</CardTitle>
+          <CardDescription>Free monitoring for one GPU. No card required.</CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="outline" className="w-full mb-6 font-mono" onClick={handleGoogleLogin}>
