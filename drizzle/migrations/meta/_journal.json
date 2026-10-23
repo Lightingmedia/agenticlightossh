@@ -29,6 +29,13 @@
       "when": 1791389884073,
       "tag": "0003_node_enrollments_and_agents_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792731451801,
+      "tag": "0004_owned_runtime_connections",
+      "breakpoints": true
     }
   ]
 }
