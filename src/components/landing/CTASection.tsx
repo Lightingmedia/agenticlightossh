@@ -39,36 +39,35 @@ const CTASection = () => {
         <div>
           <ScrollReveal className="text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold font-mono mb-6">
-              <span className="text-foreground">Stop Wasting Your </span>
-              <span className="text-gradient glow-text">GPU Cluster</span>
+              <span className="text-foreground">Start with </span>
+              <span className="text-gradient glow-text">Your Compute</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-              Put every accelerator to work — any vendor, any runtime — with one
-              conversational layer. Get started in minutes, scale to millions of requests.
+              Connect a supported account and inspect available capacity. Start with
+              one-GPU monitoring; explore agent planning as part of early access.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/onboard">
+              <Link to="/auth?next=/dashboard/providers">
                 <Button
                   size="lg"
                   className="font-mono bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 group"
                 >
-                  Run lightos onboard
+                  Get Started Free
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button
+              <Button asChild
                 size="lg"
                 variant="outline"
                 className="font-mono border-border hover:border-primary/50"
               >
-                <BookOpen className="mr-2 w-4 h-4" />
-                Read the Docs
+                <Link to="/docs#quickstart"><BookOpen className="mr-2 w-4 h-4" />First-run Guide</Link>
               </Button>
             </div>
 
             <p className="text-sm text-muted-foreground mt-8 font-mono">
-              Free tier includes 100K inference tokens/month • No credit card required
+              Free: one GPU, monitoring only · No card required · Compute billed separately
             </p>
           </ScrollReveal>
         </div>

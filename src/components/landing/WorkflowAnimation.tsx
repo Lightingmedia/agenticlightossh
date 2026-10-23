@@ -472,7 +472,7 @@ const WorkflowAnimation = () => {
             }}>
               <Zap size={13} style={{ color: STAGES[activeStage].color }} />
               <span style={{ fontSize: 11, fontFamily: "monospace", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                LightRail Compiler Workflow
+                Research preview · illustrative compiler workflow
               </span>
             </div>
 
@@ -485,7 +485,7 @@ const WorkflowAnimation = () => {
               }}>Compilation Pipeline</span>
             </h2>
             <p style={{ fontSize: 14, color: "#6b7280", fontFamily: "monospace", maxWidth: 500, margin: "0 auto" }}>
-              Click any stage or watch the auto-play. Each stage lights up as data flows through the photonic fabric.
+              Roadmap visualization, not a connected photonic fabric. All timings, counts, and outcomes below are illustrative, not measured benchmarks.
             </p>
 
             {/* Controls */}

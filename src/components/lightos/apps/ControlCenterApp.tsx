@@ -212,9 +212,9 @@ function OverviewPanel() {
           <div className="space-y-2 text-[12px] font-mono">
             <div className="flex justify-between"><span className="text-foreground/50">Version</span><span className="text-foreground/80">v2.1.4 · NCE-Native</span></div>
             <div className="flex justify-between items-center"><span className="text-foreground/50">SOC2</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded border border-emerald-400/40 bg-emerald-400/10 text-emerald-400">Compliant</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground">Not verified</span>
             </div>
-            <div className="flex justify-between"><span className="text-foreground/50">Last audit</span><span className="text-foreground/80">June 15, 2026</span></div>
+            <div className="flex justify-between"><span className="text-foreground/50">Last audit</span><span className="text-foreground/80">Not verified</span></div>
           </div>
         </div>
 

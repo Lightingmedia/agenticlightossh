@@ -10,43 +10,43 @@ const features = [
     icon: MessageSquare,
     title: "Conversational Control",
     description:
-      "Zero-code natural language execution. Allocate, schedule, and heal GPU workloads by simply asking — no YAML, no cluster DSL, no orchestration code.",
-    tag: "Zero-Code",
+      "Express workload intent through conversation. Inspect the agent's interpretation before taking action; automatic cluster healing is not part of the launch offer.",
+    tag: "Agent-first",
   },
   {
     icon: Cpu,
-    title: "Universal Runtime Translation",
+    title: "Runtime-aware Planning",
     description:
-      "Aurora validates workload intent against live CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity, then returns a policy-controlled placement and runtime plan through one authenticated gateway.",
-    tag: "Universal",
+      "Request capacity and placement plans through an authenticated runtime gateway. Runtime support depends on connected hardware and verified adapters, not a universal translation guarantee.",
+    tag: "Early access",
   },
   {
     icon: GitBranch,
-    title: "Dynamic Fabric Allocation",
+    title: "Supported Execution",
     description:
-      "Workloads flow to wherever capacity exists — across vendors and runtimes. Dynamic fabric allocation pushes cluster utilization to 70–85%, where legacy schedulers stall at 50–60%.",
-    tag: "Utilization",
+      "The next pilot milestone is one approved, bounded inference job with a verified outcome. Autonomous fabric allocation remains roadmap work; no utilization gain is promised.",
+    tag: "Pilot milestone",
   },
   {
     icon: Package,
     title: "Seamless Integration",
     description:
-      "Drop into existing fleets in minutes — one-click catalog deploys, pre-validated containers, drivers and frameworks for any high-density accelerator infrastructure.",
-    tag: "Zero Friction",
+      "Bring a supported provider credential or an existing GPU host. Available inventory and telemetry depend on your provider, permissions, and gateway configuration.",
+    tag: "Your compute",
   },
   {
     icon: Activity,
-    title: "Kernel-Level Telemetry",
+    title: "Measured GPU Telemetry",
     description:
-      "Real-time visibility into every compute stream and inference call, on any accelerator. Track latency, throughput, and thermal behavior across the entire fabric.",
+      "A connected NVIDIA gateway can report NVML or DCGM usage, power, and temperature. Missing hardware is shown as unavailable, not as a successful connection.",
     tag: "Observability",
   },
   {
     icon: ShieldCheck,
-    title: "Zero-Trust for GPU Fleets",
+    title: "Controlled Access",
     description:
-      "End-to-end encryption with SOC2 compliance. Keep sensitive training data on-premise while burst-elastic compute scales in the cloud.",
-    tag: "Security",
+      "Private provider credentials stay server-side. Authentication and authorization are required; account isolation and execution controls are launch gates, not a SOC 2 certification claim.",
+    tag: "Trust",
   },
 ];
 
@@ -73,7 +73,7 @@ const FeaturesSection = () => {
           <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-border bg-card/50">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
-              One Layer. Every Accelerator.
+              What is available. What comes next.
             </span>
           </div>
           <h2 className="text-3xl md:text-5xl font-bold font-mono mb-4">
@@ -82,9 +82,9 @@ const FeaturesSection = () => {
             <span className="text-gradient">Without the Friction</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Aurora Fabric OS transforms complex accelerator orchestration into an
-            intuitive, autonomous conversational layer — from a single node to
-            heterogeneous, high-density datacenter clusters.
+            The agent is the product. This workspace brings together compute connections,
+            capacity inspection, and workload planning. Execution and wider hardware support
+            expand only after real-world verification.
           </p>
         </ScrollReveal>
 
