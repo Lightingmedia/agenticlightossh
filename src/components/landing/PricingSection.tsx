@@ -15,7 +15,7 @@ const plans = [
     yearlyPrice: null,
     features: [
       "1 GPU monitoring",
-      "Live utilization, power & cost",
+      "Usage and power with connected gateway",
       "Monitoring only",
       "No card required",
     ],
@@ -30,10 +30,10 @@ const plans = [
     yearlyPrice: 470,
     features: [
       "2 GPU monitoring slots",
-      "1 AI agent deployment",
+      "Agent planning · early access",
       "Basic telemetry dashboard",
       "Thermal alerts",
-      "7-day free trial",
+      "Your compute billed separately",
     ],
     icon: Zap,
     popular: false,
@@ -46,11 +46,11 @@ const plans = [
     yearlyPrice: 1430,
     features: [
       "Unlimited GPU monitoring",
-      "10 AI agent deployments",
-      "LLM Serving (Ray Serve)",
-      "Agent Studio access",
-      "Advanced telemetry & Photonic Fabric",
-      "7-day free trial",
+      "Agent workflow tools · early access",
+      "Supported execution · pilot validation",
+      "Agent Studio workspace",
+      "Advanced telemetry with gateway",
+      "Photonic controls · research preview",
     ],
     icon: Cpu,
     popular: true,
@@ -62,11 +62,11 @@ const plans = [
     monthlyPrice: 499,
     yearlyPrice: null,
     features: [
-      "Unlimited everything",
-      "Dedicated GPU clusters",
-      "Custom model deployments",
-      "SLA guarantee (99.9%)",
-      "Dedicated account manager",
+      "Unlimited monitoring slots",
+      "Bring your own GPU clusters",
+      "Custom integration planning",
+      "Service terms agreed separately",
+      "Assisted onboarding · early access",
     ],
     icon: Shield,
     popular: false,
@@ -88,7 +88,7 @@ const PricingSection = () => {
             Scale Your AI Infrastructure
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            From single-GPU setups to enterprise photonic clusters. Start with a 7-day free trial.
+            Start free with one GPU. Paid plans are early access; GPU rental is billed separately by your provider.
           </p>
 
           <div className="flex items-center justify-center gap-3 mt-8">
@@ -151,7 +151,7 @@ const PricingSection = () => {
                     variant={plan.popular ? "default" : "outline"}
                     asChild
                   >
-                    <Link to={plan.id === "free" ? "/auth" : "/pricing"}>{plan.id === "free" ? "Get Started Free" : "Start Free Trial"}</Link>
+                    <Link to={plan.id === "free" ? "/auth?next=/dashboard/providers" : "/pricing"}>{plan.id === "free" ? "Get Started Free" : "View Paid Plan"}</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -160,7 +160,7 @@ const PricingSection = () => {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Free plan needs no card. Paid plans include a 7-day free trial. Cancel anytime. Downgrades take effect at period end.
+          Free: one GPU, monitoring only, no card required. Paid access and supported execution are subject to pilot validation. Compute charges are separate.
         </p>
       </div>
     </section>
