@@ -18,4 +18,9 @@ describe("launch entitlements", () => {
     expect(result.entitlement.upgrade_required).toBe(true);
   });
   it("missing runtime authorization denies access", async () => { await expect(runtimeAccess("user-a", () => undefined)).rejects.toThrow("unavailable"); });
+  it("missing measured data stays unavailable instead of zero usage", () => {
+    const result = limitMonitoring({ nodes: [{ devices: [{ uuid: "GPU-1" }] }], totals: { devices: 1 } }, { devices: [{ uuid: "GPU-1", gpu_util_pct: { avg: null }, power_w: { avg: null } }] }, "free");
+    expect(result.telemetry.cluster.gpu_util_pct_avg).toBeNull();
+    expect(result.telemetry.cluster.power_w_sum).toBeNull();
+  });
 });
