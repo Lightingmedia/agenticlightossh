@@ -19,9 +19,9 @@ describe.skipIf(!connection)("live operational account isolation", () => {
         if (!adminId) throw new Error("An auth identity is required to verify admin policies");
         await tx`insert into public.user_roles(user_id,role) values (${adminId},'admin') on conflict do nothing`;
         for (const owner of [a, b, null]) {
-          await tx`insert into public.agents(agent_id,name,type,user_id) values (${marker},${marker},'test',${owner})`;
-          await tx`insert into public.inference_tasks(task_id,model,user_id) values (${marker},'test',${owner})`;
-          await tx`insert into public.thermal_zones(zone_id,name,user_id) values (${marker},${marker},${owner})`;
+          await tx`insert into public.agents(agent_id,name,type,user_id) values (${crypto.randomUUID()},${marker},'test',${owner})`;
+          await tx`insert into public.inference_tasks(task_id,model,user_id) values (${crypto.randomUUID()},${marker},${owner})`;
+          await tx`insert into public.thermal_zones(zone_id,name,user_id) values (${crypto.randomUUID()},${marker},${owner})`;
           const deps = await tx`insert into public.llm_deployments(name,user_id) values (${marker},${owner}) returning id`;
           await tx`insert into public.llm_deployment_logs(deployment_id,message) values (${deps[0].id},${marker})`;
         }
@@ -30,7 +30,7 @@ describe.skipIf(!connection)("live operational account isolation", () => {
         for (const actor of [a, b, adminId]) {
           await tx`select set_config('request.jwt.claim.sub',${actor},true)`;
           const expected = actor === adminId ? 3 : 1;
-          for (const [table, field] of [['agents','agent_id'],['inference_tasks','task_id'],['thermal_zones','zone_id'],['llm_deployments','name']]) {
+          for (const [table, field] of [['agents','name'],['inference_tasks','model'],['thermal_zones','name'],['llm_deployments','name']]) {
             const rows = await tx`select user_id from public.${tx(table)} where ${tx(field)} = ${marker}`;
             expect(rows).toHaveLength(expected);
             if (actor !== adminId) expect(rows[0].user_id).toBe(actor);
