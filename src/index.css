@@ -10,6 +10,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The workload hero uses a responsive, unframed topology canvas. */
+@layer components {
+  .workload-map { position: relative; height: 320px; background-image: radial-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px); background-size: 20px 20px; }
+  .workload-connections { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .workload-node { position: absolute; transform: translate(-50%, -50%); width: 170px; padding: 14px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--card)); color: hsl(var(--foreground)); font-family: 'JetBrains Mono', monospace; font-size: 12px; transition: border-color 400ms, box-shadow 400ms; }
+  .workload-node p { margin-top: 7px; font-size: 10px; color: hsl(var(--muted-foreground)); }
+  .workload-input { left: 14%; top: 28.125%; }
+  .workload-policy { left: 14%; top: 75.625%; }
+  .workload-agent { left: 38%; top: 50%; width: 190px; text-align: center; border-color: hsl(var(--lightrail) / 0.45); }
+  .workload-chip { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin: 0 auto 10px; border: 1px solid hsl(var(--lightrail) / 0.4); border-radius: 8px; background: hsl(var(--lightrail) / 0.06); }
+  .workload-scheduler { left: 64%; top: 28.125%; }
+  .workload-router { left: 64%; top: 75.625%; }
+  .workload-target { left: 88%; top: 50%; width: 140px; text-align: center; }
+  .workload-target > svg { margin-left: auto; margin-right: auto; }
+  .workload-status { display: block; margin-top: 12px; padding-top: 8px; border-top: 1px solid hsl(var(--border)); font-size: 9px; color: hsl(var(--lightrail)); }
+  .workload-active { border-color: hsl(var(--lightrail) / 0.8); box-shadow: 0 0 22px hsl(var(--lightrail) / 0.09); }
+  .workload-feedback { position: absolute; bottom: 6px; left: 48%; }
+  @media (max-width: 767px) {
+    .workload-map { height: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 18px 0; }
+    .workload-node { position: relative; left: auto; top: auto; transform: none; width: auto; padding: 12px; min-width: 0; }
+    .workload-agent { grid-column: span 2; grid-row: 2; display: grid; grid-template-columns: 48px 1fr; text-align: left; column-gap: 12px; align-items: center; }
+    .workload-chip { grid-row: span 3; width: 48px; height: 48px; margin: 0; }
+    .workload-agent > span { margin-top: 6px; }
+    .workload-target { grid-column: span 2; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; text-align: left; }
+    .workload-target > svg { width: 24px; height: 24px; margin: 0; }
+    .workload-target p { margin: 0; }
+    .workload-target .workload-status { margin: 0 0 0 auto; border: 0; padding: 0; }
+    .workload-connections, .workload-feedback { display: none; }
+  }
+}
+
 /* LightOS Design System - Dark Terminal Aesthetic */
 
 @layer base {
