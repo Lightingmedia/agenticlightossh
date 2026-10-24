@@ -1,6 +1,8 @@
 # Roadmap
 
 - [ ] Host website and GPU services on Brev; keep accounts and billing on Cloud
+  - [x] Explain safe command sharing using secret-name references and secure key entry
+  - [ ] Review user-provided Brev commands without embedded credentials (waiting for commands)
   - [x] Prepare isolated static-website container and separate tunnel instructions
   - [ ] Verify authorized Brev VM execution access (API-key capability unverified)
   - [ ] Run deployment and confirm website plus measured GPU readings
