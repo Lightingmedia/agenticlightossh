@@ -1,5 +1,11 @@
 # Roadmap
 
+- [ ] Host website and GPU services on Brev; keep accounts and billing on Cloud
+  - [x] Prepare isolated static-website container and separate tunnel instructions
+  - [ ] Verify authorized Brev VM execution access (API-key capability unverified)
+  - [ ] Run deployment and confirm website plus measured GPU readings
+  - [ ] Verify stable-origin auth/billing, Free limits, and domain cutover before launch
+
 - [ ] Verify Brev readings before republishing the one-GPU Free release
   - [ ] Reject additional Free GPU connections across connection/enrollment paths (currently readings are filtered, connections are not rejected)
   - [ ] Confirm measured readings in the requesting user's dashboard (currently no GPU host is connected)

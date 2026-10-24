@@ -1,5 +1,7 @@
 # Architecture Rules
 
+- Brev self-hosting packages only the static website alongside the existing GPU runtime; Cloud retains accounts, billing, data, and authorization so hosting changes do not silently migrate or bypass those boundaries.
+
 - Keep the landing workload illustration in its own presentation-only component, separate from live gateway state, so animated scheduling and deployment cannot be mistaken for verified execution.
 
 - The browser submits constrained workload intent only; Aurora Fabric OS is the sole privileged execution authority because drivers, shells, containers, and cluster control must remain server-side.
