@@ -49,6 +49,7 @@ const monitoringItems = [
 ];
 
 const lightosItems = [
+  { icon: GitBranch, label: "Compute Exchange", path: "/dashboard/exchange" },
   { icon: CloudCog, label: "Compute Providers", path: "/dashboard/providers" },
   { icon: Server, label: "Clusters", path: "/dashboard/clusters" },
   { icon: FileText, label: "Runs", path: "/dashboard/runs" },

@@ -28,6 +28,7 @@ import RuleBuilder from "./pages/RuleBuilder";
 import ActionOrchestrator from "./pages/ActionOrchestrator";
 import DeployAgent from "./pages/DeployAgent";
 import AgentMonitor from "./pages/AgentMonitor";
+import ComputeExchange from "./pages/ComputeExchange";
 import PhotonicFabric from "./pages/PhotonicFabric";
 import AgentStudio from "./pages/AgentStudio";
 import Docs from "./pages/Docs";
@@ -116,6 +117,8 @@ const App = () => (
             <Route path="accelerator" element={<AcceleratorRuntime />} />
             <Route path="gateway-setup" element={<GatewaySetup />} />
             <Route path="providers" element={<ComputeProviders />} />
+            <Route path="exchange" element={<ComputeExchange />} />
+            <Route path="exchange/:section" element={<ComputeExchange />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
