@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 
 const stages = [
   { name: "Understand", detail: "AI interprets the workload and its constraints." },
-  { name: "Plan", detail: "Capacity, memory, and policy inform the placement plan." },
-  { name: "Schedule", detail: "The scheduler selects a suitable compute target." },
-  { name: "Route", detail: "A workload route is proposed for your approval." },
+  { name: "Plan", detail: "Capacity, memory, and policy inform a recommendation." },
+  { name: "Measure", detail: "A baseline records utilization, memory, and stalls on your GPUs." },
+  { name: "Diagnose", detail: "Stalls and bottlenecks are explained against your baseline." },
   { name: "Approve", detail: "Your approval is required before supported execution." },
   { name: "Deploy", detail: "Illustrative execution → readings return to the agent." },
 ];
@@ -63,18 +63,18 @@ export default function WorkloadJourney() {
         <div className={`workload-node workload-agent ${stage <= 1 || stage === 5 ? "workload-active" : ""}`}>
           <div className="workload-chip"><BrainCircuit className="h-8 w-8 text-lightrail" /></div>
           <h2 className="text-xl font-bold text-foreground">LightOS</h2>
-          <p className="text-lightrail">AI orchestration agent</p>
+          <p className="text-lightrail">AI infrastructure agent</p>
           <span className="mt-3 block text-[10px] text-muted-foreground">OBSERVE → REASON → PLAN</span>
         </div>
         <div className={`workload-node workload-scheduler ${stage === 2 ? "workload-active" : ""}`}>
-          <div className="flex items-center gap-2"><Workflow className="h-4 w-4 text-lightrail" /><span>Schedule</span></div>
-          <p>Match capacity & locality</p>
-          <span className="workload-status">{stage >= 2 ? "Placement proposed" : "Evaluating targets"}</span>
+          <div className="flex items-center gap-2"><Workflow className="h-4 w-4 text-lightrail" /><span>Measure</span></div>
+          <p>Baseline utilization & stalls</p>
+          <span className="workload-status">{stage >= 2 ? "Baseline recorded" : "Reading GPUs"}</span>
         </div>
         <div className={`workload-node workload-router ${stage === 3 || stage === 4 ? "workload-active" : ""}`}>
-          <div className="flex items-center gap-2"><GitBranch className="h-4 w-4 text-glow-secondary" /><span>Route</span></div>
-          <p>Workload → compute target</p>
-          <span className="workload-status">{stage >= 4 ? "Approval gate" : "Route proposed"}</span>
+          <div className="flex items-center gap-2"><GitBranch className="h-4 w-4 text-glow-secondary" /><span>Diagnose</span></div>
+          <p>Bottlenecks vs. baseline</p>
+          <span className="workload-status">{stage >= 4 ? "Approval gate" : "Findings ready"}</span>
         </div>
         <div className={`workload-node workload-target ${stage === 5 ? "workload-active" : ""}`}>
           <Cpu className={`h-8 w-8 mb-3 ${stage === 5 ? "text-lightrail" : "text-muted-foreground"}`} />
