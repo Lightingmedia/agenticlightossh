@@ -26,6 +26,10 @@ case "$NIM_IMAGE" in
   nvcr.io/nim/*) ;;
   *) fail "NIM_IMAGE must be an nvcr.io/nim/ image with an explicit tag" ;;
 esac
+case "${NIM_IMAGE##*/}" in
+  *:*) ;;
+  *) fail "NIM_IMAGE must include an explicit tag; an unpinned image is not allowed" ;;
+esac
 case "$NIM_IMAGE$INFERENCE_MODEL" in
   *$'\n'*|*$'\r'*) fail "image and model names must be single-line values" ;;
 esac

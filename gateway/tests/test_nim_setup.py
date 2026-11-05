@@ -5,6 +5,30 @@ import stat
 import subprocess
 
 
+def test_nim_setup_rejects_unpinned_image_before_reading_key(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    script = tmp_path / "setup-nim.sh"
+    script.write_text((root / "setup-nim.sh").read_text())
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    for name in ("docker", "nvidia-smi"):
+        executable = fake_bin / name
+        executable.write_text("#!/usr/bin/env bash\nexit 0\n")
+        executable.chmod(0o755)
+    env = os.environ.copy()
+    env.update({
+        "PATH": str(fake_bin) + os.pathsep + env["PATH"],
+        "NIM_IMAGE": "nvcr.io/nim/meta/test-nim",
+    })
+    result = subprocess.run(
+        ["bash", str(script)], cwd=tmp_path, env=env,
+        input="", text=True, capture_output=True, timeout=10,
+    )
+    assert result.returncode != 0
+    assert "explicit tag" in result.stderr
+    assert not (tmp_path / ".env.nim").exists()
+
+
 def test_nim_setup_scopes_secret_and_disables_competing_vllm(tmp_path):
     root = Path(__file__).resolve().parents[1]
     script = tmp_path / "setup-nim.sh"

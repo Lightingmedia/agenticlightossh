@@ -24,8 +24,8 @@ jobs call NIM over the private Docker network through its OpenAI-compatible API.
 ## Prerequisites
 
 - Authorized terminal access to the Linux/Brev VM; no root shell is used here.
-- Working `nvidia-smi`, Docker accessible as the current user, Docker Compose,
-  and NVIDIA Container Toolkit.
+- Working `nvidia-smi`, Docker accessible as the current user, Docker Compose
+  2.24 or newer (for the optional NIM credential file), and NVIDIA Container Toolkit.
 - An NGC API key with access to the selected image and model artifacts.
 - A GPU model, GPU count, and memory configuration supported by the chosen NIM.
   Check NVIDIA's current support matrix before pulling. The default is NVIDIA's
