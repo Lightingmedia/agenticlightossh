@@ -43,8 +43,8 @@
 - Modal gateway stays a CPU-only fallback (GPU billing declined)
 
 - [ ] Advisor direction (Boardy, Nov 2026)
-  - [ ] One-command, no-root, no-vendor-account installer that works on a machine we don't own
-  - [ ] Baseline-first sidecar: prints utilization + stall record for any cluster, with config and versions hashed into the report
+  - [x] One-command, no-root, no-vendor-account installer that works on a machine we don't own (`sidecar/install.sh`, served at /sidecar/install.sh)
+  - [x] Baseline-first sidecar: prints utilization + stall record for any cluster, with config and versions hashed into the report (`sidecar/lightos-baseline.py`; tested no-GPU honesty + simulated 2-GPU report)
   - [ ] Remove scheduling/routing positioning from site, hero animation, and product (competes with free NVIDIA Run:ai/KAI per advisor; claim unverified by us)
   - [ ] Fail-safe design: unmodelable collectives pass through untouched; kill switch restores original path mid-run
   - [ ] Named pilot: two rented 8-GPU InfiniBand nodes (16 GPUs), nccl-tests AllReduce + profiled 7B FSDP step, 2h planned window (not a measured runtime)
