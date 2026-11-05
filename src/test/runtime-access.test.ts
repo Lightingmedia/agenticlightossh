@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runtimeAccess, authorizeRuntimePath } from "../../supabase/functions/_shared/runtime-access";
+import { runtimeAccess, authorizeRuntimePath, userTier } from "../../supabase/functions/_shared/runtime-access";
 import { runtimeConnectionUrl, encryptRuntimeToken, decryptRuntimeToken } from "../../supabase/functions/_shared/runtime-connection";
 
 const env = (name: string) => ({ SUPABASE_URL: "https://cloud.invalid", SUPABASE_SERVICE_ROLE_KEY: "test-only", RUNTIME_CONNECTION_ENCRYPTION_KEY: "unit-test-only-encryption-fixture" })[name];
