@@ -41,3 +41,10 @@
   - [ ] Run `docker compose up -d` on a Brev instance (needs the user's Brev account)
   - [ ] Save the tunnel URL and token in Gateway Setup's account-specific connection form, then verify the live panel
 - Modal gateway stays a CPU-only fallback (GPU billing declined)
+
+- [ ] Advisor direction (Boardy, Nov 2026)
+  - [ ] One-command, no-root, no-vendor-account installer that works on a machine we don't own
+  - [ ] Baseline-first sidecar: prints utilization + stall record for any cluster, with config and versions hashed into the report
+  - [ ] Remove scheduling/routing positioning from site, hero animation, and product (competes with free NVIDIA Run:ai/KAI per advisor; claim unverified by us)
+  - [ ] Fail-safe design: unmodelable collectives pass through untouched; kill switch restores original path mid-run
+  - [ ] Named pilot: two rented 8-GPU InfiniBand nodes (16 GPUs), nccl-tests AllReduce + profiled 7B FSDP step, 2h planned window (not a measured runtime)
