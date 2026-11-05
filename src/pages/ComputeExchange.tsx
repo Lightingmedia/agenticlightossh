@@ -7,7 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
+/** Non-redirecting session check — demo mode must stay available signed-out. */
+function useSession() {
+  const [user, setUser] = useState<unknown>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+  return { user, loading };
+}
 import {
   DEMO_FLAG_KEY, DataState, Offer, Plan, WorkloadSpec, evaluateOffer, idempotencyKey, isPlanExpired, offerLabel, stateLabel,
 } from "@/lib/exchange/core";
@@ -56,7 +74,7 @@ function SignInRequired() {
 
 export default function ComputeExchange() {
   const { section = "overview" } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useSession();
   const [demo, setDemo] = useState(() => localStorage.getItem(DEMO_FLAG_KEY) === "1");
   const toggleDemo = (v: boolean) => { setDemo(v); localStorage.setItem(DEMO_FLAG_KEY, v ? "1" : "0"); };
   const title = SECTIONS.find(([k]) => k === section)?.[1] ?? "Overview";
