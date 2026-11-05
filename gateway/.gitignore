@@ -1,0 +1,4 @@
+# GPU-host-only credentials and runtime configuration. Never commit these.
+.env
+.env.nim
+.env.nim.tmp

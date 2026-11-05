@@ -5,6 +5,7 @@
 #   named      -> named tunnel using CLOUDFLARE_TUNNEL_TOKEN (stable hostname)
 #   dcgm       -> dcgm-exporter; the gateway then reads DCGM instead of NVML
 #   inference  -> local vLLM model server for /v1/jobs (MTMC)
+#   nim        -> internal NVIDIA NIM model server for /v1/jobs (choose this OR inference)
 services:
   gateway:
     build: .
@@ -49,6 +50,35 @@ services:
       - hf-cache:/root/.cache/huggingface
     gpus: all
 
+  # NIM is reachable only by containers on this Compose network. No host or
+  # tunnel port exposes it; callers use the authenticated gateway instead.
+  nim:
+    image: ${NIM_IMAGE:-nvcr.io/nim/meta/llama-3.1-8b-instruct:2.1.5}
+    profiles: ["nim"]
+    restart: unless-stopped
+    env_file:
+      - path: .env.nim
+        required: false
+    environment:
+      NIM_SERVER_PORT: 8000
+      NIM_HEALTH_PORT: 8001
+      NIM_CACHE_PATH: /opt/nim/.cache
+      NIM_JSONL_LOGGING: "true"
+    volumes:
+      - nim-cache:/opt/nim/.cache
+    expose:
+      - "8000"
+      - "8001"
+    gpus: all
+    stop_grace_period: 1m
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/v1/health/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 30m
+
 volumes:
   gateway-data:
   hf-cache:
+  nim-cache:
