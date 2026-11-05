@@ -33,7 +33,7 @@ esac
 printf 'Visible NVIDIA devices:\n'
 nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader
 printf '\nNIM image: %s\nOpenAI model name: %s\n' "$NIM_IMAGE" "$INFERENCE_MODEL"
-printf 'Confirm this image and its GPU requirements in NVIDIA\'s support matrix.\n'
+printf "Confirm this image and its GPU requirements in NVIDIA's support matrix.\n"
 printf 'This pulls a large image, downloads model artifacts, and starts GPU services.\n'
 read -r -p 'Continue? [y/N] ' answer
 case "$answer" in
