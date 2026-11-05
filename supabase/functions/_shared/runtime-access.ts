@@ -43,10 +43,7 @@ export async function runtimeAccess(userId: string, env: ReadEnv): Promise<{ tie
       throw new RuntimeAccessError("Connect your own GPU host to start monitoring", 404);
     }
   }
-  // Live entitlements only; sandbox subscriptions must never authorize production.
-  const rows = await query("subscriptions", `select=price_id,status,current_period_end&user_id=eq.${id}&environment=eq.live`);
-  if (!Array.isArray(rows)) throw new RuntimeAccessError("Subscription access could not be verified", 503);
-  return { tier: subscriptionTier(rows), connection };
+  return { tier: await userTier(userId, env), connection };
 }
 
 export function authorizeRuntimePath(path: string, method: string, tier: LaunchTier) {
