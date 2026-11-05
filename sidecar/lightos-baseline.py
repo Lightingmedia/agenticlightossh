@@ -106,7 +106,7 @@ def throttle_snapshot() -> dict[str, list[str]]:
     for line in out.splitlines():
         s = line.strip()
         if s.startswith("GPU ") and ":" in s:
-            current_gpu = s.split("GPU ")[1].split(":")[0].strip()
+            current_gpu = s[len("GPU "):].strip()
             in_throttle = False
         elif "Clocks Event Reasons" in s or "Clocks Throttle Reasons" in s:
             in_throttle = True
