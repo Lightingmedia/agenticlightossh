@@ -43,6 +43,13 @@
       "when": 1792783460767,
       "tag": "0005_owned_operational_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793909184588,
+      "tag": "0006_exchange_backend",
+      "breakpoints": true
     }
   ]
 }

@@ -59,6 +59,151 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_offers: {
+        Row: {
+          accelerator: string
+          compliance: string | null
+          count: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          memory_gb: number
+          min_commitment: string
+          price_per_hour: number | null
+          provider: string
+          purchase_model: string
+          region: string
+          runtime: string
+          source: string
+          source_at: string
+        }
+        Insert: {
+          accelerator: string
+          compliance?: string | null
+          count: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          memory_gb: number
+          min_commitment?: string
+          price_per_hour?: number | null
+          provider: string
+          purchase_model: string
+          region: string
+          runtime: string
+          source: string
+          source_at: string
+        }
+        Update: {
+          accelerator?: string
+          compliance?: string | null
+          count?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          memory_gb?: number
+          min_commitment?: string
+          price_per_hour?: number | null
+          provider?: string
+          purchase_model?: string
+          region?: string
+          runtime?: string
+          source?: string
+          source_at?: string
+        }
+        Relationships: []
+      }
+      exchange_workload_events: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          status: string
+          workload_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          status: string
+          workload_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          workload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_workload_events_workload_id_fkey"
+            columns: ["workload_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_workloads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exchange_workloads: {
+        Row: {
+          created_at: string
+          currency: string
+          estimate_high: number
+          estimate_low: number
+          expires_at: string
+          id: string
+          idempotency_key: string
+          max_spend: number
+          offer_id: string
+          spec: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          estimate_high: number
+          estimate_low: number
+          expires_at: string
+          id?: string
+          idempotency_key: string
+          max_spend: number
+          offer_id: string
+          spec: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          estimate_high?: number
+          estimate_low?: number
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          max_spend?: number
+          offer_id?: string
+          spec?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_workloads_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "exchange_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gpu_metrics: {
         Row: {
           created_at: string
