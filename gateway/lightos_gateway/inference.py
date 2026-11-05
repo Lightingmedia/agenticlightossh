@@ -1,6 +1,7 @@
-"""Local model server for /v1/jobs (MTMC). OpenAI-compatible vLLM on the same GPU host.
+"""Internal OpenAI-compatible model server for /v1/jobs (MTMC).
 
-If no model server is configured the gateway answers 501 instead of pretending to run the job.
+Supports NVIDIA NIM or vLLM on the same private container network. If no model
+server is configured the gateway answers 501 instead of pretending to run the job.
 """
 from __future__ import annotations
 
@@ -36,4 +37,7 @@ class InferenceBackend:
 
 
 def from_env() -> InferenceBackend:
-    return InferenceBackend(os.environ.get("VLLM_URL"), os.environ.get("MODEL"))
+    return InferenceBackend(
+        os.environ.get("INFERENCE_URL") or os.environ.get("VLLM_URL"),
+        os.environ.get("INFERENCE_MODEL") or os.environ.get("MODEL"),
+    )
