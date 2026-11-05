@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Compute Exchange backend: catalog table (published list prices, source-labeled), owner-scoped workload plans + events, exchange-api function (server-side eligibility, estimates, idempotent plan records, cancel; no provisioning). Verified signed-in: catalog → approve plan → workload listed → costs page.
 - [ ] Host website and GPU services on Brev; keep accounts and billing on Cloud
   - [x] Explain safe command sharing using secret-name references and secure key entry
   - [ ] Review user-provided Brev commands without embedded credentials (waiting for commands)
