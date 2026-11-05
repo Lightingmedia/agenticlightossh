@@ -5,6 +5,22 @@ export class RuntimeAccessError extends Error {
   constructor(message: string, public status = 403) { super(message); }
 }
 
+// Live entitlements only; sandbox subscriptions must never authorize production.
+// Fails closed: any lookup error denies rather than granting a tier.
+export async function userTier(userId: string, env: ReadEnv): Promise<LaunchTier> {
+  const base = env("SUPABASE_URL");
+  const key = env("SUPABASE_SERVICE_ROLE_KEY");
+  if (!base || !key) throw new RuntimeAccessError("Runtime authorization is unavailable", 503);
+  const response = await fetch(
+    `${base}/rest/v1/subscriptions?select=price_id,status,current_period_end&user_id=eq.${encodeURIComponent(userId)}&environment=eq.live`,
+    { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+  );
+  if (!response.ok) throw new RuntimeAccessError("Subscription access could not be verified", 503);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new RuntimeAccessError("Subscription access could not be verified", 503);
+  return subscriptionTier(rows);
+}
+
 // Customers use only their dedicated connection; deployment-wide fallback is
 // restricted to protected administrators. Paid status never grants ownership.
 export async function runtimeAccess(userId: string, env: ReadEnv): Promise<{ tier: LaunchTier; connection: { base_url: string; token_ciphertext: string } | null }> {
