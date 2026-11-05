@@ -37,6 +37,25 @@ describe("owned GPU runtime access", () => {
   });
 });
 
+describe("tier lookup for connection gating", () => {
+  it("reads only the requesting user's live subscriptions", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      expect(url).toContain("user_id=eq.user-a");
+      expect(url).toContain("environment=eq.live");
+      return Response.json([{ price_id: "starter_monthly", status: "active", current_period_end: "2030-01-01" }]);
+    });
+    await expect(userTier("user-a", env)).resolves.toBe("starter");
+  });
+  it("no subscription rows means Free", async () => {
+    vi.stubGlobal("fetch", async () => Response.json([]));
+    await expect(userTier("user-a", env)).resolves.toBe("free");
+  });
+  it("subscription lookup failure denies instead of granting a tier", async () => {
+    vi.stubGlobal("fetch", async () => new Response("", { status: 500 }));
+    await expect(userTier("user-a", env)).rejects.toMatchObject({ status: 503 });
+  });
+});
+
 describe("safe GPU connection storage", () => {
   it("permits the supported HTTPS Brev quick-tunnel origin", () => {
     expect(runtimeConnectionUrl("https://owned-host.trycloudflare.com/")).toBe("https://owned-host.trycloudflare.com");
