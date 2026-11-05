@@ -53,8 +53,11 @@ You should see `"gpu_count": 1` (or more) and `"totals": {"devices": 1, ...}`.
 Set them in `.env`, then run `docker compose up -d` again:
 
 - `COMPOSE_PROFILES=quick,dcgm` + `DCGM_EXPORTER_URL=http://dcgm-exporter:9400/metrics`: DCGM telemetry
-- `COMPOSE_PROFILES=quick,inference` + `VLLM_URL=http://vllm:8000`: local model server so MTMC `/v1/jobs` runs on
-  this GPU (the first start downloads the model)
+- `COMPOSE_PROFILES=quick,inference` + `VLLM_URL=http://vllm:8000`: local vLLM model server so MTMC `/v1/jobs`
+  runs on this GPU (the first start downloads the model)
+- `COMPOSE_PROFILES=quick,nim`: internal NVIDIA NIM server. Run `bash setup-nim.sh` instead of editing profiles
+  manually; see [NIM.md](NIM.md) for secure NGC login, supported-image selection, readiness and inference checks.
+  Choose either `nim` or `inference`, never both on the same GPUs.
 
 ### Make the numbers move
 

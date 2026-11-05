@@ -19,7 +19,9 @@ The Free offer is **one GPU, monitoring only, no card required**. Extra GPUs req
 - An existing or funded NVIDIA GPU host accessible to its owner/operator.
 - Working NVIDIA driver (`nvidia-smi`), Docker Compose, and NVIDIA Container Toolkit.
 - Permission to run the gateway and save its HTTPS address and matching bearer token through secure server settings.
-- For inference jobs: a configured local model server. Default gateway setup is monitoring only.
+- For inference jobs: a configured local model server. Default gateway setup is monitoring only. An optional
+  [NVIDIA NIM deployment](gateway/NIM.md) keeps NIM private behind the gateway and prompts for its NGC key only
+  on the GPU host; the key is not a browser or Cloud credential.
 
 Each account stores one dedicated host connection. The deployment-wide legacy gateway is accessible only to protected administrators, never as a fallback for customers without a connection. Sharing a host token shares that host's access; use a dedicated host per account. Hardware and model downloads may incur provider charges.
 

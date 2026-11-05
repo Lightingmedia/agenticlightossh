@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from lightos_gateway.app import create_app, load_token  # noqa: E402
+from lightos_gateway.inference import from_env as inference_from_env  # noqa: E402
 from lightos_gateway.telemetry import (  # noqa: E402
     DcgmExporterProvider, NoGpuProvider, NvmlProvider, Sampler, parse_prometheus,
 )
@@ -138,6 +139,17 @@ def test_jobs_501_without_model_server():
     c, _ = client(NvmlProvider(FakeNvml([gpu("GPU-1", 0)])))
     r = c.post("/v1/jobs", headers=AUTH, json={"kind": "inference_request", "payload": {"messages": []}})
     assert r.status_code == 501 and r.json()["code"] == "inference_not_configured"
+
+
+def test_nim_inference_settings_take_precedence_over_legacy_vllm(monkeypatch):
+    monkeypatch.setenv("VLLM_URL", "http://vllm:8000")
+    monkeypatch.setenv("MODEL", "Qwen/Qwen2.5-1.5B-Instruct")
+    monkeypatch.setenv("INFERENCE_URL", "http://nim:8000")
+    monkeypatch.setenv("INFERENCE_MODEL", "meta/llama-3.1-8b-instruct")
+    backend = inference_from_env()
+    assert backend.configured()
+    assert backend.url == "http://nim:8000"
+    assert backend.model == "meta/llama-3.1-8b-instruct"
 
 
 def test_register_accepts_lightos_cuda_report():

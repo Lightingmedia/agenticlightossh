@@ -7,6 +7,8 @@
   - [x] Prepare isolated static-website container and separate tunnel instructions
   - [ ] Verify authorized Brev VM execution access (API-key capability unverified)
   - [ ] Run deployment and confirm website plus measured GPU readings
+  - [x] Package optional NVIDIA NIM endpoint with host-only NGC login, private networking, GPU preflight and readiness checks
+  - [ ] Run NIM on the supported Brev GPU and verify readiness, a real inference response and measured readings (needs the user's host and NGC key)
   - [ ] Verify stable-origin auth/billing, Free limits, and domain cutover before launch
 
 - [ ] Verify Brev readings before republishing the one-GPU Free release
