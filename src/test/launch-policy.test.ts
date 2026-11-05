@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { CHECKOUT_TRIAL_DAYS, MONITORING_LIMITS, canExecute, limitMonitoring, requiresUpgrade, subscriptionTier } from "../../supabase/functions/_shared/launch-policy";
+import { CHECKOUT_TRIAL_DAYS, MONITORING_LIMITS, canExecute, connectionRejection, limitMonitoring, requiresUpgrade, subscriptionTier } from "../../supabase/functions/_shared/launch-policy";
 import { authorizeRuntimePath, runtimeAccess } from "../../supabase/functions/_shared/runtime-access";
 
 describe("launch entitlements", () => {
   it("Free monitors exactly one GPU", () => { expect(MONITORING_LIMITS.free).toBe(1); });
   it("second GPU requires an upgrade", () => { expect(requiresUpgrade(1, "free")).toBe(false); expect(requiresUpgrade(2, "free")).toBe(true); });
+  it("Free connections to multi-GPU hosts are rejected server-side, not just filtered", () => {
+    expect(connectionRejection(2, "free")).toContain("Upgrade");
+    expect(connectionRejection(8, "free")).toContain("8 GPUs");
+    expect(connectionRejection(1, "free")).toBeNull();
+    expect(connectionRejection(0, "free")).toBeNull();
+  });
+  it("paid tiers may connect multi-GPU hosts within their limits", () => {
+    expect(connectionRejection(2, "starter")).toBeNull();
+    expect(connectionRejection(3, "starter")).toContain("Upgrade");
+    expect(connectionRejection(16, "pro")).toBeNull();
+    expect(connectionRejection(16, "enterprise")).toBeNull();
+  });
   it("Free is monitoring only", () => { expect(canExecute("free")).toBe(false); expect(() => authorizeRuntimePath("/v1/jobs", "POST", "free")).toThrow("monitoring only"); });
   it("paid subscription allows the execution entitlement but not admin identity", () => { expect(canExecute("starter")).toBe(true); expect(() => authorizeRuntimePath("/v1/jobs", "POST", "starter")).not.toThrow(); });
   it("no seven-day card trial is attached to paid checkout", () => { expect(CHECKOUT_TRIAL_DAYS).toBe(0); });

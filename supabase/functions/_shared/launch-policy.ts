@@ -22,6 +22,15 @@ export function subscriptionTier(rows: { price_id: string; status: string; curre
 export function canExecute(tier: LaunchTier): boolean { return tier !== "free"; }
 export function requiresUpgrade(detected: number, tier: LaunchTier): boolean { return detected > MONITORING_LIMITS[tier]; }
 
+// Server-side connection gate: a tier may attach at most MONITORING_LIMITS[tier]
+// GPUs. Readings are filtered separately; this rejects the connection or
+// enrollment itself before it is saved or forwarded to the runtime gateway.
+export function connectionRejection(detected: number, tier: LaunchTier): string | null {
+  if (!requiresUpgrade(detected, tier)) return null;
+  const limit = MONITORING_LIMITS[tier];
+  return `This host reports ${detected} GPUs, but the ${tier} plan supports ${limit}. Upgrade to connect hosts with more GPUs.`;
+}
+
 type CapacityDevice = { uuid: string; [key: string]: unknown };
 type Capacity = { nodes?: { node?: string; devices: CapacityDevice[] }[]; totals?: { devices?: number; allocated?: number | null; free?: number | null }; [key: string]: unknown };
 type MetricDevice = { uuid: string; gpu_util_pct?: { avg?: number | null }; power_w?: { avg?: number | null }; [key: string]: unknown };

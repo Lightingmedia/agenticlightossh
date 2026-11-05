@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runtimeAccess, authorizeRuntimePath } from "../../supabase/functions/_shared/runtime-access";
+import { runtimeAccess, authorizeRuntimePath, userTier } from "../../supabase/functions/_shared/runtime-access";
 import { runtimeConnectionUrl, encryptRuntimeToken, decryptRuntimeToken } from "../../supabase/functions/_shared/runtime-connection";
 
 const env = (name: string) => ({ SUPABASE_URL: "https://cloud.invalid", SUPABASE_SERVICE_ROLE_KEY: "test-only", RUNTIME_CONNECTION_ENCRYPTION_KEY: "unit-test-only-encryption-fixture" })[name];
@@ -34,6 +34,25 @@ describe("owned GPU runtime access", () => {
     for (const path of ["/v1/fabric/state", "/v1/intents/validate", "/v1/deployments/plan", "/v1/providers/id/inventory"]) {
       expect(() => authorizeRuntimePath(path, "GET", "free")).toThrow("monitoring only");
     }
+  });
+});
+
+describe("tier lookup for connection gating", () => {
+  it("reads only the requesting user's live subscriptions", async () => {
+    vi.stubGlobal("fetch", async (url: string) => {
+      expect(url).toContain("user_id=eq.user-a");
+      expect(url).toContain("environment=eq.live");
+      return Response.json([{ price_id: "starter_monthly", status: "active", current_period_end: "2030-01-01" }]);
+    });
+    await expect(userTier("user-a", env)).resolves.toBe("starter");
+  });
+  it("no subscription rows means Free", async () => {
+    vi.stubGlobal("fetch", async () => Response.json([]));
+    await expect(userTier("user-a", env)).resolves.toBe("free");
+  });
+  it("subscription lookup failure denies instead of granting a tier", async () => {
+    vi.stubGlobal("fetch", async () => new Response("", { status: 500 }));
+    await expect(userTier("user-a", env)).rejects.toMatchObject({ status: 503 });
   });
 });
 

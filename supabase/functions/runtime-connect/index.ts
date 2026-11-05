@@ -2,7 +2,8 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { encryptRuntimeToken, runtimeConnectionUrl } from "../_shared/runtime-connection.ts";
-import { RuntimeAccessError } from "../_shared/runtime-access.ts";
+import { RuntimeAccessError, userTier } from "../_shared/runtime-access.ts";
+import { connectionRejection } from "../_shared/launch-policy.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -53,6 +54,11 @@ Deno.serve(async (req) => {
     if (!Array.isArray(capacity.nodes) || !Number.isInteger(capacity.totals?.devices) || capacity.totals.devices < 0) {
       return json({ error: "This address did not return valid GPU inventory" }, 422);
     }
+    // Reject over-limit hosts before saving; a rejected connect never replaces
+    // an existing working connection. Lookup failures deny (fail closed).
+    const tier = await userTier(userId, env);
+    const rejection = connectionRejection(capacity.totals.devices, tier);
+    if (rejection) return json({ error: rejection, upgrade_required: true, detected_devices: capacity.totals.devices }, 403);
     const tokenCiphertext = await encryptRuntimeToken(body.token, userId, env);
     const { error: saveError } = await db.from("runtime_connections").upsert({
       user_id: userId, base_url: baseUrl, token_ciphertext: tokenCiphertext, updated_at: new Date().toISOString(),

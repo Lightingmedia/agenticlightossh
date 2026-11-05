@@ -10,7 +10,7 @@
   - [ ] Verify stable-origin auth/billing, Free limits, and domain cutover before launch
 
 - [ ] Verify Brev readings before republishing the one-GPU Free release
-  - [ ] Reject additional Free GPU connections across connection/enrollment paths (currently readings are filtered, connections are not rejected)
+  - [x] Reject additional Free GPU connections across connection/enrollment paths (runtime-connect refuses over-limit hosts before saving; node-enroll skips gateway forwarding with upgrade_required; 23 tests pass)
   - [ ] Confirm measured readings in the requesting user's dashboard (currently no GPU host is connected)
   - [ ] Check security scan and republish only after live readings and connection enforcement are verified
 

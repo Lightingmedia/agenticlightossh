@@ -6,8 +6,8 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
 import { gatewayFetch } from "../_shared/runtime-gateway.ts";
-import { runtimeAccess } from "../_shared/runtime-access.ts";
-import { MONITORING_LIMITS, requiresUpgrade } from "../_shared/launch-policy.ts";
+import { runtimeAccess, userTier } from "../_shared/runtime-access.ts";
+import { MONITORING_LIMITS, connectionRejection, requiresUpgrade } from "../_shared/launch-policy.ts";
 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -90,7 +90,15 @@ Deno.serve(async (req) => {
     const { data: claimed } = await db.from("node_enrollments").update({ status: "reported" })
       .eq("id", row.id).eq("status", "pending").gt("expires_at", new Date().toISOString()).select("id").maybeSingle();
     if (!claimed) return json({ error: "Setup code is invalid, expired, or already used" }, 401);
-    if (await gatewayState(row.user_id) === "configured") {
+    // Over-limit hosts are not forwarded to the runtime gateway; the report is
+    // still stored so the owner sees the upgrade state. Fail closed on lookup.
+    let tier: "free" | "starter" | "pro" | "enterprise" = "free";
+    try { tier = await userTier(row.user_id, (name) => Deno.env.get(name)); } catch { /* fail closed */ }
+    const rejection = connectionRejection(body.report.gpus.length, tier);
+    if (rejection) {
+      gateway_status = "upgrade_required";
+      gateway_message = rejection;
+    } else if (await gatewayState(row.user_id) === "configured") {
       try {
         const { data: u } = await db.from("profiles").select("email").eq("user_id", row.user_id).maybeSingle();
         await gatewayFetch("/v1/nodes/register", { id: row.user_id, email: u?.email ?? undefined }, {
