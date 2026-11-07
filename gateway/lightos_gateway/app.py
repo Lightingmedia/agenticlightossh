@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 
 from .inference import InferenceBackend, from_env as inference_from_env
 from .telemetry import Provider, Sampler, detect_provider
+from . import rdma
 
 MIN_TOKEN_LEN = 32
 ALLOC_UTIL_PCT = 5.0
@@ -99,6 +100,10 @@ def create_app(
     db_path: Optional[str] = None,
     node_name: Optional[str] = None,
     start_sampler: bool = True,
+    trace_store: Optional[rdma.TraceStore] = None,
+    counter_sampler: Optional[rdma.CounterSampler] = None,
+    find_library=None,
+    module_root: str = "/sys/module",
 ) -> FastAPI:
     if len(token) < MIN_TOKEN_LEN:
         raise ValueError("gateway token too short")
@@ -113,6 +118,12 @@ def create_app(
     inference = inference if inference is not None else inference_from_env()
     node = node_name or os.environ.get("GATEWAY_NODE_NAME") or socket.gethostname()
     registry = Registry(db_path or os.environ.get("GATEWAY_DB_PATH", "/data/gateway.db"))
+    traces = trace_store or rdma.TraceStore()
+    counters = counter_sampler or rdma.CounterSampler(os.environ.get("RDMA_SYSFS_ROOT", rdma.SYSFS_IB))
+    if start_sampler:
+        counters.start()
+    elif not counters.buf:
+        counters.tick()
     events: List[dict] = []
     jobs: Dict[str, dict] = {}
     busy = {"n": 0}
@@ -353,7 +364,54 @@ def create_app(
                        "enrollment_id": b["enrollment_id"], "hostname": b["hostname"]})
         return {"accepted": True, "enrollment_id": b["enrollment_id"], "registered_nodes": registry.count()}
 
+    # ---- RDMA observability (raw trace events + kernel port counters; see rdma.py) ----
+
+    def rdma_query(request: Request):
+        q = request.query_params
+        try:
+            w = max(60, min(3600, int(q.get("window_seconds", 300))))
+        except ValueError:
+            w = 300
+        return w, {k: q.get(k) for k in rdma.FILTER_KEYS}
+
+    @api.post("/v1/rdma/events")
+    async def rdma_ingest(req: Request):
+        status, body = traces.ingest(await body_json(req))
+        return JSONResponse(body, status)
+
+    @api.get("/v1/rdma/overview")
+    def rdma_overview(request: Request):
+        w, filters = rdma_query(request)
+        everything = traces.snapshot()
+        matched = rdma.filter_events(everything, traces.clock(), w, filters)
+        health = traces.health()
+        ports = counters.buf[-1][1] if counters.buf else []
+        return {
+            "node": node, "window_seconds": w, "filters": {k: v for k, v in filters.items() if v},
+            "capabilities": rdma.capabilities(ports, health, find_library or rdma.ctypes.util.find_library, module_root),
+            "capture_health": health,
+            "port_counters": counters.window(w),
+            "summary": rdma.aggregate(matched),
+        }
+
+    @api.get("/v1/rdma/events")
+    def rdma_events(request: Request):
+        w, filters = rdma_query(request)
+        try:
+            limit = max(1, min(rdma.MAX_RETURN, int(request.query_params.get("limit", 200))))
+        except ValueError:
+            limit = 200
+        everything = traces.snapshot()
+        in_window = rdma.filter_events(everything, traces.clock(), w, {})
+        matched = rdma.filter_events(in_window, traces.clock(), w, filters)
+        matched.sort(key=lambda e: (e["ts"], e["id"]), reverse=True)
+        return {"source": "tracer" if everything else "none", "window_seconds": w,
+                "matched": len(matched), "returned": min(limit, len(matched)), "truncated": len(matched) > limit,
+                "events": matched[:limit], "facets": rdma.facets(in_window)}
+
     api.state.sampler = sampler
+    api.state.traces = traces
+    api.state.counters = counters
     api.state.registry = registry
     return api
 
