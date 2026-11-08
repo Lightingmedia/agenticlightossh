@@ -54,7 +54,6 @@ const lightosItems = [
   { icon: Server, label: "Clusters", path: "/dashboard/clusters" },
   { icon: FileText, label: "Runs", path: "/dashboard/runs" },
   { icon: Network, label: "RDMA Traces", path: "/dashboard/rdma" },
-  { icon: Brain, label: "Local Engine", path: "/dashboard/engine" },
   { icon: Settings, label: "Gateway Setup", path: "/dashboard/gateway-setup" },
 ];
 
