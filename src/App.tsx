@@ -51,6 +51,8 @@ import AcceleratorRuntime from "./pages/AcceleratorRuntime";
 import OAuthConsent from "./pages/OAuthConsent";
 import MtmcConsole from "./pages/MtmcConsole";
 import GatewaySetup from "./pages/GatewaySetup";
+import RdmaTraces from "./pages/RdmaTraces";
+import LocalEngine from "./pages/LocalEngine";
 import ComputeProviders from "./pages/ComputeProviders";
 
 const queryClient = new QueryClient();
@@ -116,6 +118,8 @@ const App = () => (
             <Route path="billing" element={<Billing />} />
             <Route path="accelerator" element={<AcceleratorRuntime />} />
             <Route path="gateway-setup" element={<GatewaySetup />} />
+            <Route path="rdma" element={<RdmaTraces />} />
+            <Route path="engine" element={<LocalEngine />} />
             <Route path="providers" element={<ComputeProviders />} />
             <Route path="exchange" element={<ComputeExchange />} />
             <Route path="exchange/:section" element={<ComputeExchange />} />
