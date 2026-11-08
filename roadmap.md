@@ -1,5 +1,11 @@
 # Roadmap
 
+- [ ] No-GPU internal engine (user chose all three)
+  - [ ] AI planning assistant on built-in Cloud AI models (signed-in, no hardware)
+  - [ ] Own small model on a regular CPU server (gateway Compose profile, OpenAI-compatible)
+  - [ ] In-browser model running on the visitor's device
+- [ ] RDMA Traces dashboard page: deploy rdma-telemetry, page + navigation, signed-in test (real numbers need a connected RDMA host)
+
 - [x] Compute Exchange backend: catalog table (published list prices, source-labeled), owner-scoped workload plans + events, exchange-api function (server-side eligibility, estimates, idempotent plan records, cancel; no provisioning). Verified signed-in: catalog → approve plan → workload listed → costs page.
 - [ ] Host website and GPU services on Brev; keep accounts and billing on Cloud
   - [x] Explain safe command sharing using secret-name references and secure key entry
