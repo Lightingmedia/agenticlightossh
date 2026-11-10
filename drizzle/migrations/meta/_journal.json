@@ -57,6 +57,13 @@
       "when": 1794246524524,
       "tag": "0007_exchange_offers_server_only_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794300418198,
+      "tag": "0008_admin_signups_and_welcome_letter",
+      "breakpoints": true
     }
   ]
 }
