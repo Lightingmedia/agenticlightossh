@@ -29,11 +29,13 @@ import {
   BatteryCharging,
   CreditCard,
   CircuitBoard,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const monitoringItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
+  { icon: Mail, label: "CEO Welcome", path: "/dashboard/welcome" },
   { icon: Network, label: "Photonic Fabric", path: "/dashboard/photonic" },
   { icon: Bot, label: "Agents", path: "/dashboard/agents" },
   { icon: Cpu, label: "GPU Monitor", path: "/dashboard/gpu" },
@@ -49,6 +51,7 @@ const monitoringItems = [
 ];
 
 const lightosItems = [
+  { icon: Cpu, label: "GPU Cloud", path: "/dashboard/gpu-cloud" },
   { icon: GitBranch, label: "Compute Exchange", path: "/dashboard/exchange" },
   { icon: CloudCog, label: "Compute Providers", path: "/dashboard/providers" },
   { icon: Server, label: "Clusters", path: "/dashboard/clusters" },

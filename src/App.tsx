@@ -53,6 +53,9 @@ import MtmcConsole from "./pages/MtmcConsole";
 import GatewaySetup from "./pages/GatewaySetup";
 import RdmaTraces from "./pages/RdmaTraces";
 import ComputeProviders from "./pages/ComputeProviders";
+import GpuCloud from "./pages/GpuCloud";
+import Welcome from "./pages/Welcome";
+import AdminSignups from "./pages/AdminSignups";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +85,7 @@ const App = () => (
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="signups" element={<AdminSignups />} />
             <Route path="testers" element={<AdminTesters />} />
             <Route path="analytics" element={<AdminAnalytics />} />
           </Route>
@@ -119,6 +123,8 @@ const App = () => (
             <Route path="gateway-setup" element={<GatewaySetup />} />
             <Route path="rdma" element={<RdmaTraces />} />
             <Route path="providers" element={<ComputeProviders />} />
+            <Route path="gpu-cloud" element={<GpuCloud />} />
+            <Route path="welcome" element={<Welcome />} />
             <Route path="exchange" element={<ComputeExchange />} />
             <Route path="exchange/:section" element={<ComputeExchange />} />
           </Route>

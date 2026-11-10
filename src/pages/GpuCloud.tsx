@@ -175,7 +175,7 @@ const GpuCloud = () => {
           <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
             <div className="rounded-lg border border-border bg-card p-4 space-y-3">
               <div className="max-h-80 min-h-32 space-y-3 overflow-y-auto">
-                {msgs.length === 0 && <p className="text-sm text-muted-foreground">Send a prompt — no GPU or setup needed. You're billed per token used, nothing else.</p>}
+                {msgs.length === 0 && <p className="text-sm text-muted-foreground">Send a prompt — no GPU or setup needed. Token usage for each request shows on the right.</p>}
                 {msgs.map((m, i) => (
                   <div key={i} className={m.role === "user" ? "ml-auto max-w-[85%] rounded-lg bg-primary/10 p-3 text-sm" : "max-w-[85%] whitespace-pre-wrap rounded-lg bg-muted p-3 text-sm"}>
                     {m.content}

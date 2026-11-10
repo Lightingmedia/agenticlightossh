@@ -7,12 +7,13 @@ import {
 } from "@/components/ui/sidebar";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, BarChart3, LogOut, Layers } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, LogOut, Layers, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const navItems = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },
+  { title: "Signups", url: "/admin/signups", icon: UserPlus },
   { title: "Testers", url: "/admin/testers", icon: Users },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
 ];

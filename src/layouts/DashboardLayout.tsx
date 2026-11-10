@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import CeoWelcomeDialog from "@/components/welcome/CeoWelcomeDialog";
 
 const DashboardLayout = () => {
   const { loading } = useRequireAuth();
@@ -19,6 +20,7 @@ const DashboardLayout = () => {
       <main className="ml-[72px] md:ml-64 transition-all duration-300">
         <Outlet />
       </main>
+      <CeoWelcomeDialog />
     </div>
   );
 };
