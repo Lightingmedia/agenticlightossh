@@ -26,7 +26,7 @@ const INSTALL_CMD = "curl -fsSL https://agentic.lightos.sh/sidecar/install.sh | 
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const priceOf = (o: DbOffer) => (o.price_per_hour == null ? "Quote required" : `$${(o.price_per_hour).toFixed(2)}/GPU-hr`);
+const priceOf = (o: DbOffer) => (o.price_per_hour == null ? "Quote required" : `$${o.price_per_hour.toFixed(2)}/hr`);
 
 const GpuCloud = () => {
   const [offers, setOffers] = useState<DbOffer[] | null>(null);
@@ -102,7 +102,7 @@ const GpuCloud = () => {
               const cheapest = list.filter((o) => o.price_per_hour != null).sort((a, b) => a.price_per_hour! - b.price_per_hour!)[0];
               return (
                 <div key={g.model} className="rounded-lg border border-border bg-card p-4 space-y-3">
-                  <div className="flex items-baseline justify-between">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                     <h3 className="font-mono text-xl font-bold text-primary">{g.model}</h3>
                     <span className="text-xs text-muted-foreground">{g.memory}</span>
                   </div>
@@ -116,7 +116,7 @@ const GpuCloud = () => {
                       {list.map((o) => (
                         <li key={o.id} className="flex justify-between gap-2">
                           <span>{o.provider} · {o.purchase_model.replace("_", "-")}</span>
-                          <span className={o === cheapest ? "font-mono text-primary" : "font-mono"}>{priceOf(o)}</span>
+                          <span className={o === cheapest ? "whitespace-nowrap font-mono text-primary" : "whitespace-nowrap font-mono"}>{priceOf(o)}</span>
                         </li>
                       ))}
                     </ul>
