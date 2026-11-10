@@ -27,7 +27,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-TOOL_VERSION = "0.1.0"
+TOOL_VERSION = "0.2.0"
 
 
 def run(cmd: list[str], timeout: int = 15) -> str | None:
