@@ -60,7 +60,7 @@ const GpuCloud = () => {
   const send = async () => {
     const text = prompt.trim();
     if (!text || busy) return;
-    const next: Msg[] = [...msgs, { role: "user", content: text }].slice(-20);
+    const next: Msg[] = [...msgs, { role: "user" as const, content: text }].slice(-20);
     setMsgs(next);
     setPrompt("");
     setBusy(true);
