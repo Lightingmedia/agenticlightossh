@@ -69,6 +69,48 @@ def cuda_version() -> str | None:
     return None
 
 
+STACK_PROBE = r"""
+import json
+out = {}
+try:
+    import torch
+    out["pytorch"] = torch.__version__
+    out["pytorch_cuda"] = getattr(torch.version, "cuda", None)
+    out["pytorch_cuda_available"] = bool(torch.cuda.is_available())
+    try:
+        v = torch.backends.cudnn.version()
+        out["cudnn"] = str(v) if v else None
+    except Exception:
+        out["cudnn"] = None
+except Exception:
+    out["pytorch"] = None
+try:
+    import tensorflow as tf
+    out["tensorflow"] = tf.__version__
+except Exception:
+    out["tensorflow"] = None
+print(json.dumps(out))
+"""
+
+
+def software_stack() -> dict:
+    """Read-only check of the AI software stack. Missing pieces are reported as null."""
+    stack: dict = {"nvcc": None}
+    nvcc = run(["nvcc", "--version"]) if shutil.which("nvcc") else None
+    if nvcc:
+        for line in nvcc.splitlines():
+            if "release" in line:
+                stack["nvcc"] = line.split("release")[1].split(",")[0].strip()
+    probe = run([sys.executable, "-c", STACK_PROBE], timeout=60)
+    try:
+        stack.update(json.loads(probe.strip().splitlines()[-1]) if probe else {})
+    except (ValueError, IndexError):
+        pass
+    for key in ("pytorch", "pytorch_cuda", "cudnn", "tensorflow"):
+        stack.setdefault(key, None)
+    return stack
+
+
 def sample_once() -> list[dict] | None:
     q = run([
         "nvidia-smi",
@@ -166,6 +208,7 @@ def build_report(args: argparse.Namespace) -> dict:
         },
         "gpus": gpus,
         "cuda_version": cuda_version(),
+        "software_stack": software_stack(),
     }
     if not gpus:
         report["status"] = "no_gpu_visible"
@@ -203,6 +246,7 @@ def build_report(args: argparse.Namespace) -> dict:
         "tool_version": TOOL_VERSION,
         "gpus": gpus,
         "cuda_version": report["cuda_version"],
+        "software_stack": report["software_stack"],
         "host": report["host"],
         "window": report["window"],
     }, sort_keys=True)
@@ -214,6 +258,10 @@ def print_human(report: dict) -> None:
     print("=" * 64)
     print(f"LightOS Baseline v{report['tool_version']} — {report['started_utc']}")
     print("=" * 64)
+    s = report.get("software_stack") or {}
+    fmt = lambda v: v if v else "not found"
+    print(f"Stack: CUDA toolkit (nvcc) {fmt(s.get('nvcc'))} | PyTorch {fmt(s.get('pytorch'))}"
+          f" (CUDA {fmt(s.get('pytorch_cuda'))}) | cuDNN {fmt(s.get('cudnn'))} | TensorFlow {fmt(s.get('tensorflow'))}")
     if report["status"] != "ok":
         print(f"STATUS: {report['status']}")
         if report.get("reason"):

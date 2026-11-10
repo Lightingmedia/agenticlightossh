@@ -1,5 +1,12 @@
 # Roadmap
 
+- [ ] Lambda-style GPU Cloud features, admin signups, CEO welcome letter
+  - [x] GPU Cloud page: GPU lineup with published prices, one-command environment check (now reports CUDA toolkit, PyTorch, cuDNN, TensorFlow), on-demand/cluster/private planning, working inference chat with token counts (verified signed in)
+  - [x] CEO welcome letter shown once to every account, re-readable from the menu (verified signed in)
+  - [x] Admin Signups page (counts, 30-day chart, search, CSV export) with admin-only access to all profiles
+  - [ ] Choose which account is admin — no account currently has the admin role (needs the user's answer), then check the Signups page signed in as admin
+  - [ ] Replace draft CEO letter wording with the approved version (needs the CEO's text)
+
 - [ ] No-GPU internal engine (user chose all three)
   - [ ] AI planning assistant on built-in Cloud AI models (signed-in, no hardware)
   - [ ] Own small model on a regular CPU server (gateway Compose profile, OpenAI-compatible)

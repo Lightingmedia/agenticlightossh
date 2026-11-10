@@ -16,3 +16,5 @@
 - Initial user-supplied runtime addresses are Cloudflare quick-tunnel HTTPS origins only, with redirects disabled, to prevent arbitrary-host credential forwarding and SSRF until broader tunnel providers are verified.
 - Operational records use nullable account ownership with owner-only customer reads and parent-derived deployment-log access; unowned legacy records stay admin-only. Measured monitoring remains on the entitlement-filtered account gateway, and unsupported hardware controls must not mutate database state as a substitute for execution.
 - Compute Exchange sections show setup-required states until a backend exchange contract exists; sample offers live only behind the labeled demo flag and never call provisioning, so the console cannot imply real capacity or execution.
+
+- Admin views of all accounts read `profiles`/`subscriptions` through admin-only RLS (`has_role`), never a browser-side service key, so signup data stays visible only to role-holders.
