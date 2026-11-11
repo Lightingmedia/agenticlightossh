@@ -22,6 +22,10 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed":
         console.log("Checkout completed:", event.data.object.id);
+        await handleComputeTopup(event.data.object);
+        break;
+      case "checkout.session.async_payment_succeeded":
+        await handleComputeTopup(event.data.object);
         break;
       case "customer.subscription.created":
         await handleSubscriptionCreated(event.data.object, env);
@@ -112,4 +116,21 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
     })
     .eq("stripe_subscription_id", subscription.id)
     .eq("environment", env);
+}
+
+// Prepaid GPU credit: credit the ledger once per paid checkout session.
+// The amount comes from Stripe's own total, never from client input.
+async function handleComputeTopup(session: any) {
+  if (session?.metadata?.kind !== "compute_topup") return;
+  if (session.payment_status !== "paid") return;
+  const userId = session.metadata?.userId;
+  const amount = Number(session.amount_total);
+  if (!userId || !Number.isInteger(amount) || amount <= 0) {
+    console.error("Compute top-up missing user or amount", session.id);
+    return;
+  }
+  const { error } = await supabase.from("compute_credit_ledger").insert({
+    user_id: userId, amount_cents: amount, kind: "topup", reference: `topup:${session.id}`, note: "Credit top-up",
+  });
+  if (error && !String(error.message).includes("duplicate")) throw error;
 }
