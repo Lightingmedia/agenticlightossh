@@ -11,6 +11,8 @@
   - [ ] AI planning assistant on built-in Cloud AI models (signed-in, no hardware)
   - [ ] Own small model on a regular CPU server (gateway Compose profile, OpenAI-compatible)
   - [ ] In-browser model running on the visitor's device
+- [ ] Build GPU engine on Brev, connect it in GPU Setup, confirm real RDMA Traces readings (blocked: saved Brev key is not a working Brev CLI key; needs a fresh Brev API key or the user running the setup in WSL)
+- [ ] Remove all "JHA" mentions — only source is the real signup JHA New Media; waiting on user: delete, rename, or keep
 - [ ] RDMA Traces dashboard page: deploy rdma-telemetry, page + navigation, signed-in test (real numbers need a connected RDMA host)
 
 - [x] Compute Exchange backend: catalog table (published list prices, source-labeled), owner-scoped workload plans + events, exchange-api function (server-side eligibility, estimates, idempotent plan records, cancel; no provisioning). Verified signed-in: catalog → approve plan → workload listed → costs page.
