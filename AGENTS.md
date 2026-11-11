@@ -19,3 +19,4 @@
 
 - Admin views of all accounts read `profiles`/`subscriptions` through admin-only RLS (`has_role`), never a browser-side service key, so signup data stays visible only to role-holders.
 - GPU resale runs only through the `compute-resale` function: prices come from a live provider offer at request time with the markup applied server-side, customer credit is an append-only ledger with unique references, and the scheduled `compute-meter` charges by elapsed time and destroys machines at zero balance, so no client can set prices, skip charges, or keep a machine running unpaid.
+- Plan lifecycle rules (trial length, which statuses keep access, proration mode) live as constants in `_shared/launch-policy.ts` and are shared by checkout, `change-plan`, server entitlements and the UI, so billing and feature access can't disagree.

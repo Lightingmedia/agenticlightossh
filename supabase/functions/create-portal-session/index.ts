@@ -24,7 +24,12 @@ serve(async (req) => {
     }
 
     const { returnUrl, environment } = await req.json();
-    const env = (environment || 'sandbox') as StripeEnv;
+    if (environment !== 'sandbox' && environment !== 'live') {
+      return new Response(JSON.stringify({ error: "Invalid environment" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const env = environment as StripeEnv;
     const stripe = createStripeClient(env);
 
     const { data: sub } = await supabase
@@ -32,7 +37,9 @@ serve(async (req) => {
       .select("stripe_customer_id")
       .eq("user_id", user.id)
       .eq("environment", env)
-      .single();
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (!sub?.stripe_customer_id) {
       return new Response(JSON.stringify({ error: "No subscription found" }), {

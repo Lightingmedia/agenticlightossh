@@ -84,7 +84,7 @@ export function useSubscription() {
   }, []);
 
   const isActive = !!subscription && (
-    ["active", "trialing"].includes(subscription.status) ||
+    ["active", "trialing", "past_due"].includes(subscription.status) ||
     (subscription.status === "canceled" && subscription.current_period_end && new Date(subscription.current_period_end) > new Date())
   );
   const isTrial = subscription?.status === "trialing";

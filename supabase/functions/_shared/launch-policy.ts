@@ -6,13 +6,20 @@ export const PAID_PRICE_TIERS: Record<string, LaunchTier> = {
   pro_monthly: "pro", pro_yearly: "pro", enterprise_monthly: "enterprise",
 };
 export const CHECKOUT_TRIAL_DAYS = 0;
+/** Plan changes switch immediately and bill or credit the difference right away. */
+export const PLAN_CHANGE_PRORATION = "always_invoice" as const;
+
+/** Human plan name for a stored price id; null for unknown/free. */
+export function planForPrice(priceId: string | null | undefined): LaunchTier | null {
+  return (priceId && PAID_PRICE_TIERS[priceId]) || null;
+}
 
 export function subscriptionTier(rows: { price_id: string; status: string; current_period_end?: string | null }[], now = Date.now()): LaunchTier {
   const levels: LaunchTier[] = ["free", "starter", "pro", "enterprise"];
   let tier: LaunchTier = "free";
   for (const row of rows) {
     const end = row.current_period_end ? Date.parse(row.current_period_end) : NaN;
-    const valid = ["active", "trialing", "canceled"].includes(row.status) && Number.isFinite(end) && end > now;
+    const valid = ["active", "trialing", "past_due", "canceled"].includes(row.status) && Number.isFinite(end) && end > now;
     const candidate = valid ? PAID_PRICE_TIERS[row.price_id] : undefined;
     if (candidate && levels.indexOf(candidate) > levels.indexOf(tier)) tier = candidate;
   }
