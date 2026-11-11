@@ -13,7 +13,12 @@
   - [ ] In-browser model running on the visitor's device
 - [ ] Build GPU engine on Brev, connect it in GPU Setup, confirm real RDMA Traces readings (blocked: Brev account has no credits — rental of Crusoe 8× A100 IB failed "Credits are exhausted"; nothing was charged)
 - [ ] Free telemetry path: run the existing FastAPI gateway on a user-owned NVIDIA machine + free Cloudflare quick tunnel (waiting on user's own GPU machine; no paid rentals)
-- [ ] Resell GPU compute: customers book and pay LightOS; LightOS rents on its own provider account (needs provider resale permission, markup/pricing, refund terms)
+- [ ] Resell GPU compute (Vast.ai, 10% markup, prepaid credit)
+  - [x] Live offers, rent/stop, per-minute metering, auto-stop at $0, ledger, GPU Cloud page section
+  - [ ] Enable payments so credit top-ups work (blocked: payments not set up in this project; user to choose Paddle or Stripe)
+  - [ ] Fund the Vast.ai account (blocked: balance $0; user doesn't want to pay yet)
+  - [ ] Confirm Vast.ai terms allow resale (user)
+  - [ ] End-to-end signed-in rent → boot → SSH → stop test (needs both of the above)
 - [x] Remove the unwanted signup account and its records (deleted Nov 11)
 - [ ] RDMA Traces dashboard page: deploy rdma-telemetry, page + navigation, signed-in test (real numbers need a connected RDMA host)
 
