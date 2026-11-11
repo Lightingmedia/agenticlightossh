@@ -65,7 +65,7 @@ async function searchOffers(filters: { gpu_name?: string; num_gpus?: number; max
     order: [["dph_total", "asc"]],
   };
   if (filters.id) q.id = { eq: filters.id };
-  if (filters.gpu_name) q.gpu_name = { eq: filters.gpu_name.replace(/\s+/g, "_") };
+  if (filters.gpu_name) q.gpu_name = { eq: filters.gpu_name.replace(/\s+/g, " ") };
   if (filters.num_gpus) q.num_gpus = { eq: filters.num_gpus };
   if (filters.max_price) q.dph_total = { lte: filters.max_price / (1 + RESALE_MARKUP) };
   const res = await vast("/api/v0/bundles/", { method: "POST", body: q });

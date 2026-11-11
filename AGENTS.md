@@ -18,3 +18,4 @@
 - Compute Exchange sections show setup-required states until a backend exchange contract exists; sample offers live only behind the labeled demo flag and never call provisioning, so the console cannot imply real capacity or execution.
 
 - Admin views of all accounts read `profiles`/`subscriptions` through admin-only RLS (`has_role`), never a browser-side service key, so signup data stays visible only to role-holders.
+- GPU resale runs only through the `compute-resale` function: prices come from a live provider offer at request time with the markup applied server-side, customer credit is an append-only ledger with unique references, and the scheduled `compute-meter` charges by elapsed time and destroys machines at zero balance, so no client can set prices, skip charges, or keep a machine running unpaid.

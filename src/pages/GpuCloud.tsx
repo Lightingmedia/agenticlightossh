@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCatalog, type DbOffer } from "@/lib/exchange/api";
 import { toast } from "sonner";
+import RentGpuSection from "@/components/gpu-cloud/RentGpuSection";
 
 const GPU_LINEUP = [
   { model: "B200", memory: "192 GB HBM3e", use: "Frontier training, very large inference" },
@@ -88,9 +89,11 @@ const GpuCloud = () => {
       <DashboardHeader title="GPU Cloud" subtitle="Find GPUs, get a ready AI environment, scale out, and call models by API" />
       <div className="p-6 space-y-10">
         <p className="max-w-3xl text-sm text-muted-foreground">
-          LightOS works on top of GPU clouds like Lambda, RunPod, AWS and CoreWeave. You rent GPUs from the provider and pay them
-          directly; LightOS compares prices, checks the environment, plans the workload and measures what actually runs.
+          Rent a GPU right here with prepaid credit, or bring your own from Lambda, RunPod, AWS or CoreWeave. Either way, LightOS
+          checks the environment, plans the workload and measures what actually runs.
         </p>
+
+        <RentGpuSection />
 
         {/* 1. GPUs */}
         <section className="space-y-4">
@@ -166,7 +169,7 @@ const GpuCloud = () => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">Plans are cost estimates you approve. LightOS doesn't rent machines for you yet.</p>
+          <p className="text-xs text-muted-foreground">Plans are cost estimates you approve. To start a machine now, use Rent a GPU above.</p>
         </section>
 
         {/* 4. Inference API */}
