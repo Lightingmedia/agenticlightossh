@@ -126,13 +126,14 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 }
 
 // Prepaid GPU credit: credit the ledger once per paid checkout session.
-// The amount is Stripe's pre-tax subtotal (tax is not spendable credit),
-// never client input.
+// The credited amount is the USD credit our server wrote into the session
+// metadata (clients cannot edit it), so tax and local-currency display at
+// checkout never change how much GPU time was bought.
 async function handleComputeTopup(session: any) {
   if (session?.metadata?.kind !== "compute_topup") return;
   if (session.payment_status !== "paid") return;
   const userId = session.metadata?.userId;
-  const amount = Number(session.amount_subtotal);
+  const amount = Number(session.metadata?.credit_cents);
   if (!userId || !Number.isInteger(amount) || amount <= 0) {
     console.error("Compute top-up missing user or amount", session.id);
     return;

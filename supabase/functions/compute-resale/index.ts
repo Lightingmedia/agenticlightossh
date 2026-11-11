@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
           ui_mode: "embedded_page",
           line_items: [{ price: creditPrice.id, quantity: body.amount_cents / TOPUP_STEP_CENTS }],
           customer: customerId,
-          metadata: { userId: user.id, kind: "compute_topup", managed_payments: "true" },
+          metadata: { userId: user.id, kind: "compute_topup", credit_cents: String(body.amount_cents), managed_payments: "true" },
           payment_intent_data: { description: product.name, metadata: { userId: user.id, kind: "compute_topup" } },
           return_url: `${ret.origin}${ret.pathname}?topup_session={CHECKOUT_SESSION_ID}`,
           managed_payments: { enabled: true },
