@@ -75,3 +75,8 @@
   - [x] Remove scheduling/routing positioning from home page hero animation (now Measure → Diagnose); remaining in-app demos untouched (competes with free NVIDIA Run:ai/KAI per advisor; claim unverified by us)
   - [ ] Fail-safe design: unmodelable collectives pass through untouched; kill switch restores original path mid-run
   - [ ] Named pilot: two rented 8-GPU InfiniBand nodes (16 GPUs), nccl-tests AllReduce + profiled 7B FSDP step, 2h planned window (not a measured runtime)
+
+- [ ] Plans checkout & lifecycle
+  - [x] No trial; cancel keeps access to period end; overdue keeps access; instant prorated plan switch; admin Signups shows plan + renew/end date
+  - [ ] Welcome email on purchase (blocked: needs an email sender domain the user owns)
+  - [ ] Card-paid test subscription + plan switch in preview (automated card entry stalls; user to try with 4242 card)
