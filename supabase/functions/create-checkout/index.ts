@@ -102,7 +102,7 @@ serve(async (req) => {
       const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data: subs } = await admin.from("subscriptions")
         .select("price_id, status, current_period_end").eq("user_id", userId).eq("environment", env);
-      if (subscriptionTier(subs ?? []) !== "free") {
+      if (subscriptionTier((subs ?? []).filter((r) => r.status !== "canceled")) !== "free") {
         return new Response(JSON.stringify({ error: "You already have a plan. Use Change plan instead." }), {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

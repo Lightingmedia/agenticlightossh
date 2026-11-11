@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CHECKOUT_TRIAL_DAYS, MONITORING_LIMITS, canExecute, connectionRejection, limitMonitoring, requiresUpgrade, subscriptionTier } from "../../supabase/functions/_shared/launch-policy";
+import { CHECKOUT_TRIAL_DAYS, PLAN_CHANGE_PRORATION, MONITORING_LIMITS, canExecute, connectionRejection, limitMonitoring, requiresUpgrade, subscriptionTier } from "../../supabase/functions/_shared/launch-policy";
 import { authorizeRuntimePath, runtimeAccess } from "../../supabase/functions/_shared/runtime-access";
 
 describe("launch entitlements", () => {
@@ -34,5 +34,21 @@ describe("launch entitlements", () => {
     const result = limitMonitoring({ nodes: [{ devices: [{ uuid: "GPU-1" }] }], totals: { devices: 1 } }, { devices: [{ uuid: "GPU-1", gpu_util_pct: { avg: null }, power_w: { avg: null } }] }, "free");
     expect(result.telemetry.cluster.gpu_util_pct_avg).toBeNull();
     expect(result.telemetry.cluster.power_w_sum).toBeNull();
+  });
+
+  describe("subscription lifecycle rules", () => {
+    const now = Date.parse("2026-11-11T00:00:00Z");
+    const future = "2026-12-11T00:00:00Z";
+    const past = "2026-11-01T00:00:00Z";
+    it("a cancelled plan keeps its features until the paid period ends", () => {
+      expect(subscriptionTier([{ price_id: "pro_monthly", status: "canceled", current_period_end: future }], now)).toBe("pro");
+      expect(subscriptionTier([{ price_id: "pro_monthly", status: "canceled", current_period_end: past }], now)).toBe("free");
+    });
+    it("an overdue payment does not remove access while retries run", () => {
+      expect(subscriptionTier([{ price_id: "starter_monthly", status: "past_due", current_period_end: future }], now)).toBe("starter");
+    });
+    it("plan changes switch now and bill the prorated difference immediately", () => {
+      expect(PLAN_CHANGE_PRORATION).toBe("always_invoice");
+    });
   });
 });

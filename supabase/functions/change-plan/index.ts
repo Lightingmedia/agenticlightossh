@@ -34,11 +34,17 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id).eq("environment", env).order("created_at", { ascending: false });
     const current = (rows ?? []).find((r) => r.status !== "canceled" && subscriptionTier([r]) !== "free");
     if (!current) return json({ error: "No active plan to change. Choose a plan to subscribe." }, 404);
-    if (current.price_id === priceId) return json({ error: "You're already on this plan." }, 409);
-
     const stripe = createStripeClient(env);
     const sub = await stripe.subscriptions.retrieve(current.stripe_subscription_id);
     if (sub.metadata?.userId !== user.id) return json({ error: "Subscription does not belong to this account" }, 403);
+    if (current.price_id === priceId) {
+      if (!sub.cancel_at_period_end) return json({ error: "You're already on this plan." }, 409);
+      // Same plan after a cancellation: resume renewal instead of buying again.
+      await stripe.subscriptions.update(sub.id, { cancel_at_period_end: false });
+      await admin.from("subscriptions").update({ cancel_at_period_end: false, updated_at: new Date().toISOString() })
+        .eq("stripe_subscription_id", sub.id).eq("environment", env);
+      return json({ ok: true, plan: PAID_PRICE_TIERS[priceId], resumed: true });
+    }
     const item = sub.items.data[0];
     const prices = await stripe.prices.list({ lookup_keys: [priceId] });
     const newPrice = prices.data[0];

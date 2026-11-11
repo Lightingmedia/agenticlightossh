@@ -98,7 +98,7 @@ export default function Pricing() {
   const [planChange, setPlanChange] = useState<{ plan: typeof plans[0]; priceId: string } | null>(null);
   const [changing, setChanging] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const { tier, isActive, isCanceled } = useSubscription();
+  const { tier, isActive, isCanceled, subscription } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -122,7 +122,7 @@ export default function Pricing() {
     }
     const priceId = annual && plan.yearlyPriceId ? plan.yearlyPriceId : plan.monthlyPriceId;
     // Existing subscribers switch plans in place (prorated) instead of buying a second plan.
-    if (isActive && tier !== "free" && priceId) {
+    if (isActive && tier !== "free" && priceId && subscription?.status !== "canceled") {
       setPlanChange({ plan, priceId });
       return;
     }
