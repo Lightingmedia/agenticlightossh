@@ -75,8 +75,6 @@ const AdminDashboard = () => {
           <div className="flex justify-between"><span>Photonic-Native Architecture</span><span className="text-primary">Active</span></div>
           <div className="flex justify-between"><span>64-Channel WDM Scheduling</span><span className="text-primary">Enabled</span></div>
           <div className="flex justify-between"><span>Framework Support</span><span className="text-foreground">PyTorch, JAX</span></div>
-          <div className="flex justify-between"><span>NCE Benchmark MFU</span><span className="text-green-400">68%</span></div>
-          <div className="flex justify-between"><span>Cost Reduction vs GPU</span><span className="text-green-400">−71%</span></div>
         </CardContent>
       </Card>
     </div>
