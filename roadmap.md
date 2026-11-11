@@ -15,7 +15,9 @@
 - [ ] Free telemetry path: run the existing FastAPI gateway on a user-owned NVIDIA machine + free Cloudflare quick tunnel (waiting on user's own GPU machine; no paid rentals)
 - [ ] Resell GPU compute (Vast.ai, 10% markup, prepaid credit)
   - [x] Live offers, rent/stop, per-minute metering, auto-stop at $0, ledger, GPU Cloud page section
-  - [ ] Enable payments so credit top-ups work (blocked: payments not set up in this project; user to choose Paddle or Stripe)
+  - [x] Payments switched on (test mode); plans + $10 GPU credit product created; checkout opens
+  - [ ] Complete one test card purchase in the preview and confirm credit appears (automated attempt didn't finish)
+  - [ ] Review fees vs 10% markup on small top-ups (user decision)
   - [ ] Fund the Vast.ai account (blocked: balance $0; user doesn't want to pay yet)
   - [ ] Confirm Vast.ai terms allow resale (user)
   - [ ] End-to-end signed-in rent → boot → SSH → stop test (needs both of the above)
