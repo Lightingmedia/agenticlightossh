@@ -10,29 +10,30 @@ export function useAdminAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
-      if (!session) {
+    let active = true;
+    let checkedFor: string | null = null;
+
+    const check = async (u: User | null) => {
+      if (!u) {
         navigate("/auth");
         return;
       }
-      setUser(session.user);
-      const { data } = await supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" });
+      if (checkedFor === u.id) return;
+      checkedFor = u.id;
+      setUser(u);
+      const { data } = await supabase.rpc("has_role", { _user_id: u.id, _role: "admin" });
+      if (!active) return;
       setIsAdmin(!!data);
       setLoading(false);
-    });
+    };
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      const { data } = await supabase.rpc("has_role", { _user_id: session.user.id, _role: "admin" });
-      setIsAdmin(!!data);
-      setLoading(false);
+    // Never await other auth/database calls inside the auth callback: it can deadlock the client.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setTimeout(() => { void check(session?.user ?? null); }, 0);
     });
+    supabase.auth.getSession().then(({ data: { session } }) => check(session?.user ?? null));
 
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, [navigate]);
 
   const signOut = async () => {
