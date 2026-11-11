@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@22.0.2";
 import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
+import { CHECKOUT_TRIAL_DAYS, subscriptionTier } from "../_shared/launch-policy.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -96,6 +97,18 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
+    // One plan per account: existing subscribers change plans instead.
+    if (isRecurring) {
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: subs } = await admin.from("subscriptions")
+        .select("price_id, status, current_period_end").eq("user_id", userId).eq("environment", env);
+      if (subscriptionTier(subs ?? []) !== "free") {
+        return new Response(JSON.stringify({ error: "You already have a plan. Use Change plan instead." }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     let productDescription: string | undefined;
     if (!isRecurring) {
       const productId = typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
@@ -113,7 +126,7 @@ serve(async (req) => {
       metadata: { userId, managed_payments: "true" },
       managed_payments: { enabled: true },
       ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
-      ...(isRecurring && { subscription_data: { trial_period_days: 7, metadata: { userId } } }),
+      ...(isRecurring && { subscription_data: { ...(CHECKOUT_TRIAL_DAYS > 0 && { trial_period_days: CHECKOUT_TRIAL_DAYS }), metadata: { userId } } }),
     } as Stripe.Checkout.SessionCreateParams;
 
     const session = await stripe.checkout.sessions.create(sessionParams);
