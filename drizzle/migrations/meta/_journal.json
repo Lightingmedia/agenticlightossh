@@ -64,6 +64,13 @@
       "when": 1794300418198,
       "tag": "0008_admin_signups_and_welcome_letter",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794369702301,
+      "tag": "0009_gpu_resale_credits_and_rentals",
+      "breakpoints": true
     }
   ]
 }

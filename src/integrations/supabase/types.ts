@@ -59,6 +59,105 @@ export type Database = {
         }
         Relationships: []
       }
+      compute_credit_ledger: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          kind: string
+          note: string | null
+          reference: string
+          rental_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          kind: string
+          note?: string | null
+          reference: string
+          rental_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          reference?: string
+          rental_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      compute_rentals: {
+        Row: {
+          charged_cents: number
+          created_at: string
+          ended_at: string | null
+          geolocation: string | null
+          gpu_name: string
+          id: string
+          instance_id: number | null
+          num_gpus: number
+          offer_id: number
+          price_per_hour: number
+          provider: string
+          provider_price_per_hour: number
+          ssh_host: string | null
+          ssh_port: number | null
+          started_at: string
+          status: string
+          status_message: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          charged_cents?: number
+          created_at?: string
+          ended_at?: string | null
+          geolocation?: string | null
+          gpu_name: string
+          id?: string
+          instance_id?: number | null
+          num_gpus: number
+          offer_id: number
+          price_per_hour: number
+          provider?: string
+          provider_price_per_hour: number
+          ssh_host?: string | null
+          ssh_port?: number | null
+          started_at?: string
+          status?: string
+          status_message?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          charged_cents?: number
+          created_at?: string
+          ended_at?: string | null
+          geolocation?: string | null
+          gpu_name?: string
+          id?: string
+          instance_id?: number | null
+          num_gpus?: number
+          offer_id?: number
+          price_per_hour?: number
+          provider?: string
+          provider_price_per_hour?: number
+          ssh_host?: string | null
+          ssh_port?: number | null
+          started_at?: string
+          status?: string
+          status_message?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exchange_offers: {
         Row: {
           accelerator: string
