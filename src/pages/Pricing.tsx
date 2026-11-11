@@ -10,6 +10,8 @@ import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useToast } from "@/hooks/use-toast";
+import { FunctionsHttpError } from "@supabase/supabase-js";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const plans = [
   {
@@ -93,6 +95,8 @@ const plans = [
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
+  const [planChange, setPlanChange] = useState<{ plan: typeof plans[0]; priceId: string } | null>(null);
+  const [changing, setChanging] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { tier, isActive, isCanceled } = useSubscription();
   const navigate = useNavigate();
@@ -116,20 +120,30 @@ export default function Pricing() {
       toast({ title: "Already subscribed", description: `You're already on the ${plan.name} plan.` });
       return;
     }
-    // If already subscribed to a different plan, open portal for upgrade/downgrade
-    if (isActive && tier !== plan.id && tier !== "free") {
-      try {
-        const { data, error } = await supabase.functions.invoke("create-portal-session", {
-          body: { returnUrl: window.location.href, environment: getStripeEnvironment() },
-        });
-        if (data?.url) {
-          window.open(data.url, "_blank");
-          return;
-        }
-      } catch {}
-    }
     const priceId = annual && plan.yearlyPriceId ? plan.yearlyPriceId : plan.monthlyPriceId;
+    // Existing subscribers switch plans in place (prorated) instead of buying a second plan.
+    if (isActive && tier !== "free" && priceId) {
+      setPlanChange({ plan, priceId });
+      return;
+    }
     if (priceId) setCheckoutPriceId(priceId);
+  };
+
+  const confirmPlanChange = async () => {
+    if (!planChange) return;
+    setChanging(true);
+    const { error } = await supabase.functions.invoke("change-plan", {
+      body: { priceId: planChange.priceId, environment: getStripeEnvironment() },
+    });
+    setChanging(false);
+    if (error) {
+      let msg = error.message;
+      if (error instanceof FunctionsHttpError) { try { msg = (await error.context.json())?.error ?? msg; } catch { /* keep */ } }
+      toast({ title: "Plan not changed", description: msg, variant: "destructive" });
+      return;
+    }
+    toast({ title: `You're now on ${planChange.plan.name}`, description: "The prorated difference was charged or credited to your account." });
+    setPlanChange(null);
   };
 
   if (checkoutPriceId) {
@@ -169,7 +183,7 @@ export default function Pricing() {
             Scale Your AI Infrastructure
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Start free with one GPU. Paid plans are early access; GPU rental is billed separately by your provider.
+            Start free with one GPU. Paid plans are early access. Change or cancel any time; GPU time is billed separately.
           </p>
 
           {/* Billing toggle */}
@@ -235,7 +249,7 @@ export default function Pricing() {
                     onClick={() => handleSubscribe(plan)}
                     disabled={isCurrent}
                   >
-                    {isCurrent ? "Current Plan" : plan.id === "free" ? "Get Started Free" : "Continue to Checkout"}
+                    {isCurrent ? "Current Plan" : plan.id === "free" ? (isActive && tier !== "free" ? "Included" : "Get Started Free") : isActive && tier !== "free" ? "Switch to this plan" : "Continue to Checkout"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -245,7 +259,26 @@ export default function Pricing() {
 
         <p className="text-center text-xs text-muted-foreground mt-8">
           Free: one GPU, monitoring only, no card required. Paid access and supported execution are subject to pilot validation. Compute charges are separate.
+          Cancelled plans keep their features until the paid period ends.
         </p>
+
+        <AlertDialog open={!!planChange} onOpenChange={(o) => !o && setPlanChange(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Switch to {planChange?.plan.name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The change happens now. You'll be charged, or credited, the prorated difference for the rest of this billing period
+                using the card on file.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={changing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction disabled={changing} onClick={(e) => { e.preventDefault(); confirmPlanChange(); }}>
+                {changing ? "Switching…" : "Switch plan"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

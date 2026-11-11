@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, UserPlus } from "lucide-react";
+import { planForPrice, subscriptionTier } from "../../supabase/functions/_shared/launch-policy";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface Signup {
@@ -15,6 +16,7 @@ interface Signup {
   created_at: string;
   welcome_letter_seen_at: string | null;
   plan: string;
+  billing: string;
 }
 
 const DAY = 86_400_000;
@@ -29,14 +31,18 @@ const AdminSignups = () => {
     (async () => {
       const [p, s] = await Promise.all([
         supabase.from("profiles").select("user_id, email, display_name, created_at, welcome_letter_seen_at").order("created_at", { ascending: false }),
-        supabase.from("subscriptions").select("user_id, status, product_id"),
+        supabase.from("subscriptions").select("user_id, status, price_id, current_period_end, cancel_at_period_end, environment, created_at").order("created_at", { ascending: false }),
       ]);
       if (p.error) { setError(p.error.message); setLoading(false); return; }
-      const plans = new Map<string, string>();
+      // Newest subscription per account that still grants paid access.
+      const plans = new Map<string, { plan: string; billing: string }>();
       for (const sub of s.data ?? []) {
-        if (sub.status === "active" || sub.status === "trialing") plans.set(sub.user_id, sub.product_id ?? "paid");
+        if (plans.has(sub.user_id) || subscriptionTier([sub]) === "free") continue;
+        const end = sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : "—";
+        const state = sub.status === "past_due" ? "payment overdue" : sub.status === "canceled" || sub.cancel_at_period_end ? `ends ${end}` : `renews ${end}`;
+        plans.set(sub.user_id, { plan: planForPrice(sub.price_id) ?? "paid", billing: `${state}${sub.environment === "sandbox" ? " · test" : ""}` });
       }
-      setRows((p.data ?? []).map((r) => ({ ...r, plan: plans.get(r.user_id) ?? "free" })));
+      setRows((p.data ?? []).map((r) => ({ ...r, plan: plans.get(r.user_id)?.plan ?? "free", billing: plans.get(r.user_id)?.billing ?? "" })));
       setLoading(false);
     })();
   }, []);
@@ -65,8 +71,8 @@ const AdminSignups = () => {
   }, [rows, now]);
 
   const exportCsv = () => {
-    const head = "email,name,signed_up,plan,welcome_letter_read\n";
-    const body = filtered.map((r) => [r.email ?? "", r.display_name ?? "", r.created_at, r.plan, r.welcome_letter_seen_at ? "yes" : "no"]
+    const head = "email,name,signed_up,plan,billing,welcome_letter_read\n";
+    const body = filtered.map((r) => [r.email ?? "", r.display_name ?? "", r.created_at, r.plan, r.billing, r.welcome_letter_seen_at ? "yes" : "no"]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([head + body], { type: "text/csv" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: "lightos-signups.csv" });
@@ -143,7 +149,10 @@ const AdminSignups = () => {
                   <TableCell className="font-mono text-xs">{r.email ?? "—"}</TableCell>
                   <TableCell>{r.display_name ?? "—"}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</TableCell>
-                  <TableCell><Badge variant={r.plan === "free" ? "outline" : "default"}>{r.plan === "free" ? "Free" : "Paid"}</Badge></TableCell>
+                  <TableCell>
+                    <Badge variant={r.plan === "free" ? "outline" : "default"} className="capitalize">{r.plan}</Badge>
+                    {r.billing && <div className="mt-1 text-xs text-muted-foreground">{r.billing}</div>}
+                  </TableCell>
                   <TableCell className="text-xs">{r.welcome_letter_seen_at ? "Read" : "Not yet"}</TableCell>
                 </TableRow>
               ))}
