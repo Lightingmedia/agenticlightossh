@@ -7,10 +7,10 @@ import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 
 const metrics = [
-  { label: "System MFU", value: "68%", delta: "+23% vs H100", icon: Cpu, color: "text-cyan-400" },
-  { label: "Tokens / sec", value: "4,820", delta: "Cluster yield", icon: Zap, color: "text-primary" },
-  { label: "TTFT", value: "18 ms", delta: "−62% latency", icon: Clock, color: "text-green-400" },
-  { label: "Cost / 1M tok", value: "$0.12", delta: "−71% vs GPU", icon: DollarSign, color: "text-yellow-400" },
+  { label: "System MFU", value: "68%", delta: "Design target", icon: Cpu, color: "text-primary" },
+  { label: "Tokens / sec", value: "4,820", delta: "Design target", icon: Zap, color: "text-primary" },
+  { label: "TTFT", value: "18 ms", delta: "Design target", icon: Clock, color: "text-primary" },
+  { label: "Cost / 1M tok", value: "$0.12", delta: "Design target", icon: DollarSign, color: "text-primary" },
 ];
 
 const comparisons = [
@@ -44,17 +44,17 @@ const Benchmark = () => {
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono leading-tight mb-6">
-            <span className="text-foreground">Photonic AI is </span>
-            <span className="text-gradient glow-text">Faster.</span>
+            <span className="text-foreground">Photonic AI </span>
+            <span className="text-gradient glow-text">Targets.</span>
             <br />
-            <span className="text-foreground">Prove it with </span>
-            <span className="text-gradient glow-text">Data.</span>
+            <span className="text-foreground">Measured results </span>
+            <span className="text-gradient glow-text">to come.</span>
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            Compare LightRail Neural Compute Engine against NVIDIA H100, A100, TPU v5e & Gaudi 3 —
-            throughput, latency, and cost per token on real LLM workloads.
+            Design targets for the LightRail Neural Compute Engine, shown next to reference figures for
+            NVIDIA H100, A100, TPU v5e and Gaudi 3. None of these numbers have been measured by LightOS yet.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
@@ -66,11 +66,6 @@ const Benchmark = () => {
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <a href="https://github.com/philschmid/llmperf-bench" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" variant="outline" className="font-mono border-border hover:border-primary/50">
-                View on GitHub
-              </Button>
-            </a>
           </motion.div>
         </div>
       </section>
@@ -80,8 +75,11 @@ const Benchmark = () => {
         <div className="container mx-auto px-4">
           <motion.h2 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-2xl md:text-3xl font-bold font-mono text-center mb-12">
-            LightRail NCE at a Glance
+            LightRail NCE Design Targets
           </motion.h2>
+          <p className="text-center text-sm font-mono text-muted-foreground -mt-8 mb-10">
+            TARGET · NOT MEASURED — goals for a roadmap photonic engine, not benchmark results.
+          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {metrics.map((m, i) => (
@@ -106,8 +104,12 @@ const Benchmark = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           <motion.h2 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             className="text-2xl md:text-3xl font-bold font-mono text-center mb-12">
-            Head-to-Head Comparison
+            Targets vs Reference Figures
           </motion.h2>
+          <p className="text-center text-sm font-mono text-muted-foreground -mt-8 mb-10">
+            TARGET · NOT MEASURED — the LightRail row is a design goal; other rows are unverified reference
+            assumptions, not LightOS measurements.
+          </p>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <Card className="bg-card/50 border-border overflow-hidden">
@@ -129,6 +131,7 @@ const Benchmark = () => {
                           <td className={`p-4 ${row.highlight ? "text-primary font-bold" : "text-foreground"}`}>
                             {row.highlight && <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2" />}
                             {row.accelerator}
+                            {row.highlight && <span className="ml-2 text-xs font-normal text-muted-foreground">(target)</span>}
                           </td>
                           <td className="text-right p-4 text-foreground">{row.mfu}%</td>
                           <td className="text-right p-4 text-foreground">{row.ttft} ms</td>
