@@ -105,7 +105,7 @@ export default function Billing() {
 
           <p className="text-xs text-muted-foreground">
             Manage your payment method, invoices, and cancellation through the billing portal.
-            {getStripeEnvironment() === "sandbox" && " (Test mode — no real charges)"}
+            {getConfiguredStripeEnvironment() === "sandbox" && " (Test mode — no real charges)"}
           </p>
         </CardContent>
       </Card>
