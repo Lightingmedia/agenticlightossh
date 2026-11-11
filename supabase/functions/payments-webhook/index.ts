@@ -13,7 +13,14 @@ serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const env = (url.searchParams.get('env') || 'sandbox') as StripeEnv;
+  const rawEnv = url.searchParams.get('env');
+  if (rawEnv !== 'sandbox' && rawEnv !== 'live') {
+    console.error("Webhook received with invalid or missing env:", rawEnv);
+    return new Response(JSON.stringify({ received: true, ignored: "invalid env" }), {
+      status: 200, headers: { "Content-Type": "application/json" },
+    });
+  }
+  const env: StripeEnv = rawEnv;
 
   try {
     const event = await verifyWebhook(req, env);
@@ -119,12 +126,13 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 }
 
 // Prepaid GPU credit: credit the ledger once per paid checkout session.
-// The amount comes from Stripe's own total, never from client input.
+// The amount is Stripe's pre-tax subtotal (tax is not spendable credit),
+// never client input.
 async function handleComputeTopup(session: any) {
   if (session?.metadata?.kind !== "compute_topup") return;
   if (session.payment_status !== "paid") return;
   const userId = session.metadata?.userId;
-  const amount = Number(session.amount_total);
+  const amount = Number(session.amount_subtotal);
   if (!userId || !Number.isInteger(amount) || amount <= 0) {
     console.error("Compute top-up missing user or amount", session.id);
     return;

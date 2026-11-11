@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.gateway-checklist]
 verify_jwt = false
+
+[functions.compute-resale]
+verify_jwt = false

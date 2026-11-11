@@ -4,8 +4,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import Stripe from "https://esm.sh/stripe@22.0.2";
+import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
 import { customerPricePerHour, requiredStartCents, validTopupCents, RESALE_MARKUP, MIN_TOPUP_CENTS, MAX_TOPUP_CENTS, TOPUP_STEP_CENTS } from "../_shared/resale-pricing.ts";
+/** Registered one-time price: $10 of GPU credit per unit. */
+const CREDIT_PRICE_ID = "gpu_credit_10";
 import { VastError, balanceCents, endRental, meterRentals, vast } from "../_shared/vast.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
