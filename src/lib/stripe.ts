@@ -5,10 +5,17 @@ type StripeEnv = 'sandbox' | 'live';
 
 const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN;
 
-// Derive the environment from the token prefix; never silently fall back to live.
-function paymentsEnvironment(): StripeEnv {
+// Display-only checks must tolerate an unfinished payments setup.
+export function getConfiguredStripeEnvironment(): StripeEnv | null {
   if (clientToken?.startsWith('pk_test_')) return 'sandbox';
   if (clientToken?.startsWith('pk_live_')) return 'live';
+  return null;
+}
+
+// Payment actions still fail closed; never silently fall back to live.
+function paymentsEnvironment(): StripeEnv {
+  const environment = getConfiguredStripeEnvironment();
+  if (environment) return environment;
   throw new Error("Payments are not configured for this build yet. Complete go-live to accept payments.");
 }
 

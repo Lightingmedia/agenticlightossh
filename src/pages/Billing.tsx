@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, ExternalLink, Calendar, AlertTriangle } from "lucide-react";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getConfiguredStripeEnvironment, getStripeEnvironment } from "@/lib/stripe";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Billing() {
@@ -105,7 +105,7 @@ export default function Billing() {
 
           <p className="text-xs text-muted-foreground">
             Manage your payment method, invoices, and cancellation through the billing portal.
-            {getStripeEnvironment() === "sandbox" && " (Test mode — no real charges)"}
+            {getConfiguredStripeEnvironment() === "sandbox" && " (Test mode — no real charges)"}
           </p>
         </CardContent>
       </Card>
