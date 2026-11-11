@@ -12,6 +12,7 @@
   - [ ] Own small model on a regular CPU server (gateway Compose profile, OpenAI-compatible)
   - [ ] In-browser model running on the visitor's device
 - [ ] Build GPU engine on Brev, connect it in GPU Setup, confirm real RDMA Traces readings (blocked: Brev account has no credits — rental of Crusoe 8× A100 IB failed "Credits are exhausted"; nothing was charged)
+- [ ] Free telemetry path: run the existing FastAPI gateway on a user-owned NVIDIA machine + free Cloudflare quick tunnel (waiting on user's own GPU machine; no paid rentals)
 - [ ] Resell GPU compute: customers book and pay LightOS; LightOS rents on its own provider account (needs provider resale permission, markup/pricing, refund terms)
 - [x] Remove the unwanted signup account and its records (deleted Nov 11)
 - [ ] RDMA Traces dashboard page: deploy rdma-telemetry, page + navigation, signed-in test (real numbers need a connected RDMA host)
