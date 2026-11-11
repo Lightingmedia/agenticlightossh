@@ -207,7 +207,7 @@ export default function RentGpuSection() {
               </table>
             </div>
           )}
-          {fetchedAt && <p className="text-xs text-muted-foreground">Live availability as of {new Date(fetchedAt).toLocaleTimeString()}. Machines can be taken by others at any moment. Network traffic is included.</p>}
+          {fetchedAt && <p className="text-xs text-muted-foreground">Live availability as of {new Date(fetchedAt).toLocaleTimeString()}. Machines can be taken by others at any moment.</p>}
         </div>
       </div>
 
