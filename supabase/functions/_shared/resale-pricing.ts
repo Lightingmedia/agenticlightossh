@@ -7,6 +7,8 @@ export const RESALE_MARKUP = 0.10;
 export const MIN_PREPAID_HOURS = 1;
 export const MIN_TOPUP_CENTS = 1_000; // $10
 export const MAX_TOPUP_CENTS = 100_000; // $1,000
+/** Credit is sold in $10 units (one checkout line item each). */
+export const TOPUP_STEP_CENTS = 1_000;
 
 /** Customer hourly price in dollars, rounded up to the next cent. */
 export function customerPricePerHour(providerPerHour: number): number {
@@ -36,5 +38,5 @@ export function mustStopForBalance(balanceCents: number): boolean {
 }
 
 export function validTopupCents(cents: number): boolean {
-  return Number.isInteger(cents) && cents >= MIN_TOPUP_CENTS && cents <= MAX_TOPUP_CENTS;
+  return Number.isInteger(cents) && cents >= MIN_TOPUP_CENTS && cents <= MAX_TOPUP_CENTS && cents % TOPUP_STEP_CENTS === 0;
 }

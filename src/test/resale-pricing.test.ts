@@ -24,6 +24,11 @@ describe("GPU resale pricing", () => {
     expect(validTopupCents(100000)).toBe(true);
     expect(validTopupCents(100001)).toBe(false);
   });
+
+  it("sells credit only in $10 steps", () => {
+    expect(validTopupCents(2500)).toBe(false);
+    expect(validTopupCents(2000)).toBe(true);
+  });
 });
 
 describe("GPU resale metering", () => {

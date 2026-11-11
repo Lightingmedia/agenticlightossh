@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import Stripe from "https://esm.sh/stripe@22.0.2";
+import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -76,7 +77,13 @@ serve(async (req) => {
       }
     }
 
-    const env = (environment || 'sandbox') as StripeEnv;
+    if (environment !== "sandbox" && environment !== "live") {
+      return new Response(JSON.stringify({ error: "Invalid environment" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const env = environment as StripeEnv;
     const stripe = createStripeClient(env);
 
     const prices = await stripe.prices.list({ lookup_keys: [priceId] });
@@ -89,27 +96,25 @@ serve(async (req) => {
     const stripePrice = prices.data[0];
     const isRecurring = stripePrice.type === "recurring";
 
-    const sessionParams: any = {
+    let productDescription: string | undefined;
+    if (!isRecurring) {
+      const productId = typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
+      productDescription = (await stripe.products.retrieve(productId)).name;
+    }
+
+    const customerId = await resolveOrCreateCustomer(stripe, { email: customerEmail ?? undefined, userId });
+
+    const sessionParams = {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded",
+      ui_mode: "embedded_page",
       return_url: safeReturnUrl || `${requestOrigin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
-    };
-
-    if (customerEmail) {
-      sessionParams.customer_email = customerEmail;
-    }
-
-    if (userId) {
-      sessionParams.metadata = { userId };
-    }
-
-    if (isRecurring) {
-      sessionParams.subscription_data = {
-        trial_period_days: 7,
-        ...(userId ? { metadata: { userId } } : {}),
-      };
-    }
+      customer: customerId,
+      metadata: { userId, managed_payments: "true" },
+      managed_payments: { enabled: true },
+      ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
+      ...(isRecurring && { subscription_data: { trial_period_days: 7, metadata: { userId } } }),
+    } as Stripe.Checkout.SessionCreateParams;
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 

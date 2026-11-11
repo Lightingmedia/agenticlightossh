@@ -24,7 +24,7 @@ type Rental = {
 type Account = { balance_cents: number; rentals: Rental[]; ledger: { id: string; amount_cents: number; kind: string; note: string | null; created_at: string }[] };
 
 const money = (cents: number) => `${cents < 0 ? "−" : ""}$${(Math.abs(cents) / 100).toFixed(2)}`;
-const TOPUPS = [1000, 2500, 5000, 10000];
+const TOPUPS = [1000, 2000, 5000, 10000];
 const SSH_KEY_STORE = "lightos.ssh_public_key";
 
 async function call<T>(body: Record<string, unknown>): Promise<T> {

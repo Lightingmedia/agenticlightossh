@@ -4,8 +4,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
-import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
-import { customerPricePerHour, requiredStartCents, validTopupCents, RESALE_MARKUP, MIN_TOPUP_CENTS, MAX_TOPUP_CENTS } from "../_shared/resale-pricing.ts";
+import Stripe from "https://esm.sh/stripe@22.0.2";
+import { type StripeEnv, createStripeClient, resolveOrCreateCustomer } from "../_shared/stripe.ts";
+import { customerPricePerHour, requiredStartCents, validTopupCents, RESALE_MARKUP, MIN_TOPUP_CENTS, MAX_TOPUP_CENTS, TOPUP_STEP_CENTS } from "../_shared/resale-pricing.ts";
+/** Registered one-time price: $10 of GPU credit per unit. */
+const CREDIT_PRICE_ID = "gpu_credit_10";
 import { VastError, balanceCents, endRental, meterRentals, vast } from "../_shared/vast.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -141,28 +144,27 @@ Deno.serve(async (req) => {
       }
 
       case "topup": {
-        if (!validTopupCents(body.amount_cents)) return json({ error: `Top-ups must be between $${MIN_TOPUP_CENTS / 100} and $${MAX_TOPUP_CENTS / 100}` }, 400);
+        if (!validTopupCents(body.amount_cents)) return json({ error: `Top-ups must be $${MIN_TOPUP_CENTS / 100}–$${MAX_TOPUP_CENTS / 100} in $${TOPUP_STEP_CENTS / 100} steps` }, 400);
         const origin = req.headers.get("origin") ?? "";
         const allowed = new Set([origin, ...TRUSTED_ORIGINS].filter(Boolean));
         const ret = new URL(body.return_url);
         if (!allowed.has(ret.origin)) return json({ error: "Invalid return URL" }, 400);
         const stripe = createStripeClient(body.environment as StripeEnv);
+        const prices = await stripe.prices.list({ lookup_keys: [CREDIT_PRICE_ID], expand: ["data.product"] });
+        const creditPrice = prices.data[0];
+        if (!creditPrice || creditPrice.unit_amount !== TOPUP_STEP_CENTS) return json({ error: "GPU credit is not available for purchase yet" }, 503);
+        const product = creditPrice.product as Stripe.Product;
+        const customerId = await resolveOrCreateCustomer(stripe, { email: user.email ?? undefined, userId: user.id });
         const session = await stripe.checkout.sessions.create({
           mode: "payment",
-          ui_mode: "embedded",
-          line_items: [{
-            quantity: 1,
-            price_data: {
-              currency: "usd",
-              unit_amount: body.amount_cents,
-              product_data: { name: "LightOS GPU credit", description: "Prepaid credit for renting GPUs through LightOS" },
-            },
-          }],
-          customer_email: user.email ?? undefined,
-          metadata: { userId: user.id, kind: "compute_topup" },
-          payment_intent_data: { metadata: { userId: user.id, kind: "compute_topup" } },
+          ui_mode: "embedded_page",
+          line_items: [{ price: creditPrice.id, quantity: body.amount_cents / TOPUP_STEP_CENTS }],
+          customer: customerId,
+          metadata: { userId: user.id, kind: "compute_topup", credit_cents: String(body.amount_cents), managed_payments: "true" },
+          payment_intent_data: { description: product.name, metadata: { userId: user.id, kind: "compute_topup" } },
           return_url: `${ret.origin}${ret.pathname}?topup_session={CHECKOUT_SESSION_ID}`,
-        } as any);
+          managed_payments: { enabled: true },
+        } as Stripe.Checkout.SessionCreateParams);
         return json({ clientSecret: session.client_secret });
       }
 

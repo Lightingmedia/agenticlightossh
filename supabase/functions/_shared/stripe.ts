@@ -1,31 +1,43 @@
 import { encode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
+import Stripe from "https://esm.sh/stripe@22.0.2";
+const getEnv = (key: string): string => {
+  const value = Deno.env.get(key);
+  if (!value) throw new Error(`${key} is not configured`);
+  return value;
+};
 
 export type StripeEnv = 'sandbox' | 'live';
 
-export function getConnectionApiKey(env: StripeEnv): string {
-  const key = env === 'sandbox'
-    ? Deno.env.get('STRIPE_SANDBOX_API_KEY')
-    : Deno.env.get('STRIPE_LIVE_API_KEY');
-  if (!key) throw new Error(`STRIPE_${env.toUpperCase()}_API_KEY is not configured`);
-  return key;
-}
-
-import Stripe from "https://esm.sh/stripe@18.5.0";
-
 const GATEWAY_STRIPE_BASE = 'https://connector-gateway.lovable.dev/stripe';
 
+export function getConnectionApiKey(env: StripeEnv): string {
+  return env === 'sandbox'
+    ? getEnv('STRIPE_SANDBOX_API_KEY')
+    : getEnv('STRIPE_LIVE_API_KEY');
+}
+
+// Routes api.stripe.com requests through the connector gateway.
+// Only api.stripe.com is proxied (not files.stripe.com or connect.stripe.com).
 export function createStripeClient(env: StripeEnv): Stripe {
   const connectionApiKey = getConnectionApiKey(env);
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!lovableApiKey) throw new Error('LOVABLE_API_KEY is not configured');
+  const lovableApiKey = getEnv('LOVABLE_API_KEY');
 
   return new Stripe(connectionApiKey, {
-    httpClient: Stripe.createFetchHttpClient((url: string | URL, init?: RequestInit) => {
-      const gatewayUrl = url.toString().replace('https://api.stripe.com', GATEWAY_STRIPE_BASE);
+    // Pin the wire API version explicitly so request/response shapes (e.g.
+    // period fields on subscription items, Checkout Session ui_mode enum)
+    // don't silently change if a future SDK bump lands a new default or
+    // if the installed `stripe` package resolves to a different major.
+    // The surrounding knowledge files assume dahlia semantics.
+    apiVersion: '2026-03-25.dahlia',
+    httpClient: Stripe.createFetchHttpClient((input, init) => {
+      const stripeUrl = input instanceof Request ? input.url : input.toString();
+      const gatewayUrl = stripeUrl.replace('https://api.stripe.com', GATEWAY_STRIPE_BASE);
       return fetch(gatewayUrl, {
         ...init,
         headers: {
-          ...Object.fromEntries(new Headers(init?.headers).entries()),
+          ...Object.fromEntries(
+            new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined)).entries(),
+          ),
           'X-Connection-Api-Key': connectionApiKey,
           'Lovable-API-Key': lovableApiKey,
         },
@@ -34,16 +46,53 @@ export function createStripeClient(env: StripeEnv): Stripe {
   });
 }
 
+// Look up an existing Customer by userId metadata (then by email), or
+// create one, so userId lives on a searchable Stripe object.
+export async function resolveOrCreateCustomer(
+  stripe: ReturnType<typeof createStripeClient>,
+  options: { email?: string; userId?: string },
+): Promise<string> {
+  if (options.userId && !/^[a-zA-Z0-9_-]+$/.test(options.userId)) {
+    throw new Error("Invalid userId");
+  }
+  if (options.userId) {
+    const found = await stripe.customers.search({
+      query: `metadata['userId']:'${options.userId}'`,
+      limit: 1,
+    });
+    if (found.data.length) return found.data[0].id;
+  }
+  if (options.email) {
+    const existing = await stripe.customers.list({ email: options.email, limit: 1 });
+    if (existing.data.length) {
+      const customer = existing.data[0];
+      if (options.userId && customer.metadata?.userId !== options.userId) {
+        await stripe.customers.update(customer.id, {
+          metadata: { ...customer.metadata, userId: options.userId },
+        });
+      }
+      return customer.id;
+    }
+  }
+  const created = await stripe.customers.create({
+    ...(options.email && { email: options.email }),
+    ...(options.userId && { metadata: { userId: options.userId } }),
+  });
+  return created.id;
+}
+
 export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ type: string; data: { object: any } }> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret = env === 'sandbox'
-    ? Deno.env.get('PAYMENTS_SANDBOX_WEBHOOK_SECRET')
-    : Deno.env.get('PAYMENTS_LIVE_WEBHOOK_SECRET');
+    ? getEnv('PAYMENTS_SANDBOX_WEBHOOK_SECRET')
+    : getEnv('PAYMENTS_LIVE_WEBHOOK_SECRET');
 
-  if (!secret) throw new Error('Webhook secret environment variable is not configured');
-  if (!signature || !body) throw new Error("Missing signature or body");
+  if (!signature || !body) {
+    throw new Error("Missing signature or body");
+  }
 
+  // Parse signature header — collect all v1 values (multiple during secret rotation)
   let timestamp: string | undefined;
   const v1Signatures: string[] = [];
   for (const part of signature.split(",")) {
@@ -52,10 +101,15 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
     if (key === "v1") v1Signatures.push(value);
   }
 
-  if (!timestamp || v1Signatures.length === 0) throw new Error("Invalid signature format");
+  if (!timestamp || v1Signatures.length === 0) {
+    throw new Error("Invalid signature format");
+  }
 
+  // Check timestamp freshness (5 minute tolerance)
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
-  if (age > 300) throw new Error("Webhook timestamp too old");
+  if (age > 300) {
+    throw new Error("Webhook timestamp too old");
+  }
 
   const key = await crypto.subtle.importKey(
     "raw",
@@ -71,7 +125,9 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<{ typ
   );
   const expected = new TextDecoder().decode(encode(new Uint8Array(signed)));
 
-  if (!v1Signatures.includes(expected)) throw new Error("Invalid webhook signature");
+  if (!v1Signatures.includes(expected)) {
+    throw new Error("Invalid webhook signature");
+  }
 
   return JSON.parse(body);
 }
