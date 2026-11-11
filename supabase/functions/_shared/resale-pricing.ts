@@ -16,7 +16,7 @@ export function customerPricePerHour(providerPerHour: number): number {
 
 /** Credit needed before a machine may start. */
 export function requiredStartCents(customerPerHour: number): number {
-  return Math.ceil(customerPerHour * 100 * MIN_PREPAID_HOURS);
+  return Math.ceil(customerPerHour * 100 * MIN_PREPAID_HOURS - 1e-9);
 }
 
 /** Total cents owed for a rental from start until `now`, rounded up to a whole cent. */
