@@ -80,3 +80,4 @@
   - [x] No trial; cancel keeps access to period end; overdue keeps access; instant prorated plan switch; admin Signups shows plan + renew/end date
   - [ ] Welcome email on purchase (blocked: needs an email sender domain the user owns)
   - [ ] Card-paid test subscription + plan switch in preview (automated card entry stalls; user to try with 4242 card)
+- [ ] Confirm Stripe payments status and live go-live steps (user asked to enable Stripe, 2026-11-12)
