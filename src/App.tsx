@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FeatureGate } from "./components/FeatureGate";
 import Index from "./pages/Index";
+import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import AdminLayout from "./layouts/AdminLayout";
@@ -77,6 +78,8 @@ const App = () => (
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/*" element={<Blog />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />

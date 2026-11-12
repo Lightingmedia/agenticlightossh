@@ -79,6 +79,9 @@ const Header = () => {
               <Link to="/examples" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Examples
               </Link>
+              <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
+                Blog
+              </Link>
               <Link to="/benchmark" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
                 Benchmark
               </Link>
@@ -134,6 +137,7 @@ const Header = () => {
                 <Link to="/dashboard/templates" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Agent Templates</Link>
                 <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
                 <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
+                <Link to="/blog" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
                 <Link to="/benchmark" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Benchmark</Link>
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                 <Link to="/os" className="text-primary hover:text-primary/80 font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>OS</Link>
