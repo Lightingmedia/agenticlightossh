@@ -55,7 +55,6 @@ import GatewaySetup from "./pages/GatewaySetup";
 import RdmaTraces from "./pages/RdmaTraces";
 import ComputeProviders from "./pages/ComputeProviders";
 import GpuCloud from "./pages/GpuCloud";
-import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner";
 import Welcome from "./pages/Welcome";
 import AdminSignups from "./pages/AdminSignups";
 
@@ -67,7 +66,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <PaymentTestModeBanner />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/os" element={<LightOS />} />
