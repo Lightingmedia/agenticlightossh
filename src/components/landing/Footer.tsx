@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Layers } from "lucide-react";
+import { Link } from "react-router-dom";
+import { openCookieSettings } from "@/components/consent/CookieConsent";
 
 const footerLinks = {
   Platform: ["Agent Hub", "Inference API", "Model Registry", "Pricing"],
@@ -42,7 +44,7 @@ const Footer = () => {
                 {links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#"
+                      href={link === "Privacy" ? "/privacy" : "#"}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link}
@@ -56,9 +58,13 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            © 2026 LightOS Inc. All rights reserved.
-          </p>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <p>© 2026 LightOS Inc. All rights reserved.</p>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy policy</Link>
+            <button type="button" onClick={openCookieSettings} className="hover:text-foreground transition-colors">
+              Cookie settings
+            </button>
+          </div>
           <div className="flex items-center gap-5">
             <a
               href="#"
