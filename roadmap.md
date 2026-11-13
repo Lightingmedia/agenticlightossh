@@ -81,4 +81,4 @@
   - [ ] Welcome email on purchase (blocked: needs an email sender domain the user owns)
   - [ ] Card-paid test subscription + plan switch in preview (automated card entry stalls; user to try with 4242 card)
 - [x] Confirm Stripe payments status: enabled, all 5 go-live steps complete (2026-11-12)
-- [ ] Remove the 'payments in preview are in test mode' notice (user request 2026-11-13)
+- [x] Removed the preview test-mode payments notice (user request 2026-11-13)
