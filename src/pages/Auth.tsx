@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Layers, Mail, Lock, User } from "lucide-react";
+import { isFreshAccount, reportSignup } from "@/lib/google-ads";
+import type { Session } from "@supabase/supabase-js";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -34,12 +36,23 @@ const Auth = () => {
     navigate(nextPath ?? pending ?? "/dashboard/gateway-setup");
   };
 
+  // A Google sign-in or email confirmation that lands with a just-created account counts as one sign-up.
+  const reportIfNewAccount = (session: Session) => {
+    if (isFreshAccount(session.user.created_at)) void reportSignup(session.user.id);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) goPostAuth();
+      if (session) {
+        reportIfNewAccount(session);
+        goPostAuth();
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) goPostAuth();
+      if (session) {
+        reportIfNewAccount(session);
+        goPostAuth();
+      }
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,7 +69,7 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         data: { full_name: name },
@@ -65,7 +78,11 @@ const Auth = () => {
     });
     setLoading(false);
     if (error) toast({ title: "Signup failed", description: error.message, variant: "destructive" });
-    else toast({ title: "Check your email", description: "We sent you a verification link." });
+    else {
+      // An existing email returns a user with no identities: no new account, so nothing is reported.
+      if (data.user && (data.user.identities?.length ?? 0) > 0) void reportSignup(data.user.id);
+      toast({ title: "Check your email", description: "We sent you a verification link." });
+    }
   };
 
   const handleReset = async (e: React.FormEvent) => {
