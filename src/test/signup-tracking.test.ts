@@ -23,7 +23,8 @@ describe("Free plan sign-up conversion", () => {
 
   it("does not report a UK sign-up before the visitor accepts advertising", async () => {
     vi.stubGlobal("fetch", traceFrom("GB"));
-    const { reportSignup: report } = await import("@/lib/google-ads?uk");
+    vi.resetModules();
+    const { reportSignup: report } = await import("@/lib/google-ads");
     expect(await report("user-uk")).toBe(false);
     expect(window.gtag).not.toHaveBeenCalledWith("event", "conversion", expect.anything());
     vi.unstubAllGlobals();
