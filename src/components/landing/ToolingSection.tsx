@@ -62,7 +62,7 @@ const ToolingSection = () => {
                 <div className="w-3 h-3 rounded-full bg-green-500/70" />
               </div>
               <span className="ml-4 font-mono text-xs text-muted-foreground">
-                lightos — {activeTool} · Illustrative demo, not live infrastructure
+                lightos — {activeTool}
               </span>
             </div>
 
