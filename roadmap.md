@@ -82,3 +82,7 @@
   - [ ] Card-paid test subscription + plan switch in preview (automated card entry stalls; user to try with 4242 card)
 - [x] Confirm Stripe payments status: enabled, all 5 go-live steps complete (2026-11-12)
 - [x] Removed the preview test-mode payments notice (user request 2026-11-13)
+- [x] Google sign-up conversion + regional cookie banner + Klaviyo gated behind consent (2026-11-13)
+- [ ] Publish site so tracking goes live; confirm Google sees the tag (needs user publish)
+- [ ] Review draft privacy page wording (needs owner)
+- [ ] Google Ads billing (needs user) before campaign can serve

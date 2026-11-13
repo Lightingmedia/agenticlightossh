@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FeatureGate } from "./components/FeatureGate";
 import Index from "./pages/Index";
+import Privacy from "./pages/Privacy";
+import { CookieConsent } from "./components/consent/CookieConsent";
 import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -66,6 +68,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <CookieConsent />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/os" element={<LightOS />} />
@@ -79,6 +82,7 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/*" element={<Blog />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/mtmc" element={<MtmcConsole />} />
