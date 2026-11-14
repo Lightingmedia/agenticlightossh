@@ -59,6 +59,8 @@ import ComputeProviders from "./pages/ComputeProviders";
 import GpuCloud from "./pages/GpuCloud";
 import Welcome from "./pages/Welcome";
 import AdminSignups from "./pages/AdminSignups";
+import AdminSupport from "./pages/AdminSupport";
+import { SupportChat } from "./components/support/SupportChat";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +71,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <CookieConsent />
+        <SupportChat />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/os" element={<LightOS />} />
@@ -93,6 +96,7 @@ const App = () => (
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="signups" element={<AdminSignups />} />
+            <Route path="support" element={<AdminSupport />} />
             <Route path="testers" element={<AdminTesters />} />
             <Route path="analytics" element={<AdminAnalytics />} />
           </Route>

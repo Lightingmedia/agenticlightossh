@@ -632,6 +632,63 @@ export type Database = {
         }
         Relationships: []
       }
+      support_rate_limits: {
+        Row: {
+          hits: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          hits?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          hits?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      support_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string | null
+          page: string | null
+          resolved_at: string | null
+          status: string
+          transcript: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name?: string | null
+          page?: string | null
+          resolved_at?: string | null
+          status?: string
+          transcript?: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string | null
+          page?: string | null
+          resolved_at?: string | null
+          status?: string
+          transcript?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       system_logs: {
         Row: {
           created_at: string
@@ -808,6 +865,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      support_rate_hit: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
     }
