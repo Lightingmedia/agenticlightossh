@@ -6,7 +6,7 @@ export function AboutApp() {
           LR
         </div>
         <div>
-          <h1 className="text-xl font-mono font-bold">LightOS 1.0 — Aurora</h1>
+          <h1 className="text-xl font-mono font-bold">LightOS 1.0</h1>
           <p className="text-xs text-muted-foreground font-mono">
             AI Fabric Operating System · LightRail AI Labs
           </p>

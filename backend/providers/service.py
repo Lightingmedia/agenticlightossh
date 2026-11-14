@@ -59,7 +59,7 @@ class Outcome:
 
 
 def effective_validation(provider: Mapping[str, Any], adapters: Mapping[str, Adapter] = ADAPTERS) -> str:
-    """``direct`` when this backend validates the provider itself, ``gateway`` when Aurora must."""
+    """``direct`` when this backend validates the provider itself, ``gateway`` when LightOS must."""
     return "direct" if provider["id"] in adapters else "gateway"
 
 

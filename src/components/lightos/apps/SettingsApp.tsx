@@ -5,7 +5,7 @@ import { usePreferences } from "../Preferences";
 const PREVIEW_LINES = [
   "[  OK  ] Started LightRail Photonic Fabric Controller.",
   "[  OK  ] Mounted /dev/lr0 (1.6 Tb/s lambda link).",
-  "[  OK  ] Started Aurora LLM Service.",
+  "[  OK  ] Started LightOS LLM Service.",
   "[  OK  ] Reached target Graphical Interface.",
 ];
 
@@ -200,7 +200,7 @@ function BootPreview() {
         >
           <div className="flex flex-col items-center gap-2">
             <div className="text-primary font-mono text-sm font-bold tracking-wider">
-              LIGHTRAIL · AURORA
+              LIGHTRAIL · LIGHTOS
             </div>
             <div className="flex gap-1">
               {[0, 1, 2, 3].map((i) => (

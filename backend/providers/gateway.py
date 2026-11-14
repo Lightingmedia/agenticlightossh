@@ -1,7 +1,7 @@
 """Client for the LightOS runtime gateway.
 
 Providers this backend cannot validate itself (DGX Cloud Lepton, Nebius: no public REST contract to build on) are
-handed to Aurora, which stays the single privileged authority. The contract, shared with the Supabase edge function:
+handed to LightOS, which stays the single privileged authority. The contract, shared with the Supabase edge function:
 
 * ``POST /v1/providers/validate``                  ``{connectionId, providerId, authMethod, credentials}`` -> ``{ok, identity?, message?}``
 * ``POST /v1/providers/{connectionId}/inventory``  ``{providerId, authMethod, credentials}``               -> ``{items: [...]}``

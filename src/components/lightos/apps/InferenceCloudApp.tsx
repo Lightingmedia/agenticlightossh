@@ -12,9 +12,9 @@ interface Instance {
 
 const REGIONS = ["us-west-2", "eu-central-1", "ap-southeast-1", "us-east-1"];
 const TYPES = [
-  { id: "lr.nano.x1", gpus: 1, price: 0.42, label: "1× Aurora-Nano" },
-  { id: "lr.pro.x4", gpus: 4, price: 2.18, label: "4× Aurora-Pro" },
-  { id: "lr.ultra.x8", gpus: 8, price: 6.40, label: "8× Aurora-Ultra (NVL)" },
+  { id: "lr.nano.x1", gpus: 1, price: 0.42, label: "1× LightOS-Nano" },
+  { id: "lr.pro.x4", gpus: 4, price: 2.18, label: "4× LightOS-Pro" },
+  { id: "lr.ultra.x8", gpus: 8, price: 6.40, label: "8× LightOS-Ultra (NVL)" },
 ];
 
 export function InferenceCloudApp() {

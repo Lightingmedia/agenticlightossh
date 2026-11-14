@@ -82,7 +82,7 @@ export function ubuntuBuiltins(base: Record<string, UBuiltin>): Record<string, U
       const pkgs = a.slice(1).filter((x) => !x.startsWith("-"));
       const w = ctx.write ?? (() => {});
       if (sub === "update") {
-        for (const r of ["noble", "noble-updates", "noble-security", "lightos-aurora"]) {
+        for (const r of ["noble", "noble-updates", "noble-security", "lightos-main"]) {
           w(`Hit:1 http://archive.ubuntu.com/ubuntu ${r} InRelease\r\n`); await wait(180, ctx.signal);
         }
         return ok("Reading package lists... Done\nAll packages are up to date.\n");
@@ -105,7 +105,7 @@ export function ubuntuBuiltins(base: Record<string, UBuiltin>): Record<string, U
     },
     dpkg: (a) => (a[0] === "-l" ? ok([...installed].sort().map((p) => `ii  ${p.padEnd(28)} amd64`).join("\n") + "\n") : ok("dpkg 1.22.6\n")),
     snap: (a) => ok(a[0] === "list" ? "Name  Version  Rev  Tracking  Publisher  Notes\ncore  16       1    stable    canonical  core\n" : "snap 2.63\n"),
-    lsb_release: () => ok("Distributor ID:\tUbuntu\nDescription:\tUbuntu 24.04 LTS (LightOS Aurora)\nRelease:\t24.04\nCodename:\tnoble\n"),
+    lsb_release: () => ok("Distributor ID:\tUbuntu\nDescription:\tUbuntu 24.04 LTS (LightOS)\nRelease:\t24.04\nCodename:\tnoble\n"),
     uptime: () => {
       const m = Math.floor((Date.now() - BOOT) / 60000);
       return ok(` ${new Date().toTimeString().slice(0, 8)} up ${m} min,  1 user,  load average: 0.42, 0.38, 0.35\n`);
@@ -275,12 +275,12 @@ export function ubuntuBuiltins(base: Record<string, UBuiltin>): Record<string, U
       const [sub, unit = ""] = a;
       if (sub === "status") return ok(`● ${unit || "lightos"}.service\n     Loaded: loaded\n     Active: ${C_G}active (running)${C_R}\n`);
       if (["start", "stop", "restart", "enable", "disable", "reload"].includes(sub)) return ok();
-      return ok("UNIT                    LOAD   ACTIVE SUB\naurora-fabric.service   loaded active running\ndcgm.service            loaded active running\nnvidia-persistenced     loaded active running\n");
+      return ok("UNIT                    LOAD   ACTIVE SUB\nlightos-fabric.service   loaded active running\ndcgm.service            loaded active running\nnvidia-persistenced     loaded active running\n");
     },
     service: (a) => ok(`${a[0] ?? "service"}: ${a[1] ?? "status"} ok\n`),
-    journalctl: () => ok("-- Logs begin --\naurora-fabric[812]: fabric reconciled (256 tiles)\ndcgm[640]: health watch OK\n"),
+    journalctl: () => ok("-- Logs begin --\nlightos-fabric[812]: fabric reconciled (256 tiles)\ndcgm[640]: health watch OK\n"),
     docker: (a) => ok(a[0] === "ps" ? "CONTAINER ID   IMAGE                       STATUS\n3f1a9c2b7d10   nvcr.io/nim/llama-3.1-8b    Up 2 hours\n" : a[0] === "images" ? "REPOSITORY                 TAG     SIZE\nnvcr.io/nim/llama-3.1-8b   1.2     14.2GB\n" : "Docker version 27.0.3\n"),
-    kubectl: (a) => ok(a[0] === "get" ? "NAME                       READY   STATUS    AGE\naurora-scheduler-7f9c      1/1     Running   3d\nnim-llama-8b-0             1/1     Running   2h\n" : "Client Version: v1.31.0\n"),
+    kubectl: (a) => ok(a[0] === "get" ? "NAME                       READY   STATUS    AGE\nlightos-scheduler-7f9c      1/1     Running   3d\nnim-llama-8b-0             1/1     Running   2h\n" : "Client Version: v1.31.0\n"),
     git: (a) => ok(a[0] === "status" ? "On branch main\nnothing to commit, working tree clean\n" : a[0] === "--version" ? "git version 2.43.0\n" : `git: '${a[0] ?? ""}' runs in read-only mode in the browser terminal\n`),
     ssh: (a) => fail(`ssh: connect to host ${a[a.length - 1] ?? ""}: outbound SSH is not available from the browser terminal\n`, 255),
     scp: () => fail("scp: not available from the browser terminal\n", 1),
@@ -295,7 +295,7 @@ export function ubuntuBuiltins(base: Record<string, UBuiltin>): Record<string, U
     gzip: () => ok(),
     locale: () => ok("LANG=en_US.UTF-8\nLC_ALL=\n"),
     timedatectl: () => ok(`               Local time: ${new Date().toString()}\n           Time zone: UTC\n`),
-    hostnamectl: () => ok(" Static hostname: lightos-main\nOperating System: Ubuntu 24.04 LTS (LightOS Aurora)\n          Kernel: Linux 6.8.0-lightrail\n    Architecture: x86-64\n"),
+    hostnamectl: () => ok(" Static hostname: lightos-main\nOperating System: Ubuntu 24.04 LTS (LightOS)\n          Kernel: Linux 6.8.0-lightrail\n    Architecture: x86-64\n"),
     reboot: () => ok("Reboot is managed by the LightOS desktop. Use: os shutdown\n"),
     shutdown: () => ok("Use the Power button or: os shutdown\n"),
     passwd: () => ok("passwd: password updated successfully\n"),

@@ -17,7 +17,7 @@ provider-connect edge function              ▼
    └─ gateway-mode providers ───► LightOS runtime gateway /v1/providers/*
                                          │
                                          ▼
-                       Aurora = sole execution authority (launch / scale / terminate)
+                       LightOS = sole execution authority (launch / scale / terminate)
 ```
 
 Rules preserved from `AGENTS.md`:
@@ -75,15 +75,15 @@ Adding one is a catalog entry plus, for direct mode, a ~30-line adapter.
 
 1. **Connect & see (this branch).** Validate credentials, store in Vault, show live GPU
    inventory/offers/models per provider, expose the catalog to MCP.
-2. **Plan across providers.** Aurora's `/v1/deployments/plan` consumes the user's connected
+2. **Plan across providers.** LightOS's `/v1/deployments/plan` consumes the user's connected
    providers + `allowedProviders`, returns placement with cost per provider. Add OCI/Nebius
    validation in the gateway. Price normalization across providers.
-3. **Execute.** Per-connection `launch_enabled` opt-in; Aurora launches/terminates through the
+3. **Execute.** Per-connection `launch_enabled` opt-in; LightOS launches/terminates through the
    provider API using the vaulted credential, with spend caps from `maxCostPerHourUsd`.
 4. **Federate.** Burst from on-prem NCE fabric to cloud when the fabric is saturated; move
    inference endpoints between General Compute / NIM / self-hosted by latency and cost SLOs.
 
-## Runtime gateway contract (new endpoints Aurora must implement)
+## Runtime gateway contract (new endpoints LightOS must implement)
 
 | Method & path | Body | Returns |
 |---|---|---|
