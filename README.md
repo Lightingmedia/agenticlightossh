@@ -1,4 +1,4 @@
-# LightOS — LightOS workspace
+# LightOS
 
 LightRail AI is building an infrastructure agent for compute you already own or rent. LightOS is the workspace for connecting supported provider accounts, inspecting capacity, and planning workloads through conversation.
 

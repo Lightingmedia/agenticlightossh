@@ -1,6 +1,6 @@
-# LightOS / LightOS — product brief
+# LightOS — product brief
 
-LightRail AI is the company. LightOS is the agentic infrastructure product. LightOS is its workspace.
+LightRail AI is the company. LightOS is its agentic infrastructure product and the workspace customers sign in to.
 
 The intended loop is **intent → verified capacity → policy/budget checks → plan → approval → supported execution → verified outcome**. Dashboards display agent state and real infrastructure measurements; they do not replace the agent thesis.
 
