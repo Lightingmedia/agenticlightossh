@@ -5,6 +5,8 @@ import { ArrowRight, Check, Copy, Cpu, Gauge, KeyRound, PlugZap, Rocket, Termina
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/use-subscription";
 
 type Step = {
   id: string;
@@ -21,10 +23,9 @@ const steps: Step[] = [
   {
     id: "account",
     icon: UserPlus,
-    title: "Create your free account",
+    title: "Sign up for the Free plan",
     where: "In your browser",
-    text: "Sign up with email or Google. The Free plan monitors one GPU with no card required.",
-    action: { label: "Create free account", to: "/auth?next=/dashboard/gateway-setup" },
+    text: "Create your LightOS account with email or Google. Every new account starts on the Free plan, so there is nothing to choose and no card to enter.",
   },
   {
     id: "check",
@@ -98,6 +99,55 @@ const problems = [
   ["“Upgrade required”", "The Free plan covers one GPU machine. Disconnect the current one or upgrade to add another."],
 ];
 
+// After signing up, readers come back to the guide at the next step.
+const SIGNUP_URL = `/auth?mode=signup&next=${encodeURIComponent("/guide#check")}`;
+const SIGNIN_URL = `/auth?next=${encodeURIComponent("/guide#check")}`;
+const FREE_PLAN = ["Live readings for one GPU machine", "Utilization, memory, temperature and power", "No credit card, no time limit"];
+
+function SignupPanel() {
+  const [email, setEmail] = useState<string | null | undefined>(undefined);
+  const { tier, loading } = useSubscription();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setEmail(session?.user.email ?? null));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (email === undefined) return null;
+
+  if (email) {
+    const plan = loading ? "" : tier === "free" ? "Free plan" : `${tier[0].toUpperCase()}${tier.slice(1)} plan`;
+    return (
+      <div className="mt-4 rounded-xl border border-lightrail/30 bg-lightrail/5 p-4">
+        <p className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-lightrail" />You're signed in as <span className="font-mono">{email}</span>{plan && <span className="text-muted-foreground">· {plan}</span>}</p>
+        <Button asChild variant="outline" className="mt-3 rounded-xl">
+          <a href="#check">Continue to step 2<ArrowRight className="ml-2 h-4 w-4" /></a>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 rounded-xl border border-border bg-card/50 p-4 sm:p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="font-mono text-sm font-bold">Free plan</p>
+        <p className="font-mono text-sm"><span className="text-2xl font-bold text-lightrail">$0</span><span className="text-muted-foreground"> / month</span></p>
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {FREE_PLAN.map((f) => <li key={f} className="flex gap-2 text-sm text-muted-foreground"><Check className="h-4 w-4 shrink-0 mt-0.5 text-lightrail" />{f}</li>)}
+      </ul>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Button asChild className="rounded-xl bg-lightrail text-lightrail-foreground hover:bg-lightrail/90">
+          <Link to={SIGNUP_URL}>Sign up free<ArrowRight className="ml-2 h-4 w-4" /></Link>
+        </Button>
+        <Link to={SIGNIN_URL} className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline">I already have an account</Link>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">Signing up by email? Click the link we send you, and you'll land back here at step 2. Need more than one GPU later? <Link to="/pricing" className="underline underline-offset-4">See paid plans</Link>.</p>
+    </div>
+  );
+}
+
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -124,7 +174,10 @@ export default function FirstRunGuidePage() {
       if (hit) setActive(hit.target.id);
     }, { rootMargin: "-30% 0px -60% 0px" });
     steps.forEach((s) => { const el = document.getElementById(s.id); if (el) io.observe(el); });
-    return () => io.disconnect();
+    // Returning from sign-up lands on /guide#check; scroll there once the page has rendered.
+    const target = window.location.hash ? document.getElementById(window.location.hash.slice(1)) : null;
+    const t = target ? window.setTimeout(() => target.scrollIntoView({ block: "start" }), 50) : undefined;
+    return () => { io.disconnect(); window.clearTimeout(t); };
   }, []);
 
   return (
@@ -144,7 +197,7 @@ export default function FirstRunGuidePage() {
           </p>
           <div className="relative mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 font-mono text-xs text-muted-foreground">
             <span>Needs: NVIDIA GPU · Docker · NVIDIA Container Toolkit</span>
-            <span>Free: 1 GPU · no card</span>
+            <Link to={SIGNUP_URL} className="text-lightrail hover:underline underline-offset-4">Free: 1 GPU · no card · sign up</Link>
           </div>
         </section>
 
@@ -172,6 +225,7 @@ export default function FirstRunGuidePage() {
                     <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Step {i + 1} · {s.where}</p>
                     <h2 className="mt-1 font-mono text-xl font-bold">{s.title}</h2>
                     <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed">{s.text}</p>
+                    {s.id === "account" && <SignupPanel />}
                     {s.code && <CodeBlock code={s.code} />}
                     {s.note && <p className="mt-3 flex gap-2 text-xs text-muted-foreground"><TriangleAlert className="h-3.5 w-3.5 shrink-0 mt-px text-lightrail" />{s.note}</p>}
                     {s.action && (
