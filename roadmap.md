@@ -4,7 +4,7 @@
   - [x] Crusoe-style home page in LightOS colors
   - [x] Link Platform / AI Infrastructure / Resources dropdowns to real pages
   - [x] Build standalone First-run guide page
-  - [x] Rename "Aurora Fabric OS" to "LightOS" across the site
+  - [x] Renamed the product to "LightOS" across the site
   - [x] Security scan, then publish
 
 - [ ] Lambda-style GPU Cloud features, admin signups, CEO welcome letter

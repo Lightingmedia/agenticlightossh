@@ -346,7 +346,7 @@ class TestGateway:
         assert NEBIUS_CREDS["privateKeyPem"] not in svc.db.get_connection(U1.id, row["id"])["secret_blob"]
 
     @pytest.mark.asyncio
-    async def test_validation_is_delegated_to_aurora(self, make_service):
+    async def test_validation_is_delegated_to_gateway(self, make_service):
         seen = {}
 
         def validate(request):
