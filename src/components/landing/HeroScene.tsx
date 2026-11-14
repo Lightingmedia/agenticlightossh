@@ -31,8 +31,8 @@ export default function HeroScene() {
         <motion.div className="absolute right-[4%] top-[30%] h-56 w-[560px] rounded-full bg-foreground/[0.03] blur-3xl"
           animate={reduced ? undefined : { x: [0, -70, 0] }} transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }} />
         <div className="hero-sky-dots absolute inset-0" />
-        <Cloud className="w-24 -left-6 top-28 opacity-60" still={reduced} />
-        <Cloud className="w-20 right-0 top-24 opacity-50 hidden sm:block" delay={2} still={reduced} />
+        <Cloud className="w-24 left-[4%] top-32 opacity-50" still={reduced} />
+        <Cloud className="w-20 right-[5%] top-28 opacity-45 hidden sm:block" delay={2} still={reduced} />
         <Cloud className="w-16 left-[56%] top-[148px] opacity-40 hidden lg:block" delay={4} still={reduced} />
         <Cloud className="w-20 left-[20%] top-[46%] opacity-35 hidden lg:block" delay={1} still={reduced} />
       </div>

@@ -73,7 +73,7 @@ const Header = () => {
                       transition={{ duration: 0.15 }}
                       className="absolute left-0 top-full pt-2"
                     >
-                      <div className="nav-capsule w-60 rounded-xl p-1.5">
+                      <div className="w-60 rounded-xl p-1.5 border border-border bg-popover shadow-2xl">
                         {g.items.map((item) => (
                           <Link key={item.to} to={item.to} onClick={() => setOpenGroup(null)}
                             className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-colors">
