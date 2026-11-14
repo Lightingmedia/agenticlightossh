@@ -5,17 +5,27 @@ import { openCookieSettings } from "@/components/consent/CookieConsent";
 
 const footerLinks: Record<string, { label: string; to: string }[]> = {
   Platform: [
+    { label: "Agent Hub", to: "/dashboard/agents" },
+    { label: "Inference API", to: "/dashboard/inference" },
+    { label: "Model Registry", to: "/dashboard/models" },
     { label: "Pricing", to: "/pricing" },
-    { label: "First-run guide", to: "/guide" },
-    { label: "GPU monitoring", to: "/dashboard/gpu" },
   ],
   Developers: [
     { label: "Documentation", to: "/docs" },
+    { label: "API Reference", to: "/api-reference" },
+    { label: "SDKs", to: "/sdks" },
     { label: "Examples", to: "/examples" },
-    { label: "Benchmark", to: "/benchmark" },
   ],
-  Company: [{ label: "Blog", to: "/blog" }],
-  Legal: [{ label: "Privacy", to: "/privacy" }],
+  Company: [
+    { label: "About", to: "/about" },
+    { label: "Blog", to: "/blog" },
+    { label: "Careers", to: "/careers" },
+    { label: "Contact", to: "/contact" },
+  ],
+  Legal: [
+    { label: "Privacy", to: "/privacy" },
+    { label: "Terms", to: "/terms" },
+  ],
 };
 
 const Footer = () => {
@@ -69,6 +79,7 @@ const Footer = () => {
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <p>© 2026 LightOS Inc. All rights reserved.</p>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy policy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <button type="button" onClick={openCookieSettings} className="hover:text-foreground transition-colors">
               Cookie settings
             </button>
