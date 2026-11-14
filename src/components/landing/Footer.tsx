@@ -3,11 +3,19 @@ import { Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import { openCookieSettings } from "@/components/consent/CookieConsent";
 
-const footerLinks = {
-  Platform: ["Agent Hub", "Inference API", "Model Registry", "Pricing"],
-  Developers: ["Documentation", "API Reference", "SDKs", "Examples"],
-  Company: ["About", "Blog", "Careers", "Contact"],
-  Legal: ["Privacy", "Terms"],
+const footerLinks: Record<string, { label: string; to: string }[]> = {
+  Platform: [
+    { label: "Pricing", to: "/pricing" },
+    { label: "First-run guide", to: "/guide" },
+    { label: "GPU monitoring", to: "/dashboard/gpu" },
+  ],
+  Developers: [
+    { label: "Documentation", to: "/docs" },
+    { label: "Examples", to: "/examples" },
+    { label: "Benchmark", to: "/benchmark" },
+  ],
+  Company: [{ label: "Blog", to: "/blog" }],
+  Legal: [{ label: "Privacy", to: "/privacy" }],
 };
 
 const Footer = () => {
@@ -42,13 +50,13 @@ const Footer = () => {
               </h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href={link === "Privacy" ? "/privacy" : "#"}
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
