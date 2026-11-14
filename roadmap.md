@@ -25,7 +25,8 @@
   - [x] Payments switched on (test mode); plans + $10 GPU credit product created; checkout opens
   - [ ] Complete one test card purchase in the preview and confirm credit appears (automated attempt didn't finish)
   - [ ] Review fees vs 10% markup on small top-ups (user decision)
-  - [ ] Fund the Vast.ai account (blocked: balance $0; user doesn't want to pay yet)
+  - [ ] Fund the Vast.ai account (checked Nov 14: balance $0, no payment method)
+  - [ ] Turn on two-factor sign-in on the Vast.ai account (its key can only start machines with 2FA on)
   - [ ] Confirm Vast.ai terms allow resale (user)
   - [ ] End-to-end signed-in rent → boot → SSH → stop test (needs both of the above)
 - [x] Remove the unwanted signup account and its records (deleted Nov 11)
