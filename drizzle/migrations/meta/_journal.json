@@ -71,6 +71,13 @@
       "when": 1794369702301,
       "tag": "0009_gpu_resale_credits_and_rentals",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794632318129,
+      "tag": "0010_migration",
+      "breakpoints": true
     }
   ]
 }
