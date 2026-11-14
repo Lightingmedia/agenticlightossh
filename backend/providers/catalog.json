@@ -127,7 +127,7 @@
               "placeholder": "{ \"type\": \"service_account\", … }"
             }
           ],
-          "permissions": "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once Aurora runs in your VPC."
+          "permissions": "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once LightOS runs in your VPC."
         }
       ],
       "docsUrl": "https://cloud.google.com/iam/docs/keys-create-delete",
@@ -255,7 +255,7 @@
       "docsUrl": "https://docs.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm",
       "consoleUrl": "https://cloud.oracle.com/identity",
       "phase": 2,
-      "notes": "OCI uses RSA request signing; validated by the Aurora runtime gateway."
+      "notes": "OCI uses RSA request signing; validated by the LightOS runtime gateway."
     },
     {
       "id": "ibm",
@@ -425,7 +425,7 @@
               "placeholder": "nvapi-…"
             }
           ],
-          "permissions": "Key scoped to 'NGC Catalog' (pull only). Used by Aurora to pull NIM / TensorRT-LLM images onto any connected cluster."
+          "permissions": "Key scoped to 'NGC Catalog' (pull only). Used by LightOS to pull NIM / TensorRT-LLM images onto any connected cluster."
         }
       ],
       "docsUrl": "https://docs.nvidia.com/ngc/gpu-cloud/ngc-user-guide/index.html",
@@ -637,7 +637,7 @@
       "docsUrl": "https://docs.nebius.com/iam/service-accounts/authorized-keys",
       "consoleUrl": "https://console.nebius.com/",
       "phase": 2,
-      "notes": "gRPC API with JWT exchange; validated by the Aurora runtime gateway."
+      "notes": "gRPC API with JWT exchange; validated by the LightOS runtime gateway."
     },
     {
       "id": "runpod",
@@ -1064,7 +1064,7 @@
               "placeholder": "lightrail-system"
             }
           ],
-          "permissions": "API server must present a publicly trusted certificate for direct validation; private clusters connect through the Aurora gateway / node enrollment instead."
+          "permissions": "API server must present a publicly trusted certificate for direct validation; private clusters connect through the LightOS gateway / node enrollment instead."
         }
       ],
       "docsUrl": "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",

@@ -141,7 +141,7 @@ function toolResult(data) {
 var get_runtime_capacity_default = defineTool4({
   name: "get_runtime_capacity",
   title: "Get accelerator capacity",
-  description: "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the Aurora control plane.",
+  description: "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the LightOS control plane.",
   inputSchema: {
     runtime: z4.enum(["all", "cuda", "rocm", "tpu_xla", "oneapi_sycl"]).describe("Runtime family to inspect.")
   },
@@ -162,7 +162,7 @@ import { z as z5 } from "npm:zod@^3.25.76";
 var validate_workload_intent_default = defineTool5({
   name: "validate_workload_intent",
   title: "Validate workload intent",
-  description: "Validate a constrained accelerator workload intent against Aurora policy without executing it.",
+  description: "Validate a constrained accelerator workload intent against LightOS policy without executing it.",
   inputSchema: {
     workloadClass: z5.enum(["inference", "fine_tuning", "batch_training"]),
     model: z5.string().trim().min(1).max(160),
@@ -189,7 +189,7 @@ import { z as z6 } from "npm:zod@^3.25.76";
 var plan_deployment_default = defineTool6({
   name: "plan_deployment",
   title: "Plan accelerator deployment",
-  description: "Ask Aurora for a policy-controlled placement, fabric route, cost estimate, and runtime plan; this tool never executes the plan.",
+  description: "Ask LightOS for a policy-controlled placement, fabric route, cost estimate, and runtime plan; this tool never executes the plan.",
   inputSchema: {
     projectId: z6.string().trim().min(1).max(120),
     workloadClass: z6.enum(["inference", "fine_tuning", "batch_training"]),
@@ -203,7 +203,7 @@ var plan_deployment_default = defineTool6({
     dataLocality: z6.string().trim().max(160),
     maxCostPerHourUsd: z6.number().min(0).max(1e5),
     maxRuntimeMinutes: z6.number().int().min(0).max(525600),
-    allowedProviders: z6.array(z6.string().trim().min(1).max(64)).max(30).optional().describe("Provider ids from list_compute_providers to consider; omit to let Aurora choose among the user's connected providers.")
+    allowedProviders: z6.array(z6.string().trim().min(1).max(64)).max(30).optional().describe("Provider ids from list_compute_providers to consider; omit to let LightOS choose among the user's connected providers.")
   },
   annotations: { readOnlyHint: true, idempotentHint: false, openWorldHint: true },
   handler: async (args, ctx) => {
@@ -225,7 +225,7 @@ import { z as z7 } from "npm:zod@^3.25.76";
 var get_fabric_state_default = defineTool7({
   name: "get_fabric_state",
   title: "Get live fabric state",
-  description: "Read live Aurora topology, telemetry, or recent policy events from the privileged control plane.",
+  description: "Read live LightOS topology, telemetry, or recent policy events from the privileged control plane.",
   inputSchema: {
     view: z7.enum(["topology", "telemetry", "events"]),
     windowSeconds: z7.number().int().min(1).max(3600)
@@ -315,7 +315,7 @@ var PROVIDERS = [
           { key: "projectId", label: "Project ID", placeholder: "my-gpu-project" },
           { key: "serviceAccountJson", label: "Service account key JSON", secret: true, multiline: true, placeholder: '{ "type": "service_account", \u2026 }' }
         ],
-        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once Aurora runs in your VPC."
+        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once LightOS runs in your VPC."
       }
     ],
     docsUrl: "https://cloud.google.com/iam/docs/keys-create-delete",
@@ -374,7 +374,7 @@ var PROVIDERS = [
     docsUrl: "https://docs.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm",
     consoleUrl: "https://cloud.oracle.com/identity",
     phase: 2,
-    notes: "OCI uses RSA request signing; validated by the Aurora runtime gateway."
+    notes: "OCI uses RSA request signing; validated by the LightOS runtime gateway."
   },
   {
     id: "ibm",
@@ -450,7 +450,7 @@ var PROVIDERS = [
         { key: "orgName", label: "NGC org name" },
         { key: "apiKey", label: "NGC API key", secret: true, placeholder: "nvapi-\u2026" }
       ],
-      permissions: "Key scoped to 'NGC Catalog' (pull only). Used by Aurora to pull NIM / TensorRT-LLM images onto any connected cluster."
+      permissions: "Key scoped to 'NGC Catalog' (pull only). Used by LightOS to pull NIM / TensorRT-LLM images onto any connected cluster."
     }],
     docsUrl: "https://docs.nvidia.com/ngc/gpu-cloud/ngc-user-guide/index.html",
     consoleUrl: "https://org.ngc.nvidia.com/setup/api-keys",
@@ -545,7 +545,7 @@ var PROVIDERS = [
     docsUrl: "https://docs.nebius.com/iam/service-accounts/authorized-keys",
     consoleUrl: "https://console.nebius.com/",
     phase: 2,
-    notes: "gRPC API with JWT exchange; validated by the Aurora runtime gateway."
+    notes: "gRPC API with JWT exchange; validated by the LightOS runtime gateway."
   },
   {
     id: "runpod",
@@ -703,7 +703,7 @@ var PROVIDERS = [
         { key: "token", label: "ServiceAccount token", secret: true },
         { key: "namespace", label: "Namespace", optional: true, placeholder: "lightrail-system" }
       ],
-      permissions: "API server must present a publicly trusted certificate for direct validation; private clusters connect through the Aurora gateway / node enrollment instead."
+      permissions: "API server must present a publicly trusted certificate for direct validation; private clusters connect through the LightOS gateway / node enrollment instead."
     }],
     docsUrl: "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
     consoleUrl: "https://kubernetes.io/",
@@ -767,7 +767,7 @@ var mcp_default = defineMcp({
   name: "lightos-mcp",
   title: "LightOS",
   version: "0.4.0",
-  instructions: "Authenticated tools for Aurora Fabric OS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. Aurora is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
+  instructions: "Authenticated tools for LightOS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. LightOS is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"

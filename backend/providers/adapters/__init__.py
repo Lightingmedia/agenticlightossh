@@ -1,7 +1,7 @@
 """Provider adapters and their registry.
 
 ``ADAPTERS`` lists every provider this backend can validate and read inventory for on its own. Catalog entries that are
-not here (DGX Cloud Lepton, Nebius) are delegated to the Aurora runtime gateway instead - see ``service.py``.
+not here (DGX Cloud Lepton, Nebius) are delegated to the LightOS runtime gateway instead - see ``service.py``.
 """
 from __future__ import annotations
 

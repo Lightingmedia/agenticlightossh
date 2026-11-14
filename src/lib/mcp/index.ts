@@ -18,7 +18,7 @@ export default defineMcp({
   title: "LightOS",
   version: "0.4.0",
   instructions:
-    "Authenticated tools for Aurora Fabric OS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. Aurora is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
+    "Authenticated tools for LightOS. Submit constrained workload intent and read verified accelerator capacity, deployment plans, and fabric state. LightOS is the sole privileged execution authority; clients never issue shell, driver, container, or cluster commands.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",

@@ -34,6 +34,7 @@ import AgentMonitor from "./pages/AgentMonitor";
 import ComputeExchange from "./pages/ComputeExchange";
 import PhotonicFabric from "./pages/PhotonicFabric";
 import AgentStudio from "./pages/AgentStudio";
+import FirstRunGuidePage from "./pages/FirstRunGuide";
 import Docs from "./pages/Docs";
 import Examples from "./pages/Examples";
 import Clusters from "./pages/Clusters";
@@ -82,6 +83,7 @@ const App = () => (
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/guide" element={<FirstRunGuidePage />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/*" element={<Blog />} />
           <Route path="/auth" element={<Auth />} />

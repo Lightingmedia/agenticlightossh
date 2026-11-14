@@ -5,7 +5,7 @@ import { callRuntimeGateway, toolResult } from "../runtime-gateway";
 export default defineTool({
   name: "validate_workload_intent",
   title: "Validate workload intent",
-  description: "Validate a constrained accelerator workload intent against Aurora policy without executing it.",
+  description: "Validate a constrained accelerator workload intent against LightOS policy without executing it.",
   inputSchema: {
     workloadClass: z.enum(["inference", "fine_tuning", "batch_training"]),
     model: z.string().trim().min(1).max(160),

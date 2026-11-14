@@ -38,7 +38,7 @@ class Settings:
     DATABASE_URL                      SQLAlchemy URL (default: SQLite file in the data dir)
     PROVIDER_VAULT_KEY                urlsafe-base64 32-byte key that encrypts stored credentials
     PROVIDER_VAULT_KEY_OLD            comma-separated previous keys, still accepted for decryption
-    LIGHTOS_RUNTIME_GATEWAY_URL/TOKEN Aurora runtime gateway, used for providers validated by Aurora
+    LIGHTOS_RUNTIME_GATEWAY_URL/TOKEN LightOS runtime gateway, used for providers validated by LightOS
     LIGHTRAIL_AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY  LightRail's own AWS principal for cross-account role connections
     PROVIDERS_ALLOW_PRIVATE_HOSTS     ``1`` lets user-supplied endpoints (Kubernetes) resolve to private addresses
     PROVIDERS_RATE_LIMIT_PER_MINUTE   per-user cap on connect/test/inventory calls (default 30)

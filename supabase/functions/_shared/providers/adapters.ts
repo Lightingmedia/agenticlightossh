@@ -1,7 +1,7 @@
 // Direct provider adapters. Each adapter validates credentials with the
 // cheapest read-only call the provider offers and lists GPU inventory in a
 // normalized shape. Nothing here creates, modifies or deletes cloud resources:
-// launches are executed by the Aurora runtime gateway (see AGENTS.md).
+// launches are executed by the LightOS runtime gateway (see AGENTS.md).
 import { AwsClient } from "npm:aws4fetch@1.0.20";
 import type { InventoryItem } from "../provider-catalog.ts";
 import { assertPublicHttps, awsRegion, b64url, b64urlDecode, bearer, getJson, pemToPkcs8, ProviderError, request, xmlAll, xmlFirst } from "./http.ts";

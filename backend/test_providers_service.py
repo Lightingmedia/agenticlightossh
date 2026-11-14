@@ -1,6 +1,6 @@
 """
 Tests for the provider service layer: connect / test / inventory / disconnect semantics, credential handling,
-isolation between users, rate limiting and delegation to the Aurora runtime gateway.
+isolation between users, rate limiting and delegation to the LightOS runtime gateway.
 
 Run with:
   cd backend
@@ -329,7 +329,7 @@ class TestVaultIntegration:
         assert (await svc.test(U1, row["id"]))["status"] == "connected"
 
 
-# ─── Aurora runtime gateway ───────────────────────────────────────────────────
+# ─── LightOS runtime gateway ───────────────────────────────────────────────────
 
 GATEWAY = Settings(gateway_url="https://aurora.example.com/", gateway_token="gw-token")
 NEBIUS = ("nebius", "service_account_key")
@@ -342,7 +342,7 @@ class TestGateway:
         svc = make_service({})
         row = await connect(svc, creds=NEBIUS_CREDS, provider=NEBIUS)
         assert row["status"] == "awaiting_gateway" and row["validation_mode"] == "gateway" and row["last_validated_at"] is None
-        assert "Aurora runtime gateway" in row["status_message"]
+        assert "LightOS runtime gateway" in row["status_message"]
         assert NEBIUS_CREDS["privateKeyPem"] not in svc.db.get_connection(U1.id, row["id"])["secret_blob"]
 
     @pytest.mark.asyncio

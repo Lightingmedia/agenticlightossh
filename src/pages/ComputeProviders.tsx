@@ -93,7 +93,7 @@ export default function ComputeProviders() {
         <div>
           <h1 className="text-2xl font-bold font-mono text-foreground">Compute Providers</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Connect hyperscalers, NVIDIA, GPU clouds and inference APIs so Aurora Fabric OS can see capacity and place
+            Connect hyperscalers, NVIDIA, GPU clouds and inference APIs so LightOS can see capacity and place
             workloads across all of them. Credentials are validated server-side, stored in an encrypted vault, and never sent back to this browser.
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function ComputeProviders() {
               </div>
               <p className="text-xs text-muted-foreground line-clamp-2">{p.accelerators.join(" · ")}</p>
               {p.validation === "gateway" && (
-                <p className="text-xs text-amber-400/90 flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" /> Validated by your Aurora runtime gateway</p>
+                <p className="text-xs text-amber-400/90 flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" /> Validated by your LightOS runtime gateway</p>
               )}
               <div className="mt-auto flex gap-2 pt-1">
                 {p.id === "lightos_gateway" ? (
@@ -339,7 +339,7 @@ function InventorySheet({ connection, onClose }: { connection: ProviderConnectio
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{connection?.label}</SheetTitle>
-          <SheetDescription>Live, read-only view from the provider. Placement and launches go through Aurora deployment plans.</SheetDescription>
+          <SheetDescription>Live, read-only view from the provider. Placement and launches go through LightOS deployment plans.</SheetDescription>
         </SheetHeader>
         <div className="mt-6 space-y-6">
           {!items && !error && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Querying provider…</div>}

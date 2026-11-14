@@ -2,7 +2,7 @@
 
 Goal: a LightOS user connects every cloud they buy accelerators from — hyperscalers, NVIDIA, GPU
 clouds, inference APIs, and their own metal — and manages workloads across all of them from one
-place, with Aurora Fabric OS deciding placement.
+place, with LightOS deciding placement.
 
 ## How it fits the existing architecture
 
@@ -14,7 +14,7 @@ provider-connect edge function              ▼
    ├─ validates (direct adapter) ───► provider API (read-only)
    ├─ stores secret ───► Supabase Vault (secret_id only in provider_connections)
    ├─ audit ───► provider_events
-   └─ gateway-mode providers ───► Aurora runtime gateway /v1/providers/*
+   └─ gateway-mode providers ───► LightOS runtime gateway /v1/providers/*
                                          │
                                          ▼
                        Aurora = sole execution authority (launch / scale / terminate)
@@ -23,7 +23,7 @@ provider-connect edge function              ▼
 Rules preserved from `AGENTS.md`:
 - The browser never holds or re-reads credentials and never issues launch/terminate calls.
 - The edge function does **read-only** validation and inventory. Anything that creates or
-  destroys resources is executed by Aurora through the runtime gateway.
+  destroys resources is executed by LightOS through the runtime gateway.
 - `launch_enabled` stays `false` until the user explicitly opts in per connection (Phase 2).
 
 ## What was built (branch `feat/compute-providers`)

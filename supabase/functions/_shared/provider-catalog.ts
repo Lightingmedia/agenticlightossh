@@ -17,7 +17,7 @@ export type ProviderRuntime = "cuda" | "rocm" | "tpu_xla" | "oneapi_sycl" | "neu
 /**
  * How LightOS validates and reads a connection:
  *  - "direct":  the provider-connect edge function calls the provider API itself
- *  - "gateway": credentials are vaulted and validated by the Aurora runtime gateway
+ *  - "gateway": credentials are vaulted and validated by the LightOS runtime gateway
  *               (provider uses gRPC, request signing we don't do at the edge, or a private network)
  */
 export type ValidationMode = "direct" | "gateway";
@@ -45,7 +45,7 @@ export type AuthMethod = {
 export type ProviderCapabilities = {
   inventory: boolean;     // list running GPU instances / nodes
   catalog: boolean;       // list purchasable GPU types / offers
-  launch: boolean;        // provider supports API launch (executed by Aurora, never the browser)
+  launch: boolean;        // provider supports API launch (executed by LightOS, never the browser)
   kubernetes: boolean;
   slurm: boolean;
   serverlessInference: boolean;
@@ -132,7 +132,7 @@ export const PROVIDERS: ComputeProvider[] = [
           { key: "projectId", label: "Project ID", placeholder: "my-gpu-project" },
           { key: "serviceAccountJson", label: "Service account key JSON", secret: true, multiline: true, placeholder: "{ \"type\": \"service_account\", … }" },
         ],
-        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once Aurora runs in your VPC.",
+        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once LightOS runs in your VPC.",
       },
     ],
     docsUrl: "https://cloud.google.com/iam/docs/keys-create-delete",
@@ -191,7 +191,7 @@ export const PROVIDERS: ComputeProvider[] = [
     docsUrl: "https://docs.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm",
     consoleUrl: "https://cloud.oracle.com/identity",
     phase: 2,
-    notes: "OCI uses RSA request signing; validated by the Aurora runtime gateway.",
+    notes: "OCI uses RSA request signing; validated by the LightOS runtime gateway.",
   },
   {
     id: "ibm",
@@ -268,7 +268,7 @@ export const PROVIDERS: ComputeProvider[] = [
         { key: "orgName", label: "NGC org name" },
         { key: "apiKey", label: "NGC API key", secret: true, placeholder: "nvapi-…" },
       ],
-      permissions: "Key scoped to 'NGC Catalog' (pull only). Used by Aurora to pull NIM / TensorRT-LLM images onto any connected cluster.",
+      permissions: "Key scoped to 'NGC Catalog' (pull only). Used by LightOS to pull NIM / TensorRT-LLM images onto any connected cluster.",
     }],
     docsUrl: "https://docs.nvidia.com/ngc/gpu-cloud/ngc-user-guide/index.html",
     consoleUrl: "https://org.ngc.nvidia.com/setup/api-keys",
@@ -364,7 +364,7 @@ export const PROVIDERS: ComputeProvider[] = [
     docsUrl: "https://docs.nebius.com/iam/service-accounts/authorized-keys",
     consoleUrl: "https://console.nebius.com/",
     phase: 2,
-    notes: "gRPC API with JWT exchange; validated by the Aurora runtime gateway.",
+    notes: "gRPC API with JWT exchange; validated by the LightOS runtime gateway.",
   },
   {
     id: "runpod",
@@ -524,7 +524,7 @@ export const PROVIDERS: ComputeProvider[] = [
         { key: "token", label: "ServiceAccount token", secret: true },
         { key: "namespace", label: "Namespace", optional: true, placeholder: "lightrail-system" },
       ],
-      permissions: "API server must present a publicly trusted certificate for direct validation; private clusters connect through the Aurora gateway / node enrollment instead.",
+      permissions: "API server must present a publicly trusted certificate for direct validation; private clusters connect through the LightOS gateway / node enrollment instead.",
     }],
     docsUrl: "https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/",
     consoleUrl: "https://kubernetes.io/",

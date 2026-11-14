@@ -42,7 +42,7 @@ Unset `VITE_PROVIDERS_API_URL` to go back to the Supabase path.
 | `DATABASE_URL` | SQLAlchemy URL. Default: SQLite file in `LIGHTOS_DATA_DIR` (default `backend/data`) |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Session verification (already required by the rest of `backend/`) |
 | `ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS (the backend already lists the app's own) |
-| `LIGHTOS_RUNTIME_GATEWAY_URL`, `LIGHTOS_RUNTIME_GATEWAY_TOKEN` | Aurora gateway, for the providers it validates (below) |
+| `LIGHTOS_RUNTIME_GATEWAY_URL`, `LIGHTOS_RUNTIME_GATEWAY_TOKEN` | LightOS gateway, for the providers it validates (below) |
 | `LIGHTRAIL_AWS_ACCESS_KEY_ID`, `LIGHTRAIL_AWS_SECRET_ACCESS_KEY` | LightRail's AWS principal for cross-account role connections (grant it only `sts:AssumeRole`) |
 | `PROVIDERS_ALLOW_PRIVATE_HOSTS=1` | Let Kubernetes endpoints resolve to private addresses (trusted deployments only) |
 | `PROVIDERS_RATE_LIMIT_PER_MINUTE` / `PROVIDERS_MAX_CONNECTIONS_PER_USER` | Per-user caps (default 30 / 50) |
@@ -100,9 +100,9 @@ unreachable, 503 vault/database not configured.
 | Groq, Cerebras, Fireworks, Together, General Compute | `GET /models` | these reject wrong keys |
 | **NVIDIA API Catalog, NVIDIA NGC** | NGC key service (`/v3/keys/get-caller-info`) | `/v1/models` is public and accepts *any* key, so it proves nothing |
 | **SambaNova** | one-token chat completion | its model list is public too |
-| **IBM Cloud** | IAM token exchange + VPC read | validated here instead of by Aurora |
+| **IBM Cloud** | IAM token exchange + VPC read | validated here instead of by LightOS |
 | **Oracle Cloud** | RSA-signed Identity/Core requests | validated here; only the root compartment is listed; key/fingerprint match is checked locally |
-| DGX Cloud Lepton, Nebius | **delegated to the Aurora gateway** | no public REST contract to build on; without a gateway they are stored as `awaiting_gateway` |
+| DGX Cloud Lepton, Nebius | **delegated to the LightOS gateway** | no public REST contract to build on; without a gateway they are stored as `awaiting_gateway` |
 
 The adapters follow the providers' public docs and were checked against the real endpoints with deliberately
 **fake** credentials (each is rejected with the provider's own message). They have not been run against real

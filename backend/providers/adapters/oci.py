@@ -1,6 +1,6 @@
 """Oracle Cloud Infrastructure: RSA-signed requests (draft-cavage HTTP signatures) to the Identity and Core APIs.
 
-The merged TypeScript catalog delegates OCI to the Aurora runtime gateway; this backend signs the (read-only GET)
+The merged TypeScript catalog delegates OCI to the LightOS runtime gateway; this backend signs the (read-only GET)
 requests itself, so it works without one. Only the root compartment (the tenancy) is searched for instances.
 """
 from __future__ import annotations
