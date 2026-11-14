@@ -2,7 +2,7 @@ import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import PricingSection from "@/components/landing/PricingSection";
 import Footer from "@/components/landing/Footer";
-import { FactsBar, LifecycleSection, BentoSection, CodeSection, FinalCTA } from "@/components/landing/LaunchSections";
+import { FactsBar, WorkloadSection, LifecycleSection, BentoSection, CodeSection, FinalCTA } from "@/components/landing/LaunchSections";
 
 const Index = () => (
   <div className="min-h-screen bg-background">
@@ -10,6 +10,7 @@ const Index = () => (
     <main>
       <Hero />
       <FactsBar />
+      <WorkloadSection />
       <LifecycleSection />
       <BentoSection />
       <CodeSection />
