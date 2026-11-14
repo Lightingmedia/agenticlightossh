@@ -22,3 +22,4 @@
 - Plan lifecycle rules (trial length, which statuses keep access, proration mode) live as constants in `_shared/launch-policy.ts` and are shared by checkout, `change-plan`, server entitlements and the UI, so billing and feature access can't disagree.
 
 - Ad and marketing tags (Google Ads, Klaviyo) load only through `src/lib/consent.ts` gating in `CookieConsent`, never as static `index.html` scripts, and the sign-up conversion fires only from confirmed account creation in `Auth.tsx` with the account id as transaction id, so consent regions and duplicate sign-ups stay correct.
+- The site-wide help chat calls only the public, rate-limited `support-chat` function: answers come from a fixed product brief in that function, and "Talk to a person" messages are written server-side to `support_requests`, readable only by admins, so visitors never get direct table access.
