@@ -265,7 +265,7 @@ const Onboard = () => {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/docs#quickstart`);
+    navigator.clipboard.writeText(`${window.location.origin}/guide`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -354,7 +354,7 @@ const Onboard = () => {
                         <div className="px-4 py-3 flex items-center justify-between gap-4">
                           <code className="font-mono text-sm text-cyan-300 flex-1">
                             <span className="text-muted-foreground mr-2">~</span>
-                            <Link to="/docs#quickstart" className="text-primary underline">Read prerequisites and setup instructions</Link>
+                            <Link to="/guide" className="text-primary underline">Read prerequisites and setup instructions</Link>
                           </code>
                           <button
                             onClick={handleCopy}

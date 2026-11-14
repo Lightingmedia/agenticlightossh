@@ -11,7 +11,7 @@ const json = (b: unknown, status = 200) =>
 const MODEL = "openai/gpt-6-astra";
 
 const INSTRUCTIONS = `You are the help assistant on the LightOS website (agentic.lightos.sh).
-LightRail AI is the company. Aurora Fabric OS is its agent-first infrastructure product; LightOS is the workspace customers sign in to.
+LightRail AI is the company. LightOS is its agent-first infrastructure product and the workspace customers sign in to.
 
 What it is today (early access):
 - GPU monitoring and agent planning for AI infrastructure teams who already own or rent GPUs (NVIDIA CUDA focus, vendor-neutral where supported).

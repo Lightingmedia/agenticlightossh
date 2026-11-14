@@ -4,36 +4,40 @@ import { Menu, X, ChevronDown, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-type NavItem = { label: string; to: string; tag?: string };
+type NavItem = { label: string; to: string; desc: string; tag?: string };
 const groups: { label: string; items: NavItem[] }[] = [
   {
     label: "Platform",
     items: [
-      { label: "Aurora Fabric OS", to: "/os", tag: "OS" },
-      { label: "Dashboard", to: "/dashboard" },
-      { label: "Agent Hub", to: "/dashboard/agents" },
-      { label: "Agent Templates", to: "/dashboard/templates" },
-      { label: "Inference API", to: "/dashboard/inference" },
-      { label: "Model Registry", to: "/dashboard/models", tag: "BETA" },
+      { label: "LightOS desktop", to: "/os", desc: "The full workspace in your browser", tag: "OS" },
+      { label: "Dashboard", to: "/dashboard", desc: "Your GPUs, readings and plans" },
+      { label: "Agent Hub", to: "/dashboard/agents", desc: "Your infrastructure agents" },
+      { label: "Agent Templates", to: "/dashboard/templates", desc: "Start from a ready-made agent" },
+      { label: "Inference API", to: "/dashboard/inference", desc: "Send prompts to hosted models" },
+      { label: "Model Registry", to: "/dashboard/models", desc: "Models you can serve", tag: "BETA" },
     ],
   },
   {
     label: "AI Infrastructure",
     items: [
-      { label: "GPU Setup", to: "/dashboard/gateway-setup" },
-      { label: "LightCompiler", to: "/light-compiler", tag: "NEW" },
-      { label: "Benchmark", to: "/benchmark" },
-      { label: "Onboard", to: "/onboard" },
+      { label: "GPU Setup", to: "/dashboard/gateway-setup", desc: "Connect your NVIDIA machine" },
+      { label: "GPU Cloud", to: "/dashboard/gpu-cloud", desc: "Rent GPUs with prepaid credit" },
+      { label: "Compute Exchange", to: "/dashboard/exchange", desc: "Plan workloads and compare costs" },
+      { label: "GPU Monitor", to: "/dashboard/gpu", desc: "Live utilization, memory and power" },
+      { label: "RDMA Traces", to: "/dashboard/rdma", desc: "Network traffic between GPU nodes" },
+      { label: "LightCompiler", to: "/light-compiler", desc: "How models are compiled", tag: "NEW" },
+      { label: "Benchmark", to: "/benchmark", desc: "Performance targets and method" },
     ],
   },
   {
     label: "Resources",
     items: [
-      { label: "Docs", to: "/docs" },
-      { label: "First-run guide", to: "/docs#quickstart" },
-      { label: "Examples", to: "/examples" },
-      { label: "Blog", to: "/blog" },
-      { label: "Transformer Explainer", to: "/transformer-explainer" },
+      { label: "First-run guide", to: "/guide", desc: "Live GPU readings in 10 minutes" },
+      { label: "Docs", to: "/docs", desc: "Reference and concepts" },
+      { label: "Examples", to: "/examples", desc: "Agents for real data centers" },
+      { label: "Blog", to: "/blog", desc: "News and deep dives" },
+      { label: "Transformer Explainer", to: "/transformer-explainer", desc: "See how a model thinks" },
+      { label: "Onboarding", to: "/onboard", desc: "Guided account setup" },
     ],
   },
 ];
@@ -73,12 +77,15 @@ const Header = () => {
                       transition={{ duration: 0.15 }}
                       className="absolute left-0 top-full pt-2"
                     >
-                      <div className="w-60 rounded-xl p-1.5 border border-border bg-popover shadow-2xl">
+                      <div className="w-72 rounded-xl p-1.5 border border-border bg-popover shadow-2xl">
                         {g.items.map((item) => (
                           <Link key={item.to} to={item.to} onClick={() => setOpenGroup(null)}
-                            className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-colors">
-                            {item.label}
-                            {item.tag && <span className="font-mono text-[10px] text-lightrail bg-lightrail/10 px-1.5 py-0.5 rounded">{item.tag}</span>}
+                            className="group/item flex items-start justify-between gap-3 px-3 py-2 rounded-lg hover:bg-secondary/70 transition-colors">
+                            <span className="min-w-0">
+                              <span className="block text-sm text-foreground/90 group-hover/item:text-foreground">{item.label}</span>
+                              <span className="block text-xs text-muted-foreground">{item.desc}</span>
+                            </span>
+                            {item.tag && <span className="mt-0.5 font-mono text-[10px] text-lightrail bg-lightrail/10 px-1.5 py-0.5 rounded">{item.tag}</span>}
                           </Link>
                         ))}
                       </div>

@@ -62,7 +62,7 @@ const CTASection = () => {
                 variant="outline"
                 className="font-mono border-border hover:border-primary/50"
               >
-                <Link to="/docs#quickstart"><BookOpen className="mr-2 w-4 h-4" />First-run Guide</Link>
+                <Link to="/guide"><BookOpen className="mr-2 w-4 h-4" />First-run Guide</Link>
               </Button>
             </div>
 

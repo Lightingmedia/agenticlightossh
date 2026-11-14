@@ -22,7 +22,7 @@ const Hero = () => (
       </motion.h1>
 
       <motion.p {...rise(0.16)} className="mx-auto mt-6 max-w-xl text-base sm:text-lg text-muted-foreground">
-        Now with Aurora Fabric OS: AI-powered monitoring and planning for the GPUs you own or rent.
+        AI-powered monitoring and planning for the GPUs you own or rent.
       </motion.p>
 
       <motion.div {...rise(0.24)} className="mt-8 flex flex-wrap items-center justify-center gap-5">
@@ -31,7 +31,7 @@ const Hero = () => (
             Get started free
           </Button>
         </Link>
-        <Link to="/docs#quickstart" className="group inline-flex items-center gap-1 text-foreground/90 hover:text-foreground">
+        <Link to="/guide" className="group inline-flex items-center gap-1 text-foreground/90 hover:text-foreground">
           First-run guide <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </motion.div>

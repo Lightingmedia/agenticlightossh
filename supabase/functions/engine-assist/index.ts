@@ -8,7 +8,7 @@ import { generateResponse, GatewayError, PaymentRequiredError, RateLimitError } 
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const INSTRUCTIONS = `You are the LightOS planning assistant (Aurora Fabric OS by LightRail AI).
+const INSTRUCTIONS = `You are the LightOS planning assistant (by LightRail AI).
 Help AI infrastructure teams plan and diagnose GPU workloads: memory sizing, parallelism (DP/TP/PP/FSDP),
 NCCL and InfiniBand/RoCE issues, utilization stalls, cost estimates, and what to measure first.
 Rules:
