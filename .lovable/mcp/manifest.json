@@ -99,7 +99,7 @@
       {
         "name": "get_runtime_capacity",
         "title": "Get accelerator capacity",
-        "description": "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the Aurora control plane.",
+        "description": "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the LightOS control plane.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -131,7 +131,7 @@
       {
         "name": "validate_workload_intent",
         "title": "Validate workload intent",
-        "description": "Validate a constrained accelerator workload intent against Aurora policy without executing it.",
+        "description": "Validate a constrained accelerator workload intent against LightOS policy without executing it.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -210,7 +210,7 @@
       {
         "name": "plan_deployment",
         "title": "Plan accelerator deployment",
-        "description": "Ask Aurora for a policy-controlled placement, fabric route, cost estimate, and runtime plan; this tool never executes the plan.",
+        "description": "Ask LightOS for a policy-controlled placement, fabric route, cost estimate, and runtime plan; this tool never executes the plan.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": false,
@@ -299,7 +299,7 @@
                 "maxLength": 64
               },
               "maxItems": 30,
-              "description": "Provider ids from list_compute_providers to consider; omit to let Aurora choose among the user's connected providers."
+              "description": "Provider ids from list_compute_providers to consider; omit to let LightOS choose among the user's connected providers."
             }
           },
           "required": [
@@ -324,7 +324,7 @@
       {
         "name": "get_fabric_state",
         "title": "Get live fabric state",
-        "description": "Read live Aurora topology, telemetry, or recent policy events from the privileged control plane.",
+        "description": "Read live LightOS topology, telemetry, or recent policy events from the privileged control plane.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
