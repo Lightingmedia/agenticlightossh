@@ -1,36 +1,46 @@
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import WorkloadJourney from "./WorkloadJourney";
+import HeroScene, { HeroIllustration } from "./HeroScene";
 
-const Hero = () => {
-  return (
-    <section className="relative pt-44 sm:pt-36 pb-8 overflow-hidden bg-background">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-6">
-          <div className="max-w-2xl">
-            <p className="font-mono text-[10px] text-lightrail mb-2">AGENT-FIRST INFRASTRUCTURE · EARLY ACCESS</p>
-            <h1 className="text-3xl sm:text-4xl font-bold font-mono leading-tight mb-3">LightOS<span className="text-muted-foreground"> / </span><br className="sm:hidden" /><span className="text-foreground">AI workload orchestration</span></h1>
-            <p className="text-sm text-muted-foreground max-w-xl">From workload intent to a plan you approve. AI-powered monitoring and planning for the GPUs you already own or rent.</p>
-          </div>
-          <div className="shrink-0">
-            <div className="flex flex-wrap gap-3">
-            <Link to="/auth?next=/dashboard/gateway-setup">
-              <Button className="font-mono bg-lightrail text-lightrail-foreground hover:bg-lightrail/90 group">
-                Get started free<ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-             <Link to="/docs#quickstart">
-              <Button variant="outline" className="font-mono">First-run guide</Button>
-            </Link>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-3 font-mono">1 GPU monitoring free · No card required</p>
-          </div>
-        </div>
-        <WorkloadJourney />
-      </div>
-    </section>
-  );
-};
+const rise = (delay: number) => ({ initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, delay } });
+
+const Hero = () => (
+  <section className="relative overflow-hidden bg-background pt-32 sm:pt-40">
+    <HeroScene />
+    <div className="relative z-10 container mx-auto px-4 text-center">
+      <motion.div {...rise(0)} className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur px-4 py-1.5 font-mono text-xs sm:text-sm text-foreground/90 shadow-[0_4px_20px_-8px_hsl(var(--lightrail)/0.4)]">
+        <span className="h-1.5 w-1.5 rounded-full bg-lightrail animate-pulse" />
+        The AI infrastructure agent
+      </motion.div>
+
+      <motion.h1 {...rise(0.08)} className="mt-6 font-mono font-bold tracking-tighter leading-[1.02] text-[2.4rem] sm:text-6xl lg:text-7xl">
+        <span className="hero-fade-text">Run AI faster on</span>
+        <br />
+        the GPUs you <span className="text-lightrail glow-text">own</span>
+      </motion.h1>
+
+      <motion.p {...rise(0.16)} className="mx-auto mt-6 max-w-xl text-base sm:text-lg text-muted-foreground">
+        Now with Aurora Fabric OS: AI-powered monitoring and planning for the GPUs you own or rent.
+      </motion.p>
+
+      <motion.div {...rise(0.24)} className="mt-8 flex flex-wrap items-center justify-center gap-5">
+        <Link to="/auth?next=/dashboard/gateway-setup">
+          <Button size="lg" className="rounded-xl h-12 px-6 bg-lightrail text-lightrail-foreground hover:bg-lightrail/90 shadow-[0_10px_30px_-8px_hsl(var(--lightrail)/0.65)]">
+            Get started free
+          </Button>
+        </Link>
+        <Link to="/docs#quickstart" className="group inline-flex items-center gap-1 text-foreground/90 hover:text-foreground">
+          First-run guide <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      </motion.div>
+      <motion.p {...rise(0.3)} className="mt-4 font-mono text-[11px] text-muted-foreground">1 GPU monitoring free · No card required</motion.p>
+    </div>
+    <div className="relative z-0 px-2">
+      <HeroIllustration />
+    </div>
+  </section>
+);
 
 export default Hero;

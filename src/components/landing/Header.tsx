@@ -4,152 +4,124 @@ import { Menu, X, ChevronDown, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
+type NavItem = { label: string; to: string; tag?: string };
+const groups: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Platform",
+    items: [
+      { label: "Aurora Fabric OS", to: "/os", tag: "OS" },
+      { label: "Dashboard", to: "/dashboard" },
+      { label: "Agent Hub", to: "/dashboard/agents" },
+      { label: "Agent Templates", to: "/dashboard/templates" },
+      { label: "Inference API", to: "/dashboard/inference" },
+      { label: "Model Registry", to: "/dashboard/models", tag: "BETA" },
+    ],
+  },
+  {
+    label: "AI Infrastructure",
+    items: [
+      { label: "GPU Setup", to: "/dashboard/gateway-setup" },
+      { label: "LightCompiler", to: "/light-compiler", tag: "NEW" },
+      { label: "Benchmark", to: "/benchmark" },
+      { label: "Onboard", to: "/onboard" },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      { label: "Docs", to: "/docs" },
+      { label: "First-run guide", to: "/docs#quickstart" },
+      { label: "Examples", to: "/examples" },
+      { label: "Blog", to: "/blog" },
+      { label: "Transformer Explainer", to: "/transformer-explainer" },
+    ],
+  },
+];
+
 const Header = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Announcement Bar */}
-      <div className="bg-secondary/80 backdrop-blur-sm border-b border-border py-2 px-4">
-        <div className="container mx-auto flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-primary">⚡</span>
-          <span className="font-mono text-muted-foreground">Aurora Fabric OS · Agent-first monitoring and planning · Early access</span>
-          <Link to="/docs#quickstart" className="text-primary hover:underline font-mono">
-            First-run guide →
+    <header className="fixed top-0 inset-x-0 z-50 px-3 sm:px-4 pt-3 sm:pt-5">
+      <nav className="nav-capsule mx-auto max-w-5xl rounded-2xl">
+        <div className="flex items-center justify-between gap-4 px-4 sm:px-5 h-14 sm:h-16">
+          <Link to="/" className="flex items-center gap-2.5 font-mono text-lg font-bold shrink-0">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-lightrail to-primary/60 flex items-center justify-center shadow-[0_0_18px_hsl(var(--lightrail)/0.35)]">
+              <Layers className="w-4 h-4 text-lightrail-foreground" />
+            </span>
+            <span className="tracking-tight">LightOS</span>
           </Link>
-        </div>
-      </div>
 
-      {/* Main Header */}
-      <nav className="bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5 font-mono text-lg font-bold">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                <Layers className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="text-foreground tracking-tight">LightOS</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <div className="relative">
+          <div className="hidden md:flex items-center gap-1">
+            {groups.map((g) => (
+              <div key={g.label} className="relative" onMouseEnter={() => setOpenGroup(g.label)} onMouseLeave={() => setOpenGroup(null)}>
                 <button
-                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide"
-                  onMouseEnter={() => setProductsOpen(true)}
-                  onMouseLeave={() => setProductsOpen(false)}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-[13px] transition-colors ${openGroup === g.label ? "text-foreground bg-secondary/70" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-expanded={openGroup === g.label}
+                  onFocus={() => setOpenGroup(g.label)}
                 >
-                  Platform
-                  <ChevronDown className="w-4 h-4" />
+                  {g.label}
+                  <ChevronDown className={`w-3.5 h-3.5 opacity-60 transition-transform ${openGroup === g.label ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
-                  {productsOpen && (
+                  {openGroup === g.label && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-xl py-2"
-                      onMouseEnter={() => setProductsOpen(true)}
-                      onMouseLeave={() => setProductsOpen(false)}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute left-0 top-full pt-2"
                     >
-                      <Link to="/light-compiler" className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                        LightCompiler
-                        <span className="text-primary text-xs ml-2 bg-primary/10 px-1.5 py-0.5 rounded">NEW</span>
-                      </Link>
-                      <Link to="/transformer-explainer" className="flex items-center justify-between px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                        Transformer Explainer
-                        <span className="text-purple-400 text-xs ml-2 bg-purple-500/10 px-1.5 py-0.5 rounded">VIZ</span>
-                      </Link>
-                      <div className="border-t border-border my-1" />
-                      <Link to="/dashboard/templates" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Templates</Link>
-                      <Link to="/dashboard/agents" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Agent Hub</Link>
-                      <Link to="/dashboard/inference" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Inference API</Link>
-                      <Link to="/dashboard/models" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                        Model Registry <span className="text-primary text-xs">BETA</span>
-                      </Link>
+                      <div className="nav-capsule w-60 rounded-xl p-1.5">
+                        {g.items.map((item) => (
+                          <Link key={item.to} to={item.to} onClick={() => setOpenGroup(null)}
+                            className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/70 transition-colors">
+                            {item.label}
+                            {item.tag && <span className="font-mono text-[10px] text-lightrail bg-lightrail/10 px-1.5 py-0.5 rounded">{item.tag}</span>}
+                          </Link>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-              <Link to="/docs" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Docs
-              </Link>
-              <Link to="/examples" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Examples
-              </Link>
-              <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Blog
-              </Link>
-              <Link to="/benchmark" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Benchmark
-              </Link>
-              <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Pricing
-              </Link>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors font-mono text-sm uppercase tracking-wide">
-                Dashboard
-              </Link>
-              <Link to="/os" className="text-primary hover:text-primary/80 transition-colors font-mono text-sm uppercase tracking-wide">
-                OS
-              </Link>
-              <Link to="/onboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono text-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Onboard
-              </Link>
-            </div>
-
-            {/* Desktop CTA */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link to="/auth">
-                <Button variant="ghost" size="sm" className="font-mono text-muted-foreground hover:text-foreground">
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/pricing">
-                <Button size="sm" className="font-mono bg-primary text-primary-foreground hover:bg-primary/90">
-                  Get Started
-                </Button>
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            ))}
+            <Link to="/pricing" className="px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
           </div>
+
+          <div className="hidden md:flex items-center gap-2">
+            <Link to="/auth" className="px-3 py-2 text-[13px] text-foreground/90 hover:text-foreground">Sign in</Link>
+            <Link to="/auth?next=/dashboard/gateway-setup">
+              <Button size="sm" className="rounded-xl h-9 px-4 bg-lightrail text-lightrail-foreground hover:bg-lightrail/90 shadow-[0_6px_24px_-6px_hsl(var(--lightrail)/0.6)]">
+                Get started
+              </Button>
+            </Link>
+          </div>
+
+          <button className="md:hidden text-foreground p-1" aria-label={mobileOpen ? "Close menu" : "Open menu"} onClick={() => setMobileOpen((v) => !v)}>
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
 
-        {/* Mobile Menu */}
         <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-border bg-background"
-            >
-              <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
-                <Link to="/dashboard/templates" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Agent Templates</Link>
-                <Link to="/docs" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Docs</Link>
-                <Link to="/examples" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Examples</Link>
-                <Link to="/blog" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
-                <Link to="/benchmark" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Benchmark</Link>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                <Link to="/os" className="text-primary hover:text-primary/80 font-mono text-sm uppercase" onClick={() => setMobileMenuOpen(false)}>OS</Link>
-                <Link to="/onboard" className="flex items-center gap-2 text-primary font-mono text-sm" onClick={() => setMobileMenuOpen(false)}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  Onboard
-                </Link>
-                <div className="flex gap-3 pt-4 border-t border-border">
-                  <Button variant="outline" size="sm" className="font-mono flex-1">Sign In</Button>
-                  <Link to="/dashboard" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                    <Button size="sm" className="font-mono w-full bg-primary text-primary-foreground">Get Started</Button>
-                  </Link>
+          {mobileOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden overflow-hidden border-t border-border/60">
+              <div className="px-4 py-4 grid gap-5 max-h-[70vh] overflow-y-auto">
+                {groups.map((g) => (
+                  <div key={g.label}>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">{g.label}</p>
+                    <div className="grid grid-cols-2 gap-1">
+                      {g.items.map((item) => (
+                        <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} className="text-sm text-foreground/90 py-1.5">{item.label}</Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <Link to="/pricing" onClick={() => setMobileOpen(false)} className="text-sm text-foreground/90">Pricing</Link>
+                <div className="flex gap-2 pt-3 border-t border-border/60">
+                  <Link to="/auth" className="flex-1" onClick={() => setMobileOpen(false)}><Button variant="outline" size="sm" className="w-full rounded-xl">Sign in</Button></Link>
+                  <Link to="/auth?next=/dashboard/gateway-setup" className="flex-1" onClick={() => setMobileOpen(false)}><Button size="sm" className="w-full rounded-xl bg-lightrail text-lightrail-foreground">Get started</Button></Link>
                 </div>
               </div>
             </motion.div>
