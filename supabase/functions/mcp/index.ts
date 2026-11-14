@@ -315,7 +315,7 @@ var PROVIDERS = [
           { key: "projectId", label: "Project ID", placeholder: "my-gpu-project" },
           { key: "serviceAccountJson", label: "Service account key JSON", secret: true, multiline: true, placeholder: '{ "type": "service_account", \u2026 }' }
         ],
-        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once Aurora runs in your VPC."
+        permissions: "roles/compute.viewer + roles/container.viewer + roles/tpu.viewer. Add roles/compute.instanceAdmin.v1 only when you enable launch. Prefer Workload Identity Federation once LightOS runs in your VPC."
       }
     ],
     docsUrl: "https://cloud.google.com/iam/docs/keys-create-delete",
