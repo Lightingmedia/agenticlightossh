@@ -1,5 +1,12 @@
 # Roadmap
 
+- [ ] New home page release (Nov 14)
+  - [x] Crusoe-style home page in LightOS colors
+  - [ ] Link Platform / AI Infrastructure / Resources dropdowns to real pages
+  - [ ] Build standalone First-run guide page
+  - [ ] Rename "Aurora Fabric OS" to "LightOS" across the site
+  - [ ] Security scan, then publish
+
 - [ ] Lambda-style GPU Cloud features, admin signups, CEO welcome letter
   - [x] GPU Cloud page: GPU lineup with published prices, one-command environment check (now reports CUDA toolkit, PyTorch, cuDNN, TensorFlow), on-demand/cluster/private planning, working inference chat with token counts (verified signed in)
   - [x] CEO welcome letter shown once to every account, re-readable from the menu (verified signed in)
