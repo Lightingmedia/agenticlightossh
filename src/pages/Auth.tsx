@@ -163,7 +163,7 @@ const Auth = () => {
             <div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">or</span></div>
           </div>
 
-          <Tabs defaultValue="login">
+          <Tabs defaultValue={searchParams.get("mode") === "signup" ? "signup" : "login"}>
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login" className="font-mono">Login</TabsTrigger>
               <TabsTrigger value="signup" className="font-mono">Sign Up</TabsTrigger>
