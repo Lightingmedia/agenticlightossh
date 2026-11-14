@@ -277,7 +277,7 @@ class TestLifecycle:
     @pytest.mark.asyncio
     async def test_listing_reports_the_gateway_state(self, make_service):
         assert (await make_service().list_connections(U1))["gateway"] == "not_configured"
-        configured = make_service(settings=Settings(gateway_url="https://aurora.example.com", gateway_token="gw"))
+        configured = make_service(settings=Settings(gateway_url="https://lightos.example.com", gateway_token="gw"))
         assert (await configured.list_connections(U1))["gateway"] == "configured"
 
     @pytest.mark.asyncio
@@ -331,7 +331,7 @@ class TestVaultIntegration:
 
 # ─── LightOS runtime gateway ───────────────────────────────────────────────────
 
-GATEWAY = Settings(gateway_url="https://aurora.example.com/", gateway_token="gw-token")
+GATEWAY = Settings(gateway_url="https://lightos.example.com/", gateway_token="gw-token")
 NEBIUS = ("nebius", "service_account_key")
 NEBIUS_CREDS = {"projectId": "p", "serviceAccountId": "sa", "publicKeyId": "k", "privateKeyPem": "-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----"}
 
@@ -353,7 +353,7 @@ class TestGateway:
             seen.update(headers=dict(request.headers), body=json.loads(request.content))
             return httpx.Response(200, json={"ok": True, "identity": "nebius-sa"})
 
-        net = FakeInternet().on("POST", "https://aurora.example.com/v1/providers/validate", validate)
+        net = FakeInternet().on("POST", "https://lightos.example.com/v1/providers/validate", validate)
         svc = make_service({}, settings=GATEWAY, internet=net)
         row = await connect(svc, creds=NEBIUS_CREDS, provider=NEBIUS)
         assert row["status"] == "connected" and row["identity"] == "nebius-sa" and row["last_validated_at"]
@@ -363,7 +363,7 @@ class TestGateway:
     @pytest.mark.asyncio
     async def test_retest_sends_the_connection_id(self, make_service):
         bodies = []
-        net = FakeInternet().on("POST", "https://aurora.example.com/v1/providers/validate", lambda r: (bodies.append(json.loads(r.content)), httpx.Response(200, json={"ok": True}))[1])
+        net = FakeInternet().on("POST", "https://lightos.example.com/v1/providers/validate", lambda r: (bodies.append(json.loads(r.content)), httpx.Response(200, json={"ok": True}))[1])
         svc = make_service({}, settings=GATEWAY, internet=net)
         row = await connect(svc, creds=NEBIUS_CREDS, provider=NEBIUS)
         await svc.test(U1, row["id"])
@@ -371,11 +371,11 @@ class TestGateway:
 
     @pytest.mark.asyncio
     async def test_rejections_and_gateway_outages_fail_the_connect(self, make_service):
-        net = FakeInternet().on("POST", "https://aurora.example.com/v1/providers/validate", {"ok": False, "message": "service account not found"})
+        net = FakeInternet().on("POST", "https://lightos.example.com/v1/providers/validate", {"ok": False, "message": "service account not found"})
         with pytest.raises(ApiError, match="service account not found") as err:
             await connect(make_service({}, settings=GATEWAY, internet=net), creds=NEBIUS_CREDS, provider=NEBIUS)
         assert err.value.status == 422
-        down = FakeInternet().on("POST", "https://aurora.example.com/v1/providers/validate", (503, {"message": "gateway starting"}))
+        down = FakeInternet().on("POST", "https://lightos.example.com/v1/providers/validate", (503, {"message": "gateway starting"}))
         with pytest.raises(ApiError, match="gateway starting"):
             await connect(make_service({}, settings=GATEWAY, internet=down), creds=NEBIUS_CREDS, provider=NEBIUS)
 
@@ -387,7 +387,7 @@ class TestGateway:
             seen.update(path=request.url.path, body=json.loads(request.content))
             return httpx.Response(200, json={"items": [{"kind": "node", "id": "n1", "name": "n1", "accelerator": "H200"}]})
 
-        net = FakeInternet().on("POST", "https://aurora.example.com/v1/providers/validate", {"ok": True}).on("POST", "https://aurora.example.com/v1/providers/", inventory)
+        net = FakeInternet().on("POST", "https://lightos.example.com/v1/providers/validate", {"ok": True}).on("POST", "https://lightos.example.com/v1/providers/", inventory)
         svc = make_service({}, settings=GATEWAY, internet=net)
         row = await connect(svc, creds=NEBIUS_CREDS, provider=NEBIUS)
         assert (await svc.inventory(U1, row["id"]))["items"][0]["accelerator"] == "H200"
@@ -402,9 +402,9 @@ class TestGateway:
         assert err.value.status == 502 and "gateway is not configured" in err.value.body["error"]
 
     def test_gateway_must_use_https_unless_it_is_localhost(self, make_service):
-        assert make_service(settings=Settings(gateway_url="http://aurora.example.com", gateway_token="t")).gateway is None
+        assert make_service(settings=Settings(gateway_url="http://lightos.example.com", gateway_token="t")).gateway is None
         assert make_service(settings=Settings(gateway_url="http://localhost:9000", gateway_token="t")).gateway is not None
-        assert make_service(settings=Settings(gateway_url="https://aurora.example.com", gateway_token=None)).gateway is None
+        assert make_service(settings=Settings(gateway_url="https://lightos.example.com", gateway_token=None)).gateway is None
 
 
 # ─── catalog presentation ─────────────────────────────────────────────────────
