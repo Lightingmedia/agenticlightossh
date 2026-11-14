@@ -599,7 +599,7 @@ const builtins: Record<string, Builtin> = {
       [
         `${C.green}      .:^!?JJJ?!^:.${C.reset}        ${C.bold}root@lightos-main${C.reset}`,
         `${C.green}    .^7?JJJJJJJJJJ?7^.${C.reset}      ${C.gray}-----------------${C.reset}`,
-        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     OS: LightOS 1.0 Aurora`,
+        `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     OS: LightOS 1.0`,
         `${C.green}  !JJJJJ${C.cyan}LIGHTRAIL${C.green}JJJJ!${C.reset}    Kernel: 6.8.0-lightrail`,
         `${C.green}  !JJJJJJJJJJJJJJJJJJJ!${C.reset}    CPU: Fabric Controller Gen 2`,
         `${C.green}   ~JJJJJJJJJJJJJJJJJJ~${C.reset}     GPU: LightRail NCE-700 x8`,
@@ -1043,7 +1043,7 @@ export function TerminalApp() {
         HOME: "/root",
         SHELL: "/bin/lsh",
         LIGHTRAIL_FABRIC: "photonic-mesh-20x64",
-        LIGHTOS_VERSION: "1.0-aurora",
+        LIGHTOS_VERSION: "1.0",
       },
       lastExit: 0,
       setCwd: (p) => {
@@ -1067,7 +1067,7 @@ export function TerminalApp() {
 
     const banner = [
       "",
-      `${C.green}  ╦  ┬┌─┐┬ ┬┌┬┐╔═╗╔═╗${C.reset}     LightOS 1.0 "Aurora"`,
+      `${C.green}  ╦  ┬┌─┐┬ ┬┌┬┐╔═╗╔═╗${C.reset}     LightOS 1.0`,
       `${C.green}  ║  ││ ┬├─┤ │ ║ ║╚═╗${C.reset}     Ubuntu 24.04 LTS · Kernel 6.8-lightrail`,
       `${C.green}  ╩═╝┴└─┘┴ ┴ ┴ ╚═╝╚═╝${C.reset}     Photonic AI Fabric · NCE-700`,
       "",

@@ -35,7 +35,7 @@ export default function WorkloadJourney() {
   return (
     <div className="workload-journey" aria-label="Illustration of AI workload orchestration">
       <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-3 font-mono text-[10px] sm:text-xs">
-        <span className="flex items-center gap-2 text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-lightrail" />AURORA FABRIC OS / WORKLOAD FLOW</span>
+        <span className="flex items-center gap-2 text-muted-foreground"><span className="h-1.5 w-1.5 rounded-full bg-lightrail" />LIGHTOS / WORKLOAD FLOW</span>
       </div>
       <div className="workload-map">
         <svg className="workload-connections" viewBox="0 0 1000 320" preserveAspectRatio="none" aria-hidden="true">

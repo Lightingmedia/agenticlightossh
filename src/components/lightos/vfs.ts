@@ -16,7 +16,7 @@ export const VFS: DirNode = dir({
       "# LightOS\n\nLightRail Photonic AI Infrastructure.\nWelcome to your appliance.\n",
     ),
     "deploy.yaml": file(
-      "apiVersion: lightrail/v1\nkind: FabricDeployment\nmetadata:\n  name: aurora-pro\nspec:\n  replicas: 8\n  topology: photonic-mesh-20x64\n",
+      "apiVersion: lightrail/v1\nkind: FabricDeployment\nmetadata:\n  name: lightos-pro\nspec:\n  replicas: 8\n  topology: photonic-mesh-20x64\n",
     ),
     notes: dir({
       "todo.txt": file("- tune NCCL\n- profile GPU 3 thermals\n- ship LightCompiler v0.4\n"),
@@ -28,7 +28,7 @@ export const VFS: DirNode = dir({
     ),
     hostname: file("lightos-main\n"),
     "os-release": file(
-      'NAME="LightOS"\nVERSION="1.0 (Aurora)"\nID=lightos\nID_LIKE=ubuntu\nPRETTY_NAME="LightOS 1.0 — AI Appliance"\n',
+      'NAME="LightOS"\nVERSION="1.0"\nID=lightos\nID_LIKE=ubuntu\nPRETTY_NAME="LightOS 1.0 — AI Appliance"\n',
     ),
   }),
   var: dir({

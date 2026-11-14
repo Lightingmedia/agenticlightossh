@@ -7,7 +7,7 @@
 //  POST {action:"disconnect", id}                                (user JWT) -> delete row + vault secret
 //
 // Credentials are accepted once, validated server-side, written to Supabase
-// Vault and never returned. Launch/terminate is NOT exposed here: Aurora
+// Vault and never returned. Launch/terminate is NOT exposed here: LightOS
 // Fabric OS (runtime gateway) is the sole execution authority.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";

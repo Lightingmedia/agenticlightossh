@@ -28,7 +28,7 @@ const SAMPLES = [
   "Fabric utilization is spiking above 92% in rack B7 — reroute traffic.",
   "How much did inference cost me last week?",
   "Something feels off with the thermal readings, maybe.",
-  "Deploy the Aurora Nano model to the edge cluster.",
+  "Deploy the LightOS Nano model to the edge cluster.",
 ];
 
 export default function MtmcConsole() {

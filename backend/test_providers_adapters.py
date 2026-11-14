@@ -45,7 +45,7 @@ class TestRegistry:
         direct = {p["id"] for p in PROVIDERS if p["validation"] == "direct"}
         assert direct <= set(ADAPTERS)
 
-    def test_providers_delegated_to_aurora_have_no_adapter(self):
+    def test_providers_delegated_to_gateway_have_no_adapter(self):
         assert "nvidia_dgx_cloud_lepton" not in ADAPTERS and "nebius" not in ADAPTERS and "lightos_gateway" not in ADAPTERS
         assert {"ibm", "oci", "nvidia_ngc"} <= set(ADAPTERS)  # validated natively here
 

@@ -46,7 +46,7 @@ def main(argv=None) -> int:
         where = url.database if url.get_backend_name() == "sqlite" else url.render_as_string(hide_password=True)
         print(f"database:    ok ({url.get_backend_name()}: {where})")
         print(f"vault:       ok (active key id {vault.active_key_id}{', from PROVIDER_VAULT_KEY' if settings.vault_key else ', development key file'})")
-        print(f"gateway:     {'configured' if Gateway.from_settings(settings, Http()) else 'not configured (providers that need Aurora stay awaiting_gateway)'}")
+        print(f"gateway:     {'configured' if Gateway.from_settings(settings, Http()) else 'not configured (providers that need LightOS stay awaiting_gateway)'}")
         print(f"aws roles:   {'configured' if settings.aws_platform_key_id and settings.aws_platform_secret else 'not configured (cross-account role connections unavailable)'}")
         return 0
 
