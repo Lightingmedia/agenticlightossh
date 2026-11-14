@@ -12,7 +12,7 @@ const footerLinks: Record<string, { label: string; to: string }[]> = {
   ],
   Developers: [
     { label: "Documentation", to: "/docs" },
-    { label: "API Reference", to: "/api-reference" },
+    { label: "API Reference", to: "/reference" },
     { label: "SDKs", to: "/sdks" },
     { label: "Examples", to: "/examples" },
   ],

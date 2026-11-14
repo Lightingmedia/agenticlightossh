@@ -17,7 +17,7 @@ sha256sum -c lightos-gateway.tar.gz.sha256`}</Code>
       <p>Agents such as Claude can connect to LightOS through MCP after you sign in and approve access. They can read your measured capacity and telemetry and draft deployment plans.</p>
     </Section>
     <Section title="Plain HTTP">
-      <p>Any language that can make HTTPS requests works with the gateway. See the <Link to="/api-reference" className="text-primary hover:underline">API reference</Link>.</p>
+      <p>Any language that can make HTTPS requests works with the gateway. See the <Link to="/reference" className="text-primary hover:underline">API reference</Link>.</p>
     </Section>
   </InfoPage>
 );

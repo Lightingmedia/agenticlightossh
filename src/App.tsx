@@ -98,7 +98,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/api-reference" element={<ApiReference />} />
+          <Route path="/reference" element={<ApiReference />} />
           <Route path="/sdks" element={<Sdks />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
