@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Activity, Cpu, Lock, MessageSquare, Plug, ShieldCheck, Check, Copy, Gauge, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import WorkloadJourney from "./WorkloadJourney";
 
 const reveal = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-80px" }, transition: { duration: 0.5 } };
 
@@ -14,11 +15,11 @@ export function FactsBar() {
     ["Measured", "never simulated numbers"],
   ];
   return (
-    <section className="border-y border-border bg-card/30">
-      <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4">
+    <section className="relative z-10 container mx-auto px-4 -mt-6 sm:-mt-12">
+      <div className="soft-card mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 overflow-hidden">
         {facts.map(([v, l]) => (
-          <div key={v} className="py-8 px-4 text-center border-border md:border-r last:border-r-0">
-            <div className="font-mono text-2xl md:text-3xl font-bold text-primary">{v}</div>
+          <div key={v} className="py-7 px-4 text-center border-border md:border-r last:border-r-0">
+            <div className="font-mono text-2xl md:text-3xl font-bold text-lightrail">{v}</div>
             <div className="text-xs text-muted-foreground mt-1 font-mono uppercase tracking-wide">{l}</div>
           </div>
         ))}
@@ -34,6 +35,21 @@ const stages = [
   { icon: ShieldCheck, name: "Execute", text: "Approved jobs run through the gateway and return a verified result. Being validated with pilot teams.", status: "Pilot" },
 ];
 
+export function WorkloadSection() {
+  return (
+    <section className="py-24">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <motion.div {...reveal} className="text-center mb-10">
+          <span className="inline-flex rounded-full border border-border bg-card/80 px-4 py-1 font-mono text-xs text-foreground/90">The workload loop</span>
+          <h2 className="mt-5 text-3xl md:text-5xl font-bold font-mono tracking-tight"><span className="hero-fade-text">Measure first.</span> Then plan.</h2>
+          <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Follow a workload from intent to an approved plan. Execution only happens after you say yes.</p>
+        </motion.div>
+        <motion.div {...reveal} className="soft-card p-4 sm:p-6"><WorkloadJourney /></motion.div>
+      </div>
+    </section>
+  );
+}
+
 export function LifecycleSection() {
   const [i, setI] = useState(0);
   const S = stages[i];
@@ -47,13 +63,13 @@ export function LifecycleSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
           {stages.map((s, idx) => (
             <button key={s.name} onClick={() => setI(idx)}
-              className={`p-4 rounded-lg border font-mono text-sm text-left transition-colors ${idx === i ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+              className={`p-4 rounded-xl border font-mono text-sm text-left transition-colors ${idx === i ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
               <span className="text-xs opacity-70">0{idx + 1}</span><div className="font-bold">{s.name}</div>
             </button>
           ))}
         </div>
         <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-border bg-card/50 p-8 flex flex-col md:flex-row gap-6 items-start">
+          className="soft-card p-8 flex flex-col md:flex-row gap-6 items-start">
           <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><S.icon className="w-6 h-6 text-primary" /></div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
@@ -77,13 +93,13 @@ const bento = [
 
 export function BentoSection() {
   return (
-    <section className="py-24 bg-card/20 border-y border-border">
+    <section className="py-24">
       <div className="container mx-auto px-4 max-w-5xl">
         <motion.h2 {...reveal} className="text-3xl md:text-5xl font-bold font-mono text-center mb-12">Built for teams who run their own GPUs</motion.h2>
         <div className="grid md:grid-cols-3 gap-4">
           {bento.map((b, idx) => (
             <motion.div key={b.title} {...reveal} transition={{ duration: 0.5, delay: idx * 0.06 }}
-              className={`group rounded-xl border border-border bg-card/50 p-6 hover:border-primary/50 hover:shadow-[0_0_30px_-10px_hsl(var(--primary)/0.5)] transition-all ${b.span}`}>
+              className={`group soft-card p-6 hover:border-lightrail/50 hover:shadow-[0_0_30px_-10px_hsl(var(--primary)/0.5)] transition-all ${b.span}`}>
               <b.icon className="w-6 h-6 text-primary mb-4" />
               <h3 className="font-mono font-bold text-lg mb-2">{b.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{b.text}</p>
@@ -122,7 +138,7 @@ export function CodeSection() {
             ))}
           </ul>
         </motion.div>
-        <motion.div {...reveal} className="terminal-window">
+        <motion.div {...reveal} className="terminal-window rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card/50">
             <div className="flex gap-1">
               {(["shell", "agent"] as const).map((k) => (
@@ -145,13 +161,13 @@ export function CodeSection() {
 export function FinalCTA() {
   return (
     <section className="py-28 relative overflow-hidden">
-      <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+      <div className="absolute left-1/2 top-1/2 h-80 w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lightrail/10 blur-[110px] pointer-events-none" />
       <motion.div {...reveal} className="container mx-auto px-4 text-center relative">
         <h2 className="text-3xl md:text-5xl font-bold font-mono mb-4">Put an agent on your GPUs today.</h2>
         <p className="text-muted-foreground mb-8 max-w-xl mx-auto">Start free with one GPU. Pilot teams get hands-on onboarding.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/auth?next=/dashboard/gateway-setup"><Button size="lg" className="font-mono glow-primary">Start free <ArrowRight className="ml-2 w-4 h-4" /></Button></Link>
-          <Link to="/pricing"><Button size="lg" variant="outline" className="font-mono">See pricing</Button></Link>
+          <Link to="/auth?next=/dashboard/gateway-setup"><Button size="lg" className="rounded-xl h-12 px-6 bg-lightrail text-lightrail-foreground hover:bg-lightrail/90 shadow-[0_10px_30px_-8px_hsl(var(--lightrail)/0.65)]">Start free <ArrowRight className="ml-2 w-4 h-4" /></Button></Link>
+          <Link to="/pricing"><Button size="lg" variant="outline" className="rounded-xl h-12 px-6">See pricing</Button></Link>
         </div>
       </motion.div>
     </section>
