@@ -60,7 +60,7 @@ function errMessage(e: unknown) {
 
 type Outcome = { status: "connected" | "awaiting_gateway" | "error"; identity: string | null; message: string | null };
 
-/** Validate credentials directly or via the Aurora runtime gateway. */
+/** Validate credentials directly or via the LightOS runtime gateway. */
 async function validate(
   user: User,
   providerId: string,
@@ -82,7 +82,7 @@ async function validate(
   let configured = false;
   try { configured = gatewayConfig() !== null; } catch { configured = false; }
   if (!configured) {
-    return { status: "awaiting_gateway", identity: null, message: "Credentials stored. Validation runs once your Aurora runtime gateway is connected." };
+    return { status: "awaiting_gateway", identity: null, message: "Credentials stored. Validation runs once your LightOS runtime gateway is connected." };
   }
   try {
     const r = await gatewayFetch("/v1/providers/validate", user, {

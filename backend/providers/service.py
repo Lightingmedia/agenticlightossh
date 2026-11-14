@@ -4,7 +4,7 @@ Behaviour matches the ``provider-connect`` Supabase edge function (same statuses
 credential stored encrypted in this backend's own database instead of Supabase Vault:
 
 * ``connect`` validates the credentials against the provider *before* anything is stored; a failed validation stores
-  nothing. Providers this backend cannot validate itself are handed to the Aurora runtime gateway; without one the
+  nothing. Providers this backend cannot validate itself are handed to the LightOS runtime gateway; without one the
   connection is stored as ``awaiting_gateway``.
 * Credentials are only ever decrypted in memory for a single call; they are never returned to clients and are scrubbed
   from any error text that might echo them.
@@ -32,7 +32,7 @@ from .vault import Vault, VaultError
 
 log = logging.getLogger("lightos.providers")
 
-_AWAITING_GATEWAY = "Credentials stored. Validation runs once your Aurora runtime gateway is connected."
+_AWAITING_GATEWAY = "Credentials stored. Validation runs once your LightOS runtime gateway is connected."
 
 
 @dataclass(frozen=True)
@@ -264,7 +264,7 @@ class ProviderService:
                 items = await adapter.inventory(self.ctx, creds)
             else:
                 if self.gateway is None:
-                    raise ProviderError("The Aurora runtime gateway is not configured, so this provider cannot be read yet")
+                    raise ProviderError("The LightOS runtime gateway is not configured, so this provider cannot be read yet")
                 reply = await self.gateway.fetch(
                     f"/v1/providers/{quote(row['id'], safe='')}/inventory",
                     user,

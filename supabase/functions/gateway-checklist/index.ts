@@ -19,7 +19,7 @@ const json = (body: unknown, status: number) =>
   });
 
 const SYSTEM = `You are a senior GPU infrastructure engineer helping a cluster administrator finish two things:
-1) Deploying the LightOS runtime gateway: an authenticated HTTPS service inside their cluster. Aurora Fabric OS is the only privileged execution authority; the web app only submits constrained workload intent. The gateway talks to NVIDIA drivers, NVML/DCGM telemetry, and the scheduler (Kubernetes, Slurm or Ray). It must expose capacity, intent validation, deployment planning and fabric-state endpoints, and authenticate with a bearer token stored as secrets LIGHTOS_RUNTIME_GATEWAY_URL and LIGHTOS_RUNTIME_GATEWAY_TOKEN.
+1) Deploying the LightOS runtime gateway: an authenticated HTTPS service inside their cluster. LightOS is the only privileged execution authority; the web app only submits constrained workload intent. The gateway talks to NVIDIA drivers, NVML/DCGM telemetry, and the scheduler (Kubernetes, Slurm or Ray). It must expose capacity, intent validation, deployment planning and fabric-state endpoints, and authenticate with a bearer token stored as secrets LIGHTOS_RUNTIME_GATEWAY_URL and LIGHTOS_RUNTIME_GATEWAY_TOKEN.
 2) NVIDIA inference serving (e.g. Triton, TensorRT-LLM, NIM or vLLM) reachable through the gateway, reporting real utilization and cost measurements.
 
 Produce a tailored checklist in Markdown for THEIR environment. Rules:

@@ -1,6 +1,6 @@
-# Aurora Fabric OS / LightOS — product brief
+# LightOS / LightOS — product brief
 
-LightRail AI is the company. Aurora Fabric OS is the agentic infrastructure product. LightOS is its workspace.
+LightRail AI is the company. LightOS is the agentic infrastructure product. LightOS is its workspace.
 
 The intended loop is **intent → verified capacity → policy/budget checks → plan → approval → supported execution → verified outcome**. Dashboards display agent state and real infrastructure measurements; they do not replace the agent thesis.
 

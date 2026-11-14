@@ -1,6 +1,6 @@
 """IBM Cloud: IAM API key -> access token (IAM identity service) -> VPC infrastructure (GPU instance profiles).
 
-The merged TypeScript catalog delegates IBM to the Aurora runtime gateway; this backend validates it directly, so it
+The merged TypeScript catalog delegates IBM to the LightOS runtime gateway; this backend validates it directly, so it
 works without one.
 """
 from __future__ import annotations

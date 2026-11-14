@@ -5,7 +5,7 @@ import { callRuntimeGateway, toolResult } from "../runtime-gateway";
 export default defineTool({
   name: "get_fabric_state",
   title: "Get live fabric state",
-  description: "Read live Aurora topology, telemetry, or recent policy events from the privileged control plane.",
+  description: "Read live LightOS topology, telemetry, or recent policy events from the privileged control plane.",
   inputSchema: {
     view: z.enum(["topology", "telemetry", "events"]),
     windowSeconds: z.number().int().min(1).max(3600),

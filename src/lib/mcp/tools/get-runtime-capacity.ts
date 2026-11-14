@@ -5,7 +5,7 @@ import { callRuntimeGateway, toolResult } from "../runtime-gateway";
 export default defineTool({
   name: "get_runtime_capacity",
   title: "Get accelerator capacity",
-  description: "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the Aurora control plane.",
+  description: "Read verified CUDA, ROCm, TPU/XLA, and oneAPI/SYCL capacity from the LightOS control plane.",
   inputSchema: {
     runtime: z.enum(["all", "cuda", "rocm", "tpu_xla", "oneapi_sycl"]).describe("Runtime family to inspect."),
   },

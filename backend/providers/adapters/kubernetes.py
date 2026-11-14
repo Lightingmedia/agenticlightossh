@@ -2,7 +2,7 @@
 
 The API server URL is supplied by the user, so every request goes through the SSRF guard (``public_only``): https
 only, public addresses only, connection pinned to the address that was checked. Clusters behind private addresses
-should be enrolled through the Aurora gateway / node enrollment instead (or set PROVIDERS_ALLOW_PRIVATE_HOSTS=1 on a
+should be enrolled through the LightOS gateway / node enrollment instead (or set PROVIDERS_ALLOW_PRIVATE_HOSTS=1 on a
 trusted deployment).
 """
 from __future__ import annotations

@@ -1,7 +1,7 @@
 """Shared types for the provider adapters.
 
 Each adapter validates credentials with the cheapest read-only call the provider offers and lists GPU inventory in a
-normalised shape. Nothing here creates, modifies or deletes cloud resources: launching stays with Aurora Fabric OS
+normalised shape. Nothing here creates, modifies or deletes cloud resources: launching stays with LightOS
 behind the runtime gateway.
 """
 from __future__ import annotations
