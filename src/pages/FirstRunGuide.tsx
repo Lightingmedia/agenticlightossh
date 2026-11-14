@@ -34,7 +34,7 @@ const steps: Step[] = [
     text: "Make sure the NVIDIA driver, Docker and the NVIDIA Container Toolkit are installed. You should see your GPUs listed and a working Docker GPU test.",
     code: `nvidia-smi
 docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi`,
-    note: "Using Windows? Run these inside your Linux machine (for example after `brev shell <name>` or in WSL), not in PowerShell.",
+    note: "Using Windows? Run these inside your Linux machine (for example after “brev shell <name>” or inside WSL), not in PowerShell.",
   },
   {
     id: "baseline",
@@ -50,9 +50,12 @@ bash lightos-install.sh`,
     id: "gateway",
     icon: Terminal,
     title: "Start the LightOS gateway",
-    where: "On your NVIDIA machine, inside the gateway folder",
-    text: "The gateway reads your GPUs and answers only to requests carrying your private token. It opens an outbound tunnel, so no inbound ports are needed.",
-    code: `cd gateway
+    where: "On your NVIDIA machine",
+    text: "Download the gateway, check its fingerprint, and start it. The gateway reads your GPUs and answers only to requests carrying your private token. It opens an outbound tunnel, so no inbound ports are needed.",
+    code: `curl -fsSLO https://agentic.lightos.sh/downloads/lightos-gateway.tar.gz
+curl -fsSLO https://agentic.lightos.sh/downloads/lightos-gateway.tar.gz.sha256
+sha256sum -c lightos-gateway.tar.gz.sha256   # must print: OK
+tar -xzf lightos-gateway.tar.gz && cd gateway
 cp .env.example .env
 sed -i "s/^LIGHTOS_GATEWAY_TOKEN=.*/LIGHTOS_GATEWAY_TOKEN=$(openssl rand -hex 32)/" .env
 docker compose up -d --build`,
