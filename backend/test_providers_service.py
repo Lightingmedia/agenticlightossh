@@ -380,7 +380,7 @@ class TestGateway:
             await connect(make_service({}, settings=GATEWAY, internet=down), creds=NEBIUS_CREDS, provider=NEBIUS)
 
     @pytest.mark.asyncio
-    async def test_inventory_is_read_through_aurora(self, make_service):
+    async def test_inventory_is_read_through_gateway(self, make_service):
         seen = {}
 
         def inventory(request):
