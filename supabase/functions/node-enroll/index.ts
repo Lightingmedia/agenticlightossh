@@ -93,9 +93,14 @@ Deno.serve(async (req) => {
     // Over-limit hosts are not forwarded to the runtime gateway; the report is
     // still stored so the owner sees the upgrade state. Fail closed on lookup.
     let tier: "free" | "starter" | "pro" | "enterprise" = "free";
-    try { tier = await userTier(row.user_id, (name) => Deno.env.get(name)); } catch { /* fail closed */ }
+    let tierKnown = true;
+    try { tier = await userTier(row.user_id, (name) => Deno.env.get(name)); } catch { tierKnown = false; /* fail closed */ }
     const rejection = connectionRejection(body.report.gpus.length, tier);
-    if (rejection) {
+    if (rejection && !tierKnown) {
+      // Don't tell a possibly-paid user to upgrade when we simply couldn't read their plan.
+      gateway_status = "error";
+      gateway_message = "We couldn't confirm your plan just now, so this machine wasn't connected. Retry with a new code.";
+    } else if (rejection) {
       gateway_status = "upgrade_required";
       gateway_message = rejection;
     } else if (await gatewayState(row.user_id) === "configured") {

@@ -16,10 +16,11 @@ type Report = {
 type Status = {
   status: "pending" | "reported";
   report: Report | null;
-  gateway_status: "accepted" | "not_configured" | "error" | null;
+  gateway_status: "accepted" | "not_configured" | "error" | "upgrade_required" | null;
   gateway_message: string | null;
   expires_at: string;
   gateway: "configured" | "not_configured";
+  entitlement?: { tier: string; detected_devices: number; upgrade_required: boolean };
 };
 
 export default function CudaPdkStep({ onComplete }: { onComplete: () => void }) {
@@ -141,7 +142,25 @@ export default function CudaPdkStep({ onComplete }: { onComplete: () => void }) 
                 {status.gateway_status === "accepted" && <span className="text-green-400">✓ Accepted by runtime gateway</span>}
                 {status.gateway_status === "not_configured" && <span className="text-yellow-400">⚠ Not sent — gateway not connected</span>}
                 {status.gateway_status === "error" && <span className="text-destructive">✗ Gateway error: {status.gateway_message}</span>}
+                {status.gateway_status === "upgrade_required" && (
+                  <div className="space-y-2">
+                    <div className="text-yellow-400">⚠ Over your plan limit — not connected</div>
+                    <div className="text-muted-foreground font-sans text-sm">
+                      {status.gateway_message ?? "This machine has more GPUs than your plan includes. Upgrade to connect it."}
+                    </div>
+                    <Link to="/pricing"><Button size="sm" className="font-mono mt-1">See plans and upgrade</Button></Link>
+                  </div>
+                )}
+                {!status.gateway_status && <span className="text-muted-foreground">Report received — no gateway result recorded.</span>}
               </div>
+              {status.gateway_status !== "accepted" && (
+                <div className="pt-3">
+                  <Button size="sm" variant="outline" onClick={createCode} disabled={creating} className="font-mono">
+                    {creating ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <KeyRound className="w-3 h-3 mr-2" />}
+                    Try again with a new code
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
