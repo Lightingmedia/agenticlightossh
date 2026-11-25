@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Add Rent Compute before Pricing, public compute ranges page, and Compute pricing tab; verify navigation and rental search.
+- [x] Add Rent Compute before Pricing, public compute ranges page, and Compute pricing tab; verified desktop/mobile navigation and live four-GPU offers as a temporary test user (no purchase or rental).
 
 - [x] New home page release (Nov 14)
   - [x] Crusoe-style home page in LightOS colors
