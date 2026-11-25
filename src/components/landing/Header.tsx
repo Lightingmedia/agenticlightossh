@@ -94,6 +94,7 @@ const Header = () => {
                 </AnimatePresence>
               </div>
             ))}
+            <Link to="/rent-compute" className="px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Rent Compute</Link>
             <Link to="/pricing" className="px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
           </div>
 
@@ -125,6 +126,7 @@ const Header = () => {
                     </div>
                   </div>
                 ))}
+                <Link to="/rent-compute" onClick={() => setMobileOpen(false)} className="text-sm text-foreground/90">Rent Compute</Link>
                 <Link to="/pricing" onClick={() => setMobileOpen(false)} className="text-sm text-foreground/90">Pricing</Link>
                 <div className="flex gap-2 pt-3 border-t border-border/60">
                   <Link to="/auth" className="flex-1" onClick={() => setMobileOpen(false)}><Button variant="outline" size="sm" className="w-full rounded-xl">Sign in</Button></Link>

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Add Rent Compute before Pricing, public compute ranges page, and Compute pricing tab; verify navigation and rental search.
+
 - [x] New home page release (Nov 14)
   - [x] Crusoe-style home page in LightOS colors
   - [x] Link Platform / AI Infrastructure / Resources dropdowns to real pages

@@ -52,6 +52,7 @@ import TransformerExplainer from "./pages/TransformerExplainer";
 import LLMPerfBench from "./pages/LLMPerfBench";
 import Benchmark from "./pages/Benchmark";
 import Pricing from "./pages/Pricing";
+import RentCompute from "./pages/RentCompute";
 import CheckoutReturn from "./pages/CheckoutReturn";
 import Billing from "./pages/Billing";
 import LightOS from "./pages/LightOS";
@@ -87,6 +88,7 @@ const App = () => (
           <Route path="/transformer-explainer" element={<TransformerExplainer />} />
           <Route path="/benchmark" element={<Benchmark />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/rent-compute" element={<RentCompute />} />
           <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/guide" element={<FirstRunGuidePage />} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -12,6 +12,9 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useToast } from "@/hooks/use-toast";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ComputeRanges from "@/components/gpu-cloud/ComputeRanges";
+import RentGpuSection from "@/components/gpu-cloud/RentGpuSection";
 
 const plans = [
   {
@@ -93,6 +96,8 @@ const plans = [
 ];
 
 export default function Pricing() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pricingTab = searchParams.get("tab") === "compute" ? "compute" : "plans";
   const [annual, setAnnual] = useState(false);
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
   const [planChange, setPlanChange] = useState<{ plan: typeof plans[0]; priceId: string } | null>(null);
@@ -186,15 +191,18 @@ export default function Pricing() {
             Start free with one GPU. Paid plans are early access. Change or cancel any time; GPU time is billed separately.
           </p>
 
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mt-8">
+        </div>
+
+        <Tabs value={pricingTab} onValueChange={(value) => setSearchParams({ tab: value })}>
+          <div className="mb-10 flex justify-center"><TabsList aria-label="Pricing categories"><TabsTrigger value="plans">Platform plans</TabsTrigger><TabsTrigger value="compute">Compute</TabsTrigger></TabsList></div>
+          <TabsContent value="plans">
+          <div className="flex items-center justify-center gap-3 mb-10">
             <span className={`text-sm ${!annual ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
             <Switch checked={annual} onCheckedChange={setAnnual} />
             <span className={`text-sm ${annual ? "text-foreground" : "text-muted-foreground"}`}>
               Annual <Badge variant="secondary" className="ml-1 text-xs">Save 20%</Badge>
             </span>
           </div>
-        </div>
 
         {/* Plans */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -261,6 +269,12 @@ export default function Pricing() {
           Free: one GPU, monitoring only, no card required. Paid access and supported execution are subject to pilot validation. Compute charges are separate.
           Cancelled plans keep their features until the paid period ends.
         </p>
+          </TabsContent>
+          <TabsContent value="compute">
+            <ComputeRanges />
+            <div id="machines" className="mt-12 scroll-mt-8"><RentGpuSection /></div>
+          </TabsContent>
+        </Tabs>
 
         <AlertDialog open={!!planChange} onOpenChange={(o) => !o && setPlanChange(null)}>
           <AlertDialogContent>

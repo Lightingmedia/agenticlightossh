@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 import { Copy, CreditCard, Power, RefreshCw, ShoppingCart, Wallet } from "lucide-react";
@@ -40,13 +41,15 @@ async function call<T>(body: Record<string, unknown>): Promise<T> {
 }
 
 export default function RentGpuSection() {
+  const [searchParams] = useSearchParams();
+  const requestedCount = searchParams.get("gpus") ?? "";
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
   const [offers, setOffers] = useState<Offer[] | null>(null);
   const [offersError, setOffersError] = useState<string | null>(null);
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [gpuFilter, setGpuFilter] = useState("");
-  const [countFilter, setCountFilter] = useState("");
+  const [countFilter, setCountFilter] = useState(["1", "2", "4", "8"].includes(requestedCount) ? requestedCount : "");
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const [topupCents, setTopupCents] = useState<number | null>(null);
   const [renting, setRenting] = useState<Offer | null>(null);
@@ -72,13 +75,22 @@ export default function RentGpuSection() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(!!session));
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
+    setCountFilter(["1", "2", "4", "8"].includes(requestedCount) ? requestedCount : "");
+  }, [requestedCount]);
+
+  useEffect(() => {
     if (!signedIn) return;
-    loadAccount(); loadOffers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn]);
+    loadAccount();
+  }, [signedIn, loadAccount]);
+
+  useEffect(() => {
+    if (signedIn) loadOffers();
+  }, [signedIn, loadOffers]);
 
   // Returning from checkout: payment confirmation arrives a moment later.
   useEffect(() => {
@@ -131,8 +143,9 @@ export default function RentGpuSection() {
 
   if (signedIn === false) {
     return (
-      <section className="rounded-lg border border-border bg-card p-4 text-sm">
-        <p>Sign in to rent GPUs with prepaid credit.</p>
+      <section className="flex flex-wrap items-center justify-between gap-4 border-y border-border py-6 text-sm">
+        <div><h2 className="font-mono text-lg font-bold">Live machines & GPU credit</h2><p className="mt-2 text-muted-foreground">Sign in to check current offers, add LightOS credit and rent a GPU.</p></div>
+        <Button asChild><Link to={`/auth?next=${encodeURIComponent(window.location.pathname + window.location.search + "#machines")}`}>Sign in to rent</Link></Button>
       </section>
     );
   }
